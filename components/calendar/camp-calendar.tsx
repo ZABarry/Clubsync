@@ -16,6 +16,10 @@ type CampCalendarProps = {
   initialDate?: Date | string;
 };
 
+function toRequiredDate(value: Date | string): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
 function toDate(value: Date | string | null): Date | null {
   if (value == null) return null;
   return value instanceof Date ? value : new Date(value);
@@ -79,7 +83,7 @@ export function CampCalendar({
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        initialDate={initialDate ? toDate(initialDate) : undefined}
+        initialDate={initialDate ? toRequiredDate(initialDate) : undefined}
         events={calendarEvents}
         eventClick={handleEventClick}
         headerToolbar={{
