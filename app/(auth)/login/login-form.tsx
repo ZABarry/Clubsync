@@ -69,7 +69,7 @@ export function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to your ClubZer account</CardDescription>
+        <CardDescription>Pick up planning clubs with your friends</CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={onSubmit}>

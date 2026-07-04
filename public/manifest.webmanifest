@@ -1,11 +1,11 @@
 {
   "name": "ClubZer",
   "short_name": "ClubZer",
-  "description": "Discover, plan and coordinate clubs and activities with trusted parent friends",
+  "description": "The smarter way to discover and organise children's activities.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#faf9f7",
-  "theme_color": "#0f4c5c",
+  "background_color": "#FFF9F5",
+  "theme_color": "#FF6B54",
   "orientation": "portrait-primary",
   "icons": [
     {

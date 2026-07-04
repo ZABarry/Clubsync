@@ -34,7 +34,6 @@ export function ClubZerMark({
     >
       <rect width="48" height="48" rx="14" fill={`url(#${bgId})`} />
 
-      {/* Stylised Z with zero dot — club energy mark */}
       <path
         d="M15 16H33L21 24H31"
         stroke="white"
@@ -54,14 +53,15 @@ export function ClubZerMark({
       <defs>
         <linearGradient
           id={bgId}
-          x1="8"
-          y1="6"
-          x2="42"
-          y2="42"
+          x1="6"
+          y1="4"
+          x2="44"
+          y2="46"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#6366F1" />
-          <stop offset="1" stopColor="#7C3AED" />
+          <stop stopColor="#FF6B54" />
+          <stop offset="0.55" stopColor="#FF9346" />
+          <stop offset="1" stopColor="#FFB347" />
         </linearGradient>
       </defs>
     </svg>
@@ -83,7 +83,7 @@ export function ClubZerLogo({
       {showWordmark ? (
         <span className={`${s.text} leading-none tracking-tight`}>
           <span className="font-bold text-foreground">Club</span>
-          <span className="font-bold text-primary">Zer</span>
+          <span className="font-extrabold text-primary">Zer</span>
         </span>
       ) : null}
     </span>

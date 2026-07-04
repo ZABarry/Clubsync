@@ -6,10 +6,10 @@ const LEGEND_ITEMS: Array<{
   label: string;
   color: string;
 }> = [
-  { variant: "mine", label: "My clubs", color: "#0ea5e9" },
-  { variant: "friend", label: "Friend clubs", color: "#8b5cf6" },
-  { variant: "shared", label: "Shared clubs", color: "#ec4899" },
-  { variant: "suggested", label: "Suggested", color: "#f59e0b" },
+  { variant: "mine", label: "My clubs", color: "#FF6B54" },
+  { variant: "friend", label: "Friend clubs", color: "#38BDF8" },
+  { variant: "shared", label: "Shared clubs", color: "#C084FC" },
+  { variant: "suggested", label: "Suggested", color: "#FBBF24" },
 ];
 
 type MapLegendProps = {

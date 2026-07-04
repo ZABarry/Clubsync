@@ -110,7 +110,7 @@ export default async function HomePage() {
     <div className="space-y-8">
       <PageHeader
         title={`Hello, ${displayName}`}
-        description="Your clubs and activities planning hub"
+        description="The smarter way to discover and organise children's activities."
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link href="/planner">

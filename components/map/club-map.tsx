@@ -27,10 +27,10 @@ const OSM_STYLE = {
 };
 
 const MARKER_COLORS: Record<ClubMapMarker["variant"], string> = {
-  mine: "#0ea5e9",
-  friend: "#8b5cf6",
-  shared: "#ec4899",
-  suggested: "#f59e0b",
+  mine: "#FF6B54",
+  friend: "#38BDF8",
+  shared: "#C084FC",
+  suggested: "#FBBF24",
 };
 
 type ClubMapProps = {

@@ -195,8 +195,8 @@ export function ProfileView({
           <CardHeader>
             <CardTitle className="text-base">Welcome to ClubZer!</CardTitle>
             <CardDescription>
-              Complete your profile and add your children to start planning
-              clubs.
+              Add your children and invite trusted parent friends to discover
+              and share clubs together.
             </CardDescription>
           </CardHeader>
         </Card>

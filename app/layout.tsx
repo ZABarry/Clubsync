@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 
+import { CLUBZER_TAGLINE } from "@/lib/brand";
 import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
@@ -9,8 +10,7 @@ export const metadata: Metadata = {
     default: "ClubZer",
     template: "%s | ClubZer",
   },
-  description:
-    "Discover, plan and coordinate clubs and activities with trusted parent friends",
+  description: CLUBZER_TAGLINE,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f4c5c",
+  themeColor: "#FF6B54",
 };
 
 export default function RootLayout({

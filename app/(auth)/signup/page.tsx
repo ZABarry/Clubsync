@@ -89,7 +89,7 @@ export default function SignupPage() {
     <Card>
       <CardHeader>
         <CardTitle>Create account</CardTitle>
-        <CardDescription>Get started with ClubZer</CardDescription>
+        <CardDescription>Start sharing clubs with parent friends</CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={onSubmit}>

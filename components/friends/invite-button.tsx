@@ -47,7 +47,7 @@ export function InviteButton({ onCreateInvite, className }: InviteButtonProps) {
   const handleShareWhatsApp = useCallback(() => {
     if (!inviteUrl) return;
     const text = encodeURIComponent(
-      `Join me on ClubZer to plan summer clubs together: ${inviteUrl}`,
+      `Join me on ClubZer — the smarter way to discover and organise children's activities: ${inviteUrl}`,
     );
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   }, [inviteUrl]);
