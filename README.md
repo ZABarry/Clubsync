@@ -80,7 +80,17 @@ npm run db:studio
 
 ### What the seed creates
 
-- 10 providers and 35 summer camps across New Malden, Kingston, Wimbledon, Surbiton, Worcester Park, Raynes Park, Epsom, Sutton, and Richmond
+The seed script is **idempotent** — it upserts data from JSON files and never deletes existing records. Safe to run multiple times.
+
+**Camp data** (from `prisma/seed-data/`):
+
+- 27 real-world providers and 35 summer camps across New Malden, Kingston, Surbiton, Worcester Park, and surrounding areas
+- Providers matched by `slug` (from JSON `providerId`) or `name`
+- Camps matched by `providerId` + `name` + `locationName`
+- Preserves source URLs, data confidence, status, activities (tags), dates, prices, coordinates, and booking URLs
+
+**Demo data** (created only if missing):
+
 - Demo parent accounts (`parent1@example.com`, `parent2@example.com`) with children, planned camps, trusted connections, shared camps, and ratings
 - An admin user (`admin@example.com`) for local DB testing
 
@@ -198,7 +208,7 @@ Phase 4 adds visual planning views:
 | `npm run db:push` | Push Prisma schema to database (dev shortcut) |
 | `npm run db:migrate` | Apply migrations in development |
 | `npm run db:migrate:deploy` | Apply migrations in production |
-| `npm run db:seed` | Seed SW London camp data |
+| `npm run db:seed` | Import camp/provider JSON data (upsert, safe to re-run) |
 | `npm run db:verify` | Verify Phase 2 data layer against seeded DB |
 | `npm run db:studio` | Open Prisma Studio |
 
@@ -279,11 +289,41 @@ npm run test:e2e
 
 ## Seed Data
 
-The seed script creates:
-- 10 providers
-- 35 camps across New Malden, Kingston, Wimbledon, Surbiton, Worcester Park, Raynes Park, Epsom, Sutton, Richmond
-- Demo parent accounts (for local DB testing only — create real accounts via Supabase Auth)
-- Sample planned camps, trusted connections, shared camps, and ratings
+Camp and provider data lives in `prisma/seed-data/`:
+
+| File | Description |
+|------|-------------|
+| `providers.json` | Camp providers (name, website, contact, source URL) |
+| `camps.json` | Individual camps with location, dates, activities, pricing |
+
+```bash
+# Apply schema migrations first
+npm run db:migrate
+
+# Import / refresh camp data (upsert — does not delete existing rows)
+npm run db:seed
+```
+
+The seed uses **upsert** logic:
+
+- **Providers** — matched by `slug` (JSON `providerId`) or `name`
+- **Camps** — matched by `providerId` + `name` + `locationName`
+- **Demo users** — created only if they do not already exist
+
+Re-running `npm run db:seed` updates existing records from the JSON files without wiping user data, planned camps, or ratings.
+
+### Schema fields for import
+
+The following fields were added to support the JSON import:
+
+| Model | Field | Maps from JSON |
+|-------|-------|----------------|
+| Provider | `slug` | `providerId` |
+| Provider | `sourceUrl` | `sourceUrl` |
+| Camp | `sourceUrl` | `sourceUrl` |
+| Camp | `dataConfidence` | `dataConfidence` |
+| Camp | `priceNote` | `priceFrom` (full text; numeric prefix also stored in `price`) |
+| Camp | `startDate` / `endDate` | Optional — null when dates are unverified |
 
 ## Roadmap
 

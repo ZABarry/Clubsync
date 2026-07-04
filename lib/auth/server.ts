@@ -1,39 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import { Prisma, UserRole } from "@prisma/client";
 
-import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/auth/env";
+import { createClient } from "@/lib/auth/supabase-server";
 
-export async function createClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
-        } catch {
-          // Called from Server Component — middleware refreshes sessions
-        }
-      },
-    },
-  });
-}
-
-export async function getSession() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
+export { createClient, getSession } from "@/lib/auth/supabase-server";
 
 export const syncUser = cache(async () => {
   const supabase = await createClient();

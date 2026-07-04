@@ -105,12 +105,14 @@ model ChildProfile {
 
 model Provider {
   id           String   @id @default(uuid())
+  slug         String?  @unique
   name         String
   description  String?
   website      String?
   contactEmail String?
   phone        String?
   logoUrl      String?
+  sourceUrl    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -129,13 +131,16 @@ model Camp {
   activities      String[]
   ageMin          Int
   ageMax          Int
-  startDate       DateTime
-  endDate         DateTime
+  startDate       DateTime?
+  endDate         DateTime?
   dailyStartTime  String?
   dailyEndTime    String?
   price           Float?
+  priceNote       String?
   bookingUrl      String?
   imageUrl        String?
+  sourceUrl       String?
+  dataConfidence  String?
   ratingAverage   Float      @default(0)
   ratingCount     Int        @default(0)
   status          CampStatus @default(ACTIVE)
@@ -153,6 +158,7 @@ model Camp {
   ratings        Rating[]
   changeRequests CampChangeRequest[]
 
+  @@unique([providerId, name, locationName])
   @@index([latitude, longitude])
   @@index([startDate, endDate])
   @@index([providerId])
