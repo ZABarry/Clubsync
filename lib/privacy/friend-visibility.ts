@@ -15,8 +15,8 @@ export function isVisibleToFriends(status: PlannedCampStatus): boolean {
 export type FriendCampActivity = {
   campId: string;
   campName: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   status: PlannedCampStatus;
   parentDisplayName: string;
   childNickname: string | null;
@@ -28,7 +28,7 @@ export function sanitizeFriendActivity(
     status: PlannedCampStatus;
     parent: { displayName: string };
     child: { nickname: string; age: number } | null;
-    camp: { id: string; name: string; startDate: Date; endDate: Date };
+    camp: { id: string; name: string; startDate: Date | null; endDate: Date | null };
   }>,
 ): FriendCampActivity[] {
   return rows

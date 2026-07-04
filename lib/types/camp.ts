@@ -11,8 +11,8 @@ export type CampCardData = {
   id: string;
   name: string;
   providerName: string;
-  startDate: Date | string;
-  endDate: Date | string;
+  startDate: Date | string | null;
+  endDate: Date | string | null;
   price?: number | null;
   ratingAverage?: number;
   ratingCount?: number;

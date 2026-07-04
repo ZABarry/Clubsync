@@ -39,8 +39,8 @@ type PlannedCampRow = {
   camp: {
     id: string;
     name: string;
-    startDate: Date | string;
-    endDate: Date | string;
+    startDate: Date | string | null;
+    endDate: Date | string | null;
     provider: { name: string };
   };
 };

@@ -10,17 +10,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { FriendCampActivity } from "@/lib/privacy/friend-visibility";
-import { cn, formatDateRange } from "@/lib/utils";
+import { cn, formatOptionalDateRange } from "@/lib/utils";
 
 type FriendActivityListProps = {
   activities: FriendCampActivity[];
   className?: string;
   emptyMessage?: string;
 };
-
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
-}
 
 function initials(name: string): string {
   return name
@@ -50,8 +46,6 @@ export function FriendActivityList({
   return (
     <ul className={cn("space-y-3", className)}>
       {activities.map((activity) => {
-        const start = toDate(activity.startDate);
-        const end = toDate(activity.endDate);
         const childLabel = activity.childNickname
           ? `${activity.childNickname}${activity.childAge ? ` (${activity.childAge})` : ""}`
           : null;
@@ -78,7 +72,12 @@ export function FriendActivityList({
                 </div>
               </CardHeader>
               <CardContent className="px-4 text-sm text-muted-foreground">
-                <p>{formatDateRange(start, end)}</p>
+                <p>
+                  {formatOptionalDateRange(
+                    activity.startDate,
+                    activity.endDate,
+                  )}
+                </p>
                 {childLabel ? <p className="mt-1">Child: {childLabel}</p> : null}
               </CardContent>
             </Card>

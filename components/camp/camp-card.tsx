@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn, formatDateRange, formatPrice } from "@/lib/utils";
+import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
 import type { CampCardData } from "@/lib/types/camp";
 
 type CampCardProps = {
@@ -20,13 +20,8 @@ type CampCardProps = {
   onClick?: () => void;
 };
 
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
-}
-
 export function CampCard({ camp, className, onClick }: CampCardProps) {
-  const start = toDate(camp.startDate);
-  const end = toDate(camp.endDate);
+  const dateLabel = formatOptionalDateRange(camp.startDate, camp.endDate);
   const hasRating = (camp.ratingCount ?? 0) > 0;
 
   return (
@@ -70,7 +65,7 @@ export function CampCard({ camp, className, onClick }: CampCardProps) {
         <CardDescription>{camp.providerName}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 px-4">
-        <p className="text-sm">{formatDateRange(start, end)}</p>
+        <p className="text-sm">{dateLabel}</p>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">
             {formatPrice(camp.price)}

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { CampDetailData, PlannedCampStatus } from "@/lib/types/camp";
-import { cn, formatDateRange, formatPrice } from "@/lib/utils";
+import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
 
 type CampDetailProps = {
   camp: CampDetailData;
@@ -32,10 +32,6 @@ type CampDetailProps = {
   className?: string;
 };
 
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
-}
-
 export function CampDetail({
   camp,
   plannedStatus,
@@ -43,8 +39,7 @@ export function CampDetail({
   statusControlsDisabled,
   className,
 }: CampDetailProps) {
-  const start = toDate(camp.startDate);
-  const end = toDate(camp.endDate);
+  const dateLabel = formatOptionalDateRange(camp.startDate, camp.endDate);
   const hasRating = (camp.ratingCount ?? 0) > 0;
 
   return (
@@ -76,7 +71,7 @@ export function CampDetail({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoCard label="Dates" value={formatDateRange(start, end)} />
+        <InfoCard label="Dates" value={dateLabel} />
         <InfoCard label="Price" value={formatPrice(camp.price)} />
         <InfoCard
           label="Ages"

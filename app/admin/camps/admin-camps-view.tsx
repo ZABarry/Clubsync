@@ -37,14 +37,14 @@ import {
   updateCamp,
 } from "@/lib/actions/admin";
 import { campSchema } from "@/lib/validation/schemas";
-import { formatDateRange } from "@/lib/utils";
+import { formatOptionalDateRange } from "@/lib/utils";
 
 type Camp = {
   id: string;
   name: string;
   status: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   providerId: string;
   description: string | null;
   locationName: string;
@@ -78,8 +78,12 @@ function campToFormDefaults(camp: Camp) {
     activities: camp.activities,
     ageMin: camp.ageMin,
     ageMax: camp.ageMax,
-    startDate: new Date(camp.startDate).toISOString().slice(0, 10),
-    endDate: new Date(camp.endDate).toISOString().slice(0, 10),
+    startDate: camp.startDate
+      ? new Date(camp.startDate).toISOString().slice(0, 10)
+      : "",
+    endDate: camp.endDate
+      ? new Date(camp.endDate).toISOString().slice(0, 10)
+      : "",
     dailyStartTime: camp.dailyStartTime ?? "",
     dailyEndTime: camp.dailyEndTime ?? "",
     price: camp.price ?? undefined,
@@ -194,10 +198,7 @@ export function AdminCampsView({ camps, providers }: AdminCampsViewProps) {
                   <TableCell className="font-medium">{camp.name}</TableCell>
                   <TableCell>{camp.provider.name}</TableCell>
                   <TableCell className="text-sm">
-                    {formatDateRange(
-                      new Date(camp.startDate),
-                      new Date(camp.endDate),
-                    )}
+                    {formatOptionalDateRange(camp.startDate, camp.endDate)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{camp.status.toLowerCase()}</Badge>

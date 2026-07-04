@@ -24,6 +24,17 @@ export function formatDateRange(start: Date, end: Date): string {
   return `${s} – ${e}`;
 }
 
+export function formatOptionalDateRange(
+  start: Date | string | null | undefined,
+  end: Date | string | null | undefined,
+  fallback = "Dates TBC",
+): string {
+  if (start == null || end == null) return fallback;
+  const s = start instanceof Date ? start : new Date(start);
+  const e = end instanceof Date ? end : new Date(end);
+  return formatDateRange(s, e);
+}
+
 export function haversineKm(
   lat1: number,
   lng1: number,

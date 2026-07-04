@@ -97,8 +97,8 @@ function toCampCard(
   camp: {
     id: string;
     name: string;
-    startDate: Date;
-    endDate: Date;
+    startDate: Date | null;
+    endDate: Date | null;
     price: number | null;
     ratingAverage: number;
     ratingCount: number;

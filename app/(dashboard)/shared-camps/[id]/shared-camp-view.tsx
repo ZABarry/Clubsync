@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { joinSharedCamp } from "@/lib/actions/shared-camps";
-import { formatDateRange } from "@/lib/utils";
+import { formatOptionalDateRange } from "@/lib/utils";
 
 type Participant = {
   id: string;
@@ -35,8 +35,8 @@ type SharedCampViewProps = {
     camp: {
       id: string;
       name: string;
-      startDate: Date;
-      endDate: Date;
+      startDate: Date | null;
+      endDate: Date | null;
       locationName: string;
       bookingUrl: string | null;
       provider: { name: string };
@@ -78,9 +78,6 @@ export function SharedCampView({
     });
   };
 
-  const start = new Date(sharedCamp.camp.startDate);
-  const end = new Date(sharedCamp.camp.endDate);
-
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -88,7 +85,12 @@ export function SharedCampView({
         <p className="text-muted-foreground">
           {sharedCamp.camp.name} · {sharedCamp.camp.provider.name}
         </p>
-        <p className="text-sm">{formatDateRange(start, end)}</p>
+        <p className="text-sm">
+          {formatOptionalDateRange(
+            sharedCamp.camp.startDate,
+            sharedCamp.camp.endDate,
+          )}
+        </p>
         <p className="text-muted-foreground text-sm">
           {sharedCamp.camp.locationName}
         </p>

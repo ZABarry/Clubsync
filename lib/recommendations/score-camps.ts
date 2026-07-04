@@ -6,8 +6,8 @@ export type RecommendationCamp = {
   ageMin: number;
   ageMax: number;
   activities: string[];
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   latitude: number;
   longitude: number;
   ratingAverage: number;
@@ -45,11 +45,12 @@ const WEIGHTS = {
 };
 
 function datesOverlap(
-  campStart: Date,
-  campEnd: Date,
+  campStart: Date | null,
+  campEnd: Date | null,
   availStart: Date | null,
   availEnd: Date | null,
 ): boolean {
+  if (!campStart || !campEnd) return true;
   if (!availStart || !availEnd) return true;
   return campStart <= availEnd && campEnd >= availStart;
 }

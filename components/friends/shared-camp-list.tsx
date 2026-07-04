@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn, formatDateRange } from "@/lib/utils";
+import { cn, formatOptionalDateRange } from "@/lib/utils";
 
 export type SharedCampSummary = {
   id: string;
@@ -51,13 +51,10 @@ export function SharedCampList({
   return (
     <ul className={cn("space-y-3", className)}>
       {sharedCamps.map((shared) => {
-        const dateLabel =
-          shared.camp.startDate && shared.camp.endDate
-            ? formatDateRange(
-                new Date(shared.camp.startDate),
-                new Date(shared.camp.endDate),
-              )
-            : "Dates TBC";
+        const dateLabel = formatOptionalDateRange(
+          shared.camp.startDate,
+          shared.camp.endDate,
+        );
 
         return (
           <li key={shared.id}>
