@@ -18,15 +18,11 @@ import {
 } from "@/components/ui/sheet";
 import { upsertPlannedCamp } from "@/lib/actions/planned-camps";
 import type { CampCalendarEvent, PlannedCampStatus } from "@/lib/types/camp";
-import { formatDateRange } from "@/lib/utils";
+import { formatOptionalDateRange } from "@/lib/utils";
 
 type CalendarViewProps = {
   events: CampCalendarEvent[];
 };
-
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
-}
 
 export function CalendarView({ events }: CalendarViewProps) {
   const router = useRouter();
@@ -71,7 +67,7 @@ export function CalendarView({ events }: CalendarViewProps) {
               <SheetHeader>
                 <SheetTitle>{selected.title}</SheetTitle>
                 <SheetDescription>
-                  {formatDateRange(toDate(selected.start), toDate(selected.end))}
+                  {formatOptionalDateRange(selected.start, selected.end)}
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">

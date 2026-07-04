@@ -53,8 +53,8 @@ export type CampMapMarker = {
 export type CampCalendarEvent = {
   id: string;
   title: string;
-  start: Date | string;
-  end: Date | string;
+  start: Date | string | null;
+  end: Date | string | null;
   status?: PlannedCampStatus;
   campId?: string;
 };

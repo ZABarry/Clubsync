@@ -16,7 +16,8 @@ type CampCalendarProps = {
   initialDate?: Date | string;
 };
 
-function toDate(value: Date | string): Date {
+function toDate(value: Date | string | null): Date | null {
+  if (value == null) return null;
   return value instanceof Date ? value : new Date(value);
 }
 
@@ -38,21 +39,29 @@ export function CampCalendar({
 }: CampCalendarProps) {
   const calendarEvents = useMemo(
     () =>
-      events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        start: toDate(event.start),
-        end: toDate(event.end),
-        allDay: true,
-        backgroundColor: event.status
-          ? STATUS_COLORS[event.status]
-          : STATUS_COLORS.INTERESTED,
-        borderColor: "transparent",
-        extendedProps: {
-          campId: event.campId,
-          status: event.status,
-        },
-      })),
+      events.flatMap((event) => {
+        const start = toDate(event.start);
+        const end = toDate(event.end);
+        if (!start || !end) return [];
+
+        return [
+          {
+            id: event.id,
+            title: event.title,
+            start,
+            end,
+            allDay: true,
+            backgroundColor: event.status
+              ? STATUS_COLORS[event.status]
+              : STATUS_COLORS.INTERESTED,
+            borderColor: "transparent",
+            extendedProps: {
+              campId: event.campId,
+              status: event.status,
+            },
+          },
+        ];
+      }),
     [events],
   );
 
