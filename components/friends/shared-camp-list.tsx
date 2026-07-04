@@ -19,8 +19,8 @@ export type SharedCampSummary = {
   camp: {
     id: string;
     name: string;
-    startDate: Date | string;
-    endDate: Date | string;
+    startDate: Date | string | null;
+    endDate: Date | string | null;
     locationName: string;
   };
   participants: Array<{ parent: { displayName: string } }>;
@@ -51,8 +51,13 @@ export function SharedCampList({
   return (
     <ul className={cn("space-y-3", className)}>
       {sharedCamps.map((shared) => {
-        const start = new Date(shared.camp.startDate);
-        const end = new Date(shared.camp.endDate);
+        const dateLabel =
+          shared.camp.startDate && shared.camp.endDate
+            ? formatDateRange(
+                new Date(shared.camp.startDate),
+                new Date(shared.camp.endDate),
+              )
+            : "Dates TBC";
 
         return (
           <li key={shared.id}>
@@ -68,7 +73,7 @@ export function SharedCampList({
                     </Badge>
                   </div>
                   <CardDescription>
-                    {shared.camp.name} · {formatDateRange(start, end)}
+                    {shared.camp.name} · {dateLabel}
                   </CardDescription>
                   <CardDescription className="text-xs">
                     {shared.camp.locationName} · by{" "}
