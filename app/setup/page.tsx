@@ -26,6 +26,11 @@ export default function SetupPage() {
             reasons. Replace <code>YOUR_DB_PASSWORD</code> in{" "}
             <code>.env.local</code>, then restart the dev server.
           </p>
+          <p className="text-muted-foreground">
+            On Vercel, add <code>DATABASE_URL</code> and <code>DIRECT_URL</code>{" "}
+            under Project Settings → Environment Variables (same pooler URLs as
+            below), then redeploy.
+          </p>
           <ol className="list-decimal space-y-2 pl-5">
             <li>
               Open{" "}
