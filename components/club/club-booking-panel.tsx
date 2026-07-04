@@ -24,6 +24,7 @@ import {
   computeTotalPrice,
   enumerateCampDates,
   formatBookingSummary,
+  formatCampDayLabel,
   resolveDailyRate,
 } from "@/lib/utils/club-booking";
 import { formatPrice } from "@/lib/utils";
@@ -35,15 +36,6 @@ type ClubBookingPanelProps = {
   onSaved?: () => void;
   disabled?: boolean;
 };
-
-function formatDayLabel(isoDate: string): string {
-  const date = new Date(`${isoDate}T00:00:00.000Z`);
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(date);
-}
 
 export function ClubBookingPanel({
   club,
@@ -241,7 +233,7 @@ export function ClubBookingPanel({
                       disabled={disabled || pending}
                       onChange={() => toggleDate(date)}
                     />
-                    <span>{formatDayLabel(date)}</span>
+                    <span>{formatCampDayLabel(date)}</span>
                   </label>
                 );
               })}

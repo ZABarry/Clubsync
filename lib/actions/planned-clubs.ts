@@ -178,6 +178,27 @@ function isoDateToUtcDate(isoDate: string): Date {
   return new Date(`${isoDate}T00:00:00.000Z`);
 }
 
+function groupContiguousDates(dates: string[]): string[][] {
+  const sorted = uniqueBookedDates(dates);
+  if (sorted.length === 0) return [];
+
+  const groups: string[][] = [[sorted[0]]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const previous = isoDateToUtcDate(sorted[i - 1]);
+    const current = isoDateToUtcDate(sorted[i]);
+    previous.setUTCDate(previous.getUTCDate() + 1);
+
+    if (previous.getTime() === current.getTime()) {
+      groups[groups.length - 1].push(sorted[i]);
+    } else {
+      groups.push([sorted[i]]);
+    }
+  }
+
+  return groups;
+}
+
 export async function getPlannedClubsForCalendar(): Promise<ClubCalendarEvent[]> {
   const profile = await requireParentProfileId();
 
@@ -215,35 +236,39 @@ export async function getPlannedClubsForCalendar(): Promise<ClubCalendarEvent[]>
       club: p.club,
     });
 
+    const baseEvent = {
+      id: p.id,
+      title,
+      status: p.status,
+      clubId: p.club.id,
+      campStartDate: p.club.startDate,
+      campEndDate: p.club.endDate,
+      bookedDates: booking.bookedDates,
+      dayCount: booking.bookedDates.length,
+      effectiveTotalPrice: booking.effectiveTotalPrice,
+      effectiveDailyRate: booking.effectiveDailyRate,
+      dailyRateOverride: p.dailyRateOverride,
+      totalPriceOverride: p.totalPriceOverride,
+    };
+
     if (booking.bookedDates.length > 0) {
-      for (const date of booking.bookedDates) {
+      for (const group of groupContiguousDates(booking.bookedDates)) {
+        const first = group[0];
+        const last = group[group.length - 1];
         events.push({
-          id: `${p.id}-${date}`,
-          title,
-          start: isoDateToUtcDate(date),
-          end: isoDateToUtcDate(date),
-          status: p.status,
-          clubId: p.club.id,
-          bookedDates: booking.bookedDates,
-          dayCount: booking.bookedDates.length,
-          effectiveTotalPrice: booking.effectiveTotalPrice,
-          effectiveDailyRate: booking.effectiveDailyRate,
+          ...baseEvent,
+          id: group.length === booking.bookedDates.length ? p.id : `${p.id}-${first}`,
+          start: isoDateToUtcDate(first),
+          end: isoDateToUtcDate(last),
         });
       }
       continue;
     }
 
     events.push({
-      id: p.id,
-      title,
+      ...baseEvent,
       start: p.club.startDate,
       end: p.club.endDate,
-      status: p.status,
-      clubId: p.club.id,
-      bookedDates: [],
-      dayCount: 0,
-      effectiveTotalPrice: booking.effectiveTotalPrice,
-      effectiveDailyRate: booking.effectiveDailyRate,
     });
   }
 

@@ -2,24 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
+import { CalendarCampSheet } from "@/components/calendar/calendar-camp-sheet";
 import { ClubCalendar } from "@/components/calendar/club-calendar";
-import { ClubStatusControls } from "@/components/club/club-status-controls";
-import { ClubStatusBadge } from "@/components/club/club-status-badge";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
-import type { ClubCalendarEvent, PlannedClubStatus } from "@/lib/types/club";
-import { formatOptionalDateRange } from "@/lib/utils";
-import { formatBookingSummary } from "@/lib/utils/club-booking";
+import type { ClubCalendarEvent } from "@/lib/types/club";
 
 type CalendarViewProps = {
   events: ClubCalendarEvent[];
@@ -28,24 +15,16 @@ type CalendarViewProps = {
 export function CalendarView({ events }: CalendarViewProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<ClubCalendarEvent | null>(null);
-  const [pending, startTransition] = useTransition();
 
-  const handleStatusChange = (status: PlannedClubStatus) => {
+  useEffect(() => {
     if (!selected?.clubId) return;
+    const updated = events.find((event) => event.clubId === selected.clubId);
+    if (updated) setSelected(updated);
+  }, [events, selected?.clubId]);
 
-    startTransition(async () => {
-      try {
-        await upsertPlannedClub({
-          clubId: selected.clubId,
-          status,
-        });
-        toast.success("Status updated");
-        setSelected(null);
-        router.refresh();
-      } catch {
-        toast.error("Failed to update status");
-      }
-    });
+  const handleUpdated = () => {
+    setSelected(null);
+    router.refresh();
   };
 
   return (
@@ -61,44 +40,13 @@ export function CalendarView({ events }: CalendarViewProps) {
         <ClubCalendar events={events} onEventClick={setSelected} />
       )}
 
-      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-          {selected ? (
-            <>
-              <SheetHeader>
-                <SheetTitle>{selected.title}</SheetTitle>
-                <SheetDescription>
-                  {formatOptionalDateRange(selected.start, selected.end)}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                {selected.status ? (
-                  <ClubStatusBadge status={selected.status} />
-                ) : null}
-                {selected.dayCount != null && selected.dayCount > 0 ? (
-                  <p className="text-muted-foreground text-sm">
-                    {formatBookingSummary(
-                      selected.dayCount,
-                      selected.effectiveDailyRate ?? null,
-                      selected.effectiveTotalPrice ?? null,
-                    )}
-                  </p>
-                ) : null}
-                <ClubStatusControls
-                  currentStatus={selected.status}
-                  onStatusChange={handleStatusChange}
-                  disabled={pending}
-                />
-                {selected.clubId ? (
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/clubs/${selected.clubId}`}>View club details</Link>
-                  </Button>
-                ) : null}
-              </div>
-            </>
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      <CalendarCampSheet
+        event={selected}
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        onUpdated={handleUpdated}
+        onRefresh={() => router.refresh()}
+      />
     </>
   );
 }

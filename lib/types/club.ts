@@ -68,9 +68,13 @@ export type ClubCalendarEvent = {
   status?: PlannedClubStatus;
   clubId?: string;
   bookedDates?: string[];
+  campStartDate?: Date | string | null;
+  campEndDate?: Date | string | null;
   dayCount?: number;
   effectiveTotalPrice?: number | null;
   effectiveDailyRate?: number | null;
+  dailyRateOverride?: number | null;
+  totalPriceOverride?: number | null;
 };
 
 export type ClubFilterValues = {

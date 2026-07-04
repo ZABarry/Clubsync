@@ -122,3 +122,28 @@ export function sortBookedDates(dates: string[]): string[] {
 export function uniqueBookedDates(dates: string[]): string[] {
   return sortBookedDates([...new Set(dates)]);
 }
+
+export function formatCampDayLabel(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(date);
+}
+
+export function formatBookedDateRange(dates: string[]): string | null {
+  const sorted = uniqueBookedDates(dates);
+  if (sorted.length === 0) return null;
+
+  const formatDay = (isoDate: string) => {
+    const date = new Date(`${isoDate}T00:00:00.000Z`);
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+    }).format(date);
+  };
+
+  if (sorted.length === 1) return formatDay(sorted[0]);
+  return `${formatDay(sorted[0])} – ${formatDay(sorted[sorted.length - 1])}`;
+}
