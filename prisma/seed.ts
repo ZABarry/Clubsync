@@ -74,13 +74,21 @@ function parseActivities(value?: string): string[] {
 function parsePriceFrom(priceFrom?: string): {
   price: number | null;
   priceNote: string | null;
+  dailyRate: number | null;
 } {
   const note = emptyToNull(priceFrom);
-  if (!note) return { price: null, priceNote: null };
+  if (!note) return { price: null, priceNote: null, dailyRate: null };
   const match = note.match(/(\d+(?:\.\d+)?)/);
+  const price = match ? Number.parseFloat(match[1]) : null;
+  const lower = note.toLowerCase();
+  const dailyRate =
+    price != null && (lower.includes("per day") || lower.includes("/ day"))
+      ? price
+      : null;
   return {
-    price: match ? Number.parseFloat(match[1]) : null,
+    price,
     priceNote: note,
+    dailyRate,
   };
 }
 
@@ -177,7 +185,7 @@ async function seedClubsFromJson(providerIdBySlug: Map<string, string>) {
       continue;
     }
 
-    const { price, priceNote } = parsePriceFrom(club.priceFrom);
+    const { price, priceNote, dailyRate } = parsePriceFrom(club.priceFrom);
     const { isIndoor, isOutdoor } = parseIndoorOutdoor(club.indoorOutdoor);
     const data = {
       providerId,
@@ -195,6 +203,7 @@ async function seedClubsFromJson(providerIdBySlug: Map<string, string>) {
       dailyStartTime: emptyToNull(club.dailyStartTime),
       dailyEndTime: emptyToNull(club.dailyEndTime),
       price,
+      dailyRate,
       priceNote,
       bookingUrl: emptyToNull(club.bookingUrl),
       sourceUrl: emptyToNull(club.sourceUrl),

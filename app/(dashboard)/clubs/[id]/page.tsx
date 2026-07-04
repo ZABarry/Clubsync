@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { getClubById } from "@/lib/actions/clubs";
+import { getPlannedClubForClub } from "@/lib/actions/planned-clubs";
 import { getFriendActivityForClub } from "@/lib/actions/friends";
 import { getRatingsForClub } from "@/lib/actions/ratings";
 import { getSharedClubsForClub } from "@/lib/actions/shared-clubs";
@@ -21,10 +22,11 @@ export default async function ClubDetailPage({
 
   if (!club) notFound();
 
-  const [ratings, friendActivity, sharedClubs] = await Promise.all([
+  const [ratings, friendActivity, sharedClubs, booking] = await Promise.all([
     getRatingsForClub(id),
     getFriendActivityForClub(id).catch(() => []),
     getSharedClubsForClub(id).catch(() => []),
+    getPlannedClubForClub(id).catch(() => null),
   ]);
 
   return (
@@ -33,6 +35,7 @@ export default async function ClubDetailPage({
       <ClubDetailView
         club={club}
         plannedStatus={club.plannedStatus ?? null}
+        booking={booking}
         ratings={ratings}
         friendActivity={friendActivity}
         sharedClubs={sharedClubs}

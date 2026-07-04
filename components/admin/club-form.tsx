@@ -64,6 +64,7 @@ export function ClubForm({
       dailyStartTime: "",
       dailyEndTime: "",
       price: undefined,
+      dailyRate: undefined,
       bookingUrl: "",
       imageUrl: "",
       status: "ACTIVE",
@@ -340,6 +341,30 @@ export function ClubForm({
                 <FormLabel>Daily end</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} value={field.value ?? ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="dailyRate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Daily rate (£)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value ? Number(e.target.value) : undefined,
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

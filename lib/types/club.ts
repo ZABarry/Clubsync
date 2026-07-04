@@ -7,6 +7,14 @@ export type PlannedClubStatus =
   | "PAID"
   | "CANCELLED";
 
+export type PlannedClubBookingData = {
+  bookedDates: string[];
+  dailyRateOverride: number | null;
+  totalPriceOverride: number | null;
+  effectiveDailyRate: number | null;
+  effectiveTotalPrice: number | null;
+};
+
 export type ClubCardData = {
   id: string;
   name: string;
@@ -14,6 +22,8 @@ export type ClubCardData = {
   startDate: Date | string | null;
   endDate: Date | string | null;
   price?: number | null;
+  dailyRate?: number | null;
+  priceNote?: string | null;
   ratingAverage?: number;
   ratingCount?: number;
   activities: string[];
@@ -57,6 +67,10 @@ export type ClubCalendarEvent = {
   end: Date | string | null;
   status?: PlannedClubStatus;
   clubId?: string;
+  bookedDates?: string[];
+  dayCount?: number;
+  effectiveTotalPrice?: number | null;
+  effectiveDailyRate?: number | null;
 };
 
 export type ClubFilterValues = {

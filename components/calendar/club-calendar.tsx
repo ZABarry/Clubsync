@@ -25,6 +25,17 @@ function toDate(value: Date | string | null): Date | null {
   return value instanceof Date ? value : new Date(value);
 }
 
+function toAllDayEnd(start: Date, end: Date): Date {
+  if (start.getTime() >= end.getTime()) {
+    const next = new Date(start);
+    next.setUTCDate(next.getUTCDate() + 1);
+    return next;
+  }
+  const next = new Date(end);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   SUGGESTED: "#38bdf8",
   INTERESTED: "#3b82f6",
@@ -53,7 +64,7 @@ export function ClubCalendar({
             id: event.id,
             title: event.title,
             start,
-            end,
+            end: toAllDayEnd(start, end),
             allDay: true,
             backgroundColor: event.status
               ? STATUS_COLORS[event.status]

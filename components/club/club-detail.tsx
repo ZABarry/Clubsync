@@ -21,12 +21,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { ClubDetailData, PlannedClubStatus } from "@/lib/types/club";
+import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
 import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
+import { formatBookingSummary } from "@/lib/utils/club-booking";
 
 type ClubDetailProps = {
   club: ClubDetailData;
   plannedStatus?: PlannedClubStatus | null;
+  booking?: PlannedClubBookingData | null;
   onStatusChange?: (status: PlannedClubStatus) => void;
   statusControlsDisabled?: boolean;
   className?: string;
@@ -35,12 +37,22 @@ type ClubDetailProps = {
 export function ClubDetail({
   club,
   plannedStatus,
+  booking,
   onStatusChange,
   statusControlsDisabled,
   className,
 }: ClubDetailProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
+  const displayDailyRate = club.dailyRate ?? club.price;
+  const bookingSummary =
+    booking && booking.bookedDates.length > 0
+      ? formatBookingSummary(
+          booking.bookedDates.length,
+          booking.effectiveDailyRate,
+          booking.effectiveTotalPrice,
+        )
+      : null;
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -72,7 +84,19 @@ export function ClubDetail({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <InfoCard label="Dates" value={dateLabel} />
-        <InfoCard label="Price" value={formatPrice(club.price)} />
+        <InfoCard
+          label="Daily rate"
+          value={
+            <span>
+              {formatPrice(displayDailyRate)}
+              {club.priceNote ? (
+                <span className="text-muted-foreground mt-1 block text-xs font-normal">
+                  {club.priceNote}
+                </span>
+              ) : null}
+            </span>
+          }
+        />
         <InfoCard
           label="Ages"
           value={`${club.ageMin}–${club.ageMax} years`}
@@ -189,6 +213,9 @@ export function ClubDetail({
           <Separator />
           <div className="space-y-3">
             <h2 className="text-sm font-medium">Your status</h2>
+            {bookingSummary ? (
+              <p className="text-muted-foreground text-sm">{bookingSummary}</p>
+            ) : null}
             <ClubStatusControls
               currentStatus={plannedStatus}
               onStatusChange={onStatusChange}

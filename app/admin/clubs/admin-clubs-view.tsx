@@ -57,6 +57,8 @@ type Club = {
   dailyStartTime: string | null;
   dailyEndTime: string | null;
   price: number | null;
+  dailyRate: number | null;
+  priceNote: string | null;
   bookingUrl: string | null;
   imageUrl: string | null;
   isIndoor: boolean;
@@ -87,6 +89,7 @@ function clubToFormDefaults(club: Club) {
     dailyStartTime: club.dailyStartTime ?? "",
     dailyEndTime: club.dailyEndTime ?? "",
     price: club.price ?? undefined,
+    dailyRate: club.dailyRate ?? undefined,
     bookingUrl: club.bookingUrl ?? "",
     imageUrl: club.imageUrl ?? "",
     status: club.status as "ACTIVE" | "DRAFT" | "ARCHIVED",

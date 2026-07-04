@@ -19,6 +19,7 @@ import {
 import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
 import type { ClubCalendarEvent, PlannedClubStatus } from "@/lib/types/club";
 import { formatOptionalDateRange } from "@/lib/utils";
+import { formatBookingSummary } from "@/lib/utils/club-booking";
 
 type CalendarViewProps = {
   events: ClubCalendarEvent[];
@@ -73,6 +74,15 @@ export function CalendarView({ events }: CalendarViewProps) {
               <div className="mt-6 space-y-4">
                 {selected.status ? (
                   <ClubStatusBadge status={selected.status} />
+                ) : null}
+                {selected.dayCount != null && selected.dayCount > 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    {formatBookingSummary(
+                      selected.dayCount,
+                      selected.effectiveDailyRate ?? null,
+                      selected.effectiveTotalPrice ?? null,
+                    )}
+                  </p>
                 ) : null}
                 <ClubStatusControls
                   currentStatus={selected.status}

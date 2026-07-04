@@ -136,6 +136,7 @@ model Club {
   dailyStartTime  String?
   dailyEndTime    String?
   price           Float?
+  dailyRate       Float?
   priceNote       String?
   bookingUrl      String?
   imageUrl        String?
@@ -169,9 +170,12 @@ model PlannedClub {
   parentProfileId String
   childProfileId  String?
   clubId          String
-  status          PlannedClubStatus @default(INTERESTED)
-  notes           String?
-  createdAt       DateTime          @default(now())
+  status              PlannedClubStatus @default(INTERESTED)
+  notes               String?
+  bookedDates         String[]          @default([])
+  dailyRateOverride   Float?
+  totalPriceOverride  Float?
+  createdAt           DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
   parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)

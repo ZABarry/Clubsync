@@ -38,6 +38,11 @@ export const plannedClubSchema = z.object({
     "CANCELLED",
   ]),
   notes: z.string().max(500).optional(),
+  bookedDates: z
+    .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/))
+    .optional(),
+  dailyRateOverride: z.coerce.number().positive().optional().nullable(),
+  totalPriceOverride: z.coerce.number().positive().optional().nullable(),
 });
 
 export const clubFilterSchema = z.object({
@@ -109,6 +114,7 @@ export const clubSchema = z.object({
   dailyStartTime: z.string().optional(),
   dailyEndTime: z.string().optional(),
   price: z.coerce.number().optional(),
+  dailyRate: z.coerce.number().optional(),
   bookingUrl: z.string().url().optional().or(z.literal("")),
   imageUrl: z.string().url().optional().or(z.literal("")),
   status: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]).default("ACTIVE"),

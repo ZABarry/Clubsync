@@ -100,6 +100,8 @@ function toClubCard(
     startDate: Date | null;
     endDate: Date | null;
     price: number | null;
+    dailyRate: number | null;
+    priceNote: string | null;
     ratingAverage: number;
     ratingCount: number;
     activities: string[];
@@ -120,6 +122,8 @@ function toClubCard(
     startDate: club.startDate,
     endDate: club.endDate,
     price: club.price,
+    dailyRate: club.dailyRate,
+    priceNote: club.priceNote,
     ratingAverage: club.ratingAverage,
     ratingCount: club.ratingCount,
     activities: club.activities,

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { ClubDetail } from "@/components/club/club-detail";
+import { ClubBookingPanel } from "@/components/club/club-booking-panel";
 import { FriendActivityList } from "@/components/club/friend-activity-list";
 import { SharedClubSection } from "@/components/club/shared-club-section";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,7 @@ import { createSharedClub } from "@/lib/actions/shared-clubs";
 import { submitChangeRequest } from "@/lib/actions/submissions";
 import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
 import type { FriendClubActivity } from "@/lib/privacy/friend-visibility";
-import type { ClubDetailData, PlannedClubStatus } from "@/lib/types/club";
+import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
 import {
   changeRequestSchema,
   ratingSchema,
@@ -68,6 +69,7 @@ type Rating = {
 type ClubDetailViewProps = {
   club: ClubDetailData;
   plannedStatus: PlannedClubStatus | null;
+  booking: PlannedClubBookingData | null;
   ratings: Rating[];
   friendActivity: FriendClubActivity[];
   sharedClubs: Array<{
@@ -91,6 +93,7 @@ const CHANGE_FIELDS = [
 export function ClubDetailView({
   club,
   plannedStatus,
+  booking,
   ratings,
   friendActivity,
   sharedClubs,
@@ -189,8 +192,17 @@ export function ClubDetailView({
       <ClubDetail
         club={club}
         plannedStatus={plannedStatus}
+        booking={booking}
         onStatusChange={handleStatusChange}
         statusControlsDisabled={pending}
+      />
+
+      <ClubBookingPanel
+        club={club}
+        plannedStatus={plannedStatus}
+        booking={booking}
+        onSaved={() => router.refresh()}
+        disabled={pending}
       />
 
       <div className="flex flex-wrap gap-2">
