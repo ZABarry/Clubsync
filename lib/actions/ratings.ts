@@ -16,20 +16,20 @@ export async function submitRating(data: unknown) {
   const profile = await requireParentProfileId();
   const parsed = ratingSchema.parse(data);
 
-  const camp = await prisma.camp.findFirst({
-    where: { id: parsed.campId, status: "ACTIVE" },
+  const club = await prisma.club.findFirst({
+    where: { id: parsed.clubId, status: "ACTIVE" },
   });
-  if (!camp) throw new Error("Camp not found");
+  if (!club) throw new Error("Club not found");
 
   const rating = await prisma.rating.upsert({
     where: {
-      campId_parentProfileId: {
-        campId: parsed.campId,
+      clubId_parentProfileId: {
+        clubId: parsed.clubId,
         parentProfileId: profile.id,
       },
     },
     create: {
-      campId: parsed.campId,
+      clubId: parsed.clubId,
       parentProfileId: profile.id,
       rating: parsed.rating,
       reviewText: parsed.reviewText ?? null,
@@ -45,18 +45,18 @@ export async function submitRating(data: unknown) {
     },
   });
 
-  revalidatePath(`/camps/${parsed.campId}`);
+  revalidatePath(`/clubs/${parsed.clubId}`);
   revalidatePath("/admin");
   return rating;
 }
 
-export async function getRatingsForCamp(campId: string) {
+export async function getRatingsForClub(clubId: string) {
   const user = await requireAuth();
   const profile = user.parentProfile;
 
   const ratings = await prisma.rating.findMany({
     where: {
-      campId,
+      clubId,
       OR: [
         { moderationStatus: "APPROVED" },
         ...(profile

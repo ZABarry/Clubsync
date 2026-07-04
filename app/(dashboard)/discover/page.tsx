@@ -1,19 +1,19 @@
 import { PageHeader } from "@/components/layout/page-header";
-import { getCamps } from "@/lib/actions/camps";
-import { buildMapMarkersForCamps } from "@/lib/actions/map-markers";
-import type { CampCalendarEvent, CampFilterValues } from "@/lib/types/camp";
-import { campFilterSchema } from "@/lib/validation/schemas";
+import { getClubs } from "@/lib/actions/clubs";
+import { buildMapMarkersForClubs } from "@/lib/actions/map-markers";
+import type { ClubCalendarEvent, ClubFilterValues } from "@/lib/types/club";
+import { clubFilterSchema } from "@/lib/validation/schemas";
 
 import { DiscoverView } from "./discover-view";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-function parseSearchParams(searchParams: SearchParams): CampFilterValues {
+function parseSearchParams(searchParams: SearchParams): ClubFilterValues {
   const raw: Record<string, string> = {};
   for (const [key, value] of Object.entries(searchParams)) {
     if (typeof value === "string") raw[key] = value;
   }
-  return campFilterSchema.parse(raw);
+  return clubFilterSchema.parse(raw);
 }
 
 export default async function DiscoverPage({
@@ -23,37 +23,37 @@ export default async function DiscoverPage({
 }) {
   const params = await searchParams;
   const filters = parseSearchParams(params);
-  const camps = await getCamps(filters);
+  const clubs = await getClubs(filters);
 
-  const calendarEvents: CampCalendarEvent[] = camps.slice(0, 20).map((camp) => ({
-    id: camp.id,
-    title: camp.name,
-    start: camp.startDate,
-    end: camp.endDate,
-    status: camp.plannedStatus ?? undefined,
-    campId: camp.id,
+  const calendarEvents: ClubCalendarEvent[] = clubs.slice(0, 20).map((club) => ({
+    id: club.id,
+    title: club.name,
+    start: club.startDate,
+    end: club.endDate,
+    status: club.plannedStatus ?? undefined,
+    clubId: club.id,
   }));
 
-  const mapMarkers = await buildMapMarkersForCamps(
-    camps
-      .filter((camp) => camp.latitude != null && camp.longitude != null)
+  const mapMarkers = await buildMapMarkersForClubs(
+    clubs
+      .filter((club) => club.latitude != null && club.longitude != null)
       .slice(0, 30)
-      .map((camp) => ({
-        id: camp.id,
-        name: camp.name,
-        latitude: camp.latitude!,
-        longitude: camp.longitude!,
+      .map((club) => ({
+        id: club.id,
+        name: club.name,
+        latitude: club.latitude!,
+        longitude: club.longitude!,
       })),
   );
 
   return (
     <div>
       <PageHeader
-        title="Discover camps"
+        title="Discover clubs"
         description="Search and filter clubs and activities near you"
       />
       <DiscoverView
-        camps={camps}
+        clubs={clubs}
         calendarEvents={calendarEvents}
         mapMarkers={mapMarkers}
         defaultFilters={filters}

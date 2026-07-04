@@ -3,27 +3,27 @@ import {
   getFriendActivity,
   getTrustedConnections,
 } from "@/lib/actions/friends";
-import { getSharedCampsForParent } from "@/lib/actions/shared-camps";
+import { getSharedClubsForParent } from "@/lib/actions/shared-clubs";
 
 import { FriendsView } from "./friends-view";
 
 export default async function FriendsPage() {
-  const [connections, activities, sharedCamps] = await Promise.all([
+  const [connections, activities, sharedClubs] = await Promise.all([
     getTrustedConnections(),
     getFriendActivity(),
-    getSharedCampsForParent(),
+    getSharedClubsForParent(),
   ]);
 
   return (
     <div>
       <PageHeader
         title="Friends"
-        description="Connect with trusted parents and see their camp plans"
+        description="Connect with trusted parents and see their club plans"
       />
       <FriendsView
         connections={connections}
         activities={activities}
-        sharedCamps={sharedCamps}
+        sharedClubs={sharedClubs}
       />
     </div>
   );

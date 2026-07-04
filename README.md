@@ -1,6 +1,6 @@
 # ClubSync
 
-ClubSync helps parents discover, plan, and coordinate children's clubs and activities with trusted parent friends. MVP focuses on summer camps around New Malden and South West London.
+ClubSync helps parents discover, plan, and coordinate children's clubs and activities with trusted parent friends. MVP focuses on summer clubs around New Malden and South West London.
 
 ## Tech Stack
 
@@ -84,14 +84,14 @@ The seed script is **idempotent** — it upserts data from JSON files and never 
 
 **Camp data** (from `prisma/seed-data/`):
 
-- 27 real-world providers and 35 summer camps across New Malden, Kingston, Surbiton, Worcester Park, and surrounding areas
+- 27 real-world providers and 35 summer clubs across New Malden, Kingston, Surbiton, Worcester Park, and surrounding areas
 - Providers matched by `slug` (from JSON `providerId`) or `name`
 - Camps matched by `providerId` + `name` + `locationName`
 - Preserves source URLs, data confidence, status, activities (tags), dates, prices, coordinates, and booking URLs
 
 **Demo data** (created only if missing):
 
-- Demo parent accounts (`parent1@example.com`, `parent2@example.com`) with children, planned camps, trusted connections, shared camps, and ratings
+- Demo parent accounts (`parent1@example.com`, `parent2@example.com`) with children, planned clubs, trusted connections, shared camps, and ratings
 - An admin user (`admin@example.com`) for local DB testing
 
 **Note:** Seed users exist in Postgres only. Create real accounts via Supabase Auth to log in. Set `ADMIN_EMAIL` in `.env.local` to assign admin role on first login.
@@ -113,13 +113,13 @@ Phase 5 connects parents with trusted friends and coordinates shared camp plans:
 - **Invite links** — generate a secure token, copy link, or share via WhatsApp (`/invite/[token]`)
 - **Trusted connections** — manage sent/received connections on the Friends page
 - **Friend activity** — privacy-safe feed on Home, Friends, and camp detail (nicknames only; cancelled camps hidden)
-- **Shared camps** — create from camp detail, list on Friends, join existing groups, view participant statuses
+- **Shared clubs** — create from camp detail, list on Friends, join existing groups, view participant statuses
 
 ```bash
 # Create an invite at /friends
 # Accept via /invite/[token] after signing in
-# Create or join a shared camp from /camps/[id]
-# View coordination at /shared-camps/[id]
+# Create or join a shared camp from /clubs/[id]
+# View coordination at /shared-clubs/[id]
 ```
 
 ## Phase 6: Admin
@@ -127,7 +127,7 @@ Phase 5 connects parents with trusted friends and coordinates shared camp plans:
 Phase 6 delivers the role-guarded admin portal:
 
 - **Dashboard** — overview with pending moderation counts
-- **Camp CRUD** — create, edit, and archive camps
+- **Club CRUD** — create, edit, and archive camps
 - **Provider CRUD** — manage camp providers
 - **Submissions** — approve (creates a draft camp) or reject parent submissions
 - **Change requests** — approve (patches camp field) or reject
@@ -161,12 +161,12 @@ Phase 3 delivers the parent-facing discovery and planning flow:
 - **Profile onboarding** — parent profile with postcode geocoding (postcodes.io), child CRUD with privacy-safe fields
 - **Discover** — search, filters (age, activity, dates, price, rating, distance, indoor/outdoor, friends-only), camp cards
 - **Camp detail** — full camp info, map, planning status controls, ratings, change requests
-- **Recommendations** — rules-based scoring engine on Home and Smart Planner (`lib/recommendations/score-camps.ts`)
+- **Recommendations** — rules-based scoring engine on Home and Smart Planner (`lib/recommendations/score-clubs.ts`)
 
 ```bash
 # Log in, complete profile at /profile?onboarding=true
 # Browse camps at /discover
-# View camp detail at /camps/[id]
+# View camp detail at /clubs/[id]
 # Try Smart Planner at /planner
 ```
 
@@ -180,7 +180,7 @@ Phase 4 adds visual planning views:
 - **Calendar preview** — Discover page shows filtered camps on a mini calendar
 
 ```bash
-# View your planned camps at /calendar
+# View your planned clubs at /calendar
 # Use map + calendar preview on /discover
 ```
 
@@ -235,7 +235,7 @@ tests/             Unit + E2E tests
 ## Features
 
 ### Parent
-- Browse and filter local summer camps
+- Browse and filter local summer clubs
 - Map and calendar views
 - Plan camps with status tracking (interested → paid)
 - Invite trusted parents via shareable link
@@ -294,7 +294,7 @@ Camp and provider data lives in `prisma/seed-data/`:
 | File | Description |
 |------|-------------|
 | `providers.json` | Camp providers (name, website, contact, source URL) |
-| `camps.json` | Individual camps with location, dates, activities, pricing |
+| `clubs.json` | Individual camps with location, dates, activities, pricing |
 
 ```bash
 # Apply schema migrations first
@@ -310,7 +310,7 @@ The seed uses **upsert** logic:
 - **Camps** — matched by `providerId` + `name` + `locationName`
 - **Demo users** — created only if they do not already exist
 
-Re-running `npm run db:seed` updates existing records from the JSON files without wiping user data, planned camps, or ratings.
+Re-running `npm run db:seed` updates existing records from the JSON files without wiping user data, planned clubs, or ratings.
 
 ### Schema fields for import
 

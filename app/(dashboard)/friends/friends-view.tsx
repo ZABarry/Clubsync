@@ -4,28 +4,28 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import { FriendActivityList } from "@/components/camp/friend-activity-list";
+import { FriendActivityList } from "@/components/club/friend-activity-list";
 import { ConnectionList } from "@/components/friends/connection-list";
 import { InviteButton } from "@/components/friends/invite-button";
 import {
-  SharedCampList,
-  type SharedCampSummary,
-} from "@/components/friends/shared-camp-list";
+  SharedClubList,
+  type SharedClubSummary,
+} from "@/components/friends/shared-club-list";
 import { Button } from "@/components/ui/button";
 import {
   createInviteLink,
   revokeConnection,
 } from "@/lib/actions/friends";
-import type { FriendCampActivity } from "@/lib/privacy/friend-visibility";
-import type { TrustedConnection } from "@/lib/types/camp";
+import type { FriendClubActivity } from "@/lib/privacy/friend-visibility";
+import type { TrustedConnection } from "@/lib/types/club";
 
 type FriendsViewProps = {
   connections: TrustedConnection[];
-  activities: FriendCampActivity[];
-  sharedCamps: SharedCampSummary[];
+  activities: FriendClubActivity[];
+  sharedClubs: SharedClubSummary[];
 };
 
-export function FriendsView({ connections, activities, sharedCamps }: FriendsViewProps) {
+export function FriendsView({ connections, activities, sharedClubs }: FriendsViewProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -76,8 +76,8 @@ export function FriendsView({ connections, activities, sharedCamps }: FriendsVie
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Shared camps</h2>
-        <SharedCampList sharedCamps={sharedCamps} />
+        <h2 className="text-lg font-semibold">Shared clubs</h2>
+        <SharedClubList sharedClubs={sharedClubs} />
       </section>
 
       <section className="space-y-4">

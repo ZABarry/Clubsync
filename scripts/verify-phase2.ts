@@ -12,63 +12,63 @@ const prisma = createPrismaClient(
 async function verify() {
   console.log("Verifying Phase 2 data layer...\n");
 
-  const activeCampCount = await prisma.camp.count({
+  const activeClubCount = await prisma.club.count({
     where: { status: "ACTIVE" },
   });
-  console.assert(activeCampCount === 35, `Expected 35 active camps, got ${activeCampCount}`);
-  console.log(`✓ ${activeCampCount} active camps`);
+  console.assert(activeClubCount === 35, `Expected 35 active clubs, got ${activeClubCount}`);
+  console.log(`✓ ${activeClubCount} active clubs`);
 
   const providerCount = await prisma.provider.count();
   console.assert(providerCount === 10, `Expected 10 providers, got ${providerCount}`);
   console.log(`✓ ${providerCount} providers`);
 
-  const camp = await prisma.camp.findFirst({
+  const club = await prisma.club.findFirst({
     where: { status: "ACTIVE" },
     include: {
       provider: { select: { name: true } },
       ratings: { where: { moderationStatus: "APPROVED" } },
     },
   });
-  console.assert(camp !== null, "Expected at least one camp");
-  console.assert(camp!.provider.name.length > 0, "Expected provider name on camp");
-  console.log(`✓ Camp detail includes provider (${camp!.provider.name})`);
+  console.assert(club !== null, "Expected at least one club");
+  console.assert(club!.provider.name.length > 0, "Expected provider name on club");
+  console.log(`✓ Club detail includes provider (${club!.provider.name})`);
 
   const parent1 = await prisma.user.findUnique({
     where: { email: "parent1@example.com" },
-    include: { parentProfile: { include: { children: true, plannedCamps: true } } },
+    include: { parentProfile: { include: { children: true, plannedClubs: true } } },
   });
   console.assert(parent1 !== null, "Expected parent1 seed user");
   console.assert(parent1!.parentProfile !== null, "Expected parent1 profile");
   console.assert(
-    parent1!.parentProfile!.plannedCamps.length >= 2,
-    "Expected parent1 planned camps",
+    parent1!.parentProfile!.plannedClubs.length >= 2,
+    "Expected parent1 planned clubs",
   );
   console.log(
-    `✓ Parent profile with ${parent1!.parentProfile!.children.length} children and ${parent1!.parentProfile!.plannedCamps.length} planned camps`,
+    `✓ Parent profile with ${parent1!.parentProfile!.children.length} children and ${parent1!.parentProfile!.plannedClubs.length} planned clubs`,
   );
 
-  const calendarEvents = await prisma.plannedCamp.findMany({
+  const calendarEvents = await prisma.plannedClub.findMany({
     where: { parentProfileId: parent1!.parentProfile!.id },
-    include: { camp: true },
+    include: { club: true },
   });
   console.assert(calendarEvents.length >= 2, "Expected calendar events for parent1");
-  console.log(`✓ ${calendarEvents.length} planned camps for calendar`);
+  console.log(`✓ ${calendarEvents.length} planned clubs for calendar`);
 
-  const footballCamps = await prisma.camp.count({
+  const footballClubs = await prisma.club.count({
     where: { status: "ACTIVE", activities: { has: "football" } },
   });
-  console.assert(footballCamps > 0, "Expected football activity filter to match camps");
-  console.log(`✓ Activity filter: ${footballCamps} football camps`);
+  console.assert(footballClubs > 0, "Expected football activity filter to match clubs");
+  console.log(`✓ Activity filter: ${footballClubs} football clubs`);
 
-  const ageFiltered = await prisma.camp.count({
+  const ageFiltered = await prisma.club.count({
     where: {
       status: "ACTIVE",
       ageMin: { lte: 9 },
       ageMax: { gte: 9 },
     },
   });
-  console.assert(ageFiltered > 0, "Expected age filter to match camps");
-  console.log(`✓ Age filter: ${ageFiltered} camps for age 9`);
+  console.assert(ageFiltered > 0, "Expected age filter to match clubs");
+  console.log(`✓ Age filter: ${ageFiltered} clubs for age 9`);
 
   const adminEmail = process.env.ADMIN_EMAIL ?? "admin@example.com";
   const existingAdmin = await prisma.user.findUnique({

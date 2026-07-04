@@ -16,10 +16,10 @@ export type DiscoverFilters = {
 
 type DiscoverStore = {
   filters: DiscoverFilters;
-  selectedCampId: string | null;
+  selectedClubId: string | null;
   setFilters: (filters: Partial<DiscoverFilters>) => void;
   resetFilters: () => void;
-  setSelectedCampId: (id: string | null) => void;
+  setSelectedClubId: (id: string | null) => void;
 };
 
 const defaultFilters: DiscoverFilters = {
@@ -29,9 +29,9 @@ const defaultFilters: DiscoverFilters = {
 
 export const useDiscoverStore = create<DiscoverStore>((set) => ({
   filters: defaultFilters,
-  selectedCampId: null,
+  selectedClubId: null,
   setFilters: (filters) =>
     set((state) => ({ filters: { ...state.filters, ...filters } })),
   resetFilters: () => set({ filters: defaultFilters }),
-  setSelectedCampId: (id) => set({ selectedCampId: id }),
+  setSelectedClubId: (id) => set({ selectedClubId: id }),
 }));

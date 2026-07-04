@@ -1,0 +1,120 @@
+import type { PlannedClubStatus } from "@/lib/types/club";
+import { MapPin, Star } from "lucide-react";
+
+import { ClubStatusBadge } from "@/components/club/club-status-badge";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
+import type { ClubCardData } from "@/lib/types/club";
+
+type ClubCardProps = {
+  club: ClubCardData;
+  className?: string;
+  onClick?: () => void;
+};
+
+export function ClubCard({ club, className, onClick }: ClubCardProps) {
+  const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
+  const hasRating = (club.ratingCount ?? 0) > 0;
+
+  return (
+    <Card
+      className={cn(
+        "gap-4 py-4 transition-shadow hover:shadow-md",
+        onClick && "cursor-pointer",
+        className,
+      )}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
+      {club.imageUrl ? (
+        <div className="px-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={club.imageUrl}
+            alt=""
+            className="aspect-[16/9] w-full rounded-lg object-cover"
+          />
+        </div>
+      ) : null}
+      <CardHeader className="gap-2 px-4">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base leading-snug">{club.name}</CardTitle>
+          {club.plannedStatus ? (
+            <ClubStatusBadge status={club.plannedStatus} />
+          ) : null}
+        </div>
+        <CardDescription>{club.providerName}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3 px-4">
+        <p className="text-sm">{dateLabel}</p>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">
+            {formatPrice(club.price)}
+          </span>
+          {hasRating ? (
+            <span className="inline-flex items-center gap-1">
+              <Star className="size-3.5 fill-amber-400 text-amber-400" />
+              {club.ratingAverage?.toFixed(1)}
+              <span className="text-xs">({club.ratingCount})</span>
+            </span>
+          ) : null}
+          {club.distanceKm != null ? (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="size-3.5" />
+              {club.distanceKm.toFixed(1)} km
+            </span>
+          ) : null}
+        </div>
+        {club.activities.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {club.activities.slice(0, 4).map((activity) => (
+              <Badge key={activity} variant="secondary" className="text-xs">
+                {activity}
+              </Badge>
+            ))}
+            {club.activities.length > 4 ? (
+              <Badge variant="outline" className="text-xs">
+                +{club.activities.length - 4}
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
+        {club.recommendationReasons && club.recommendationReasons.length > 0 ? (
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            {club.recommendationReasons.slice(0, 3).join(" · ")}
+          </p>
+        ) : null}
+      </CardContent>
+      {club.plannedStatus ? (
+        <CardFooter className="px-4 pt-0">
+          <span className="text-muted-foreground text-xs">
+            Status: {formatStatusLabel(club.plannedStatus)}
+          </span>
+        </CardFooter>
+      ) : null}
+    </Card>
+  );
+}
+
+function formatStatusLabel(status: PlannedClubStatus): string {
+  return status.charAt(0) + status.slice(1).toLowerCase().replace("_", " ");
+}

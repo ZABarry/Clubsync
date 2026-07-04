@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { TrustedConnection } from "@/lib/types/camp";
+import type { TrustedConnection } from "@/lib/types/club";
 import { cn } from "@/lib/utils";
 
 type ConnectionListProps = {

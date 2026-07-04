@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { isVisibleToFriends, sanitizeFriendActivity } from "@/lib/privacy/friend-visibility";
 
 describe("friend visibility", () => {
-  it("hides cancelled camps from friends", () => {
+  it("hides cancelled clubs from friends", () => {
     expect(isVisibleToFriends("CANCELLED")).toBe(false);
     expect(isVisibleToFriends("PLANNED")).toBe(true);
   });
@@ -13,9 +13,9 @@ describe("friend visibility", () => {
         status: "PLANNED",
         parent: { displayName: "Sarah" },
         child: { nickname: "Lily", age: 9 },
-        camp: {
+        club: {
           id: "1",
-          name: "Football Camp",
+          name: "Football Club",
           startDate: new Date("2026-07-07"),
           endDate: new Date("2026-07-11"),
         },
@@ -24,9 +24,9 @@ describe("friend visibility", () => {
         status: "CANCELLED",
         parent: { displayName: "James" },
         child: null,
-        camp: {
+        club: {
           id: "2",
-          name: "Tennis Camp",
+          name: "Tennis Club",
           startDate: new Date("2026-07-14"),
           endDate: new Date("2026-07-18"),
         },

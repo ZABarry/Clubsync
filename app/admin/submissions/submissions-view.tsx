@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { ModerationQueue } from "@/components/admin/moderation-queue";
 import { moderateSubmission } from "@/lib/actions/admin";
-import type { ModerationItem } from "@/lib/types/camp";
+import type { ModerationItem } from "@/lib/types/club";
 
 type SubmissionsViewProps = {
   items: ModerationItem[];
@@ -38,7 +38,7 @@ export function SubmissionsView({ items }: SubmissionsViewProps) {
       loadingId={loadingId}
       onApprove={(item) => moderate(item, "APPROVED")}
       onReject={(item) => moderate(item, "REJECTED")}
-      emptyMessage="No pending camp submissions."
+      emptyMessage="No pending club submissions."
     />
   );
 }

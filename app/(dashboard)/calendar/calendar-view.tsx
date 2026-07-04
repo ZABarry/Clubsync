@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { CampCalendar } from "@/components/calendar/camp-calendar";
-import { CampStatusControls } from "@/components/camp/camp-status-controls";
-import { CampStatusBadge } from "@/components/camp/camp-status-badge";
+import { ClubCalendar } from "@/components/calendar/club-calendar";
+import { ClubStatusControls } from "@/components/club/club-status-controls";
+import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,26 +16,26 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { upsertPlannedCamp } from "@/lib/actions/planned-camps";
-import type { CampCalendarEvent, PlannedCampStatus } from "@/lib/types/camp";
+import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
+import type { ClubCalendarEvent, PlannedClubStatus } from "@/lib/types/club";
 import { formatOptionalDateRange } from "@/lib/utils";
 
 type CalendarViewProps = {
-  events: CampCalendarEvent[];
+  events: ClubCalendarEvent[];
 };
 
 export function CalendarView({ events }: CalendarViewProps) {
   const router = useRouter();
-  const [selected, setSelected] = useState<CampCalendarEvent | null>(null);
+  const [selected, setSelected] = useState<ClubCalendarEvent | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const handleStatusChange = (status: PlannedCampStatus) => {
-    if (!selected?.campId) return;
+  const handleStatusChange = (status: PlannedClubStatus) => {
+    if (!selected?.clubId) return;
 
     startTransition(async () => {
       try {
-        await upsertPlannedCamp({
-          campId: selected.campId,
+        await upsertPlannedClub({
+          clubId: selected.clubId,
           status,
         });
         toast.success("Status updated");
@@ -51,13 +51,13 @@ export function CalendarView({ events }: CalendarViewProps) {
     <>
       {events.length === 0 ? (
         <div className="text-muted-foreground rounded-xl border bg-card py-12 text-center text-sm">
-          No camps on your calendar yet.{" "}
+          No clubs on your calendar yet.{" "}
           <Link href="/discover" className="text-primary hover:underline">
-            Discover camps
+            Discover clubs
           </Link>
         </div>
       ) : (
-        <CampCalendar events={events} onEventClick={setSelected} />
+        <ClubCalendar events={events} onEventClick={setSelected} />
       )}
 
       <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
@@ -72,16 +72,16 @@ export function CalendarView({ events }: CalendarViewProps) {
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 {selected.status ? (
-                  <CampStatusBadge status={selected.status} />
+                  <ClubStatusBadge status={selected.status} />
                 ) : null}
-                <CampStatusControls
+                <ClubStatusControls
                   currentStatus={selected.status}
                   onStatusChange={handleStatusChange}
                   disabled={pending}
                 />
-                {selected.campId ? (
+                {selected.clubId ? (
                   <Button variant="outline" asChild className="w-full">
-                    <Link href={`/camps/${selected.campId}`}>View camp details</Link>
+                    <Link href={`/clubs/${selected.clubId}`}>View club details</Link>
                   </Button>
                 ) : null}
               </div>

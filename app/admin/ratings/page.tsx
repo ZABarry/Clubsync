@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getPendingRatings } from "@/lib/actions/admin";
-import type { ModerationItem } from "@/lib/types/camp";
+import type { ModerationItem } from "@/lib/types/club";
 
 import { RatingsView } from "./ratings-view";
 
@@ -14,13 +14,13 @@ export default async function AdminRatingsPage() {
       reviewText: string | null;
       createdAt: Date;
       moderationStatus: ModerationItem["status"];
-      camp: { id: string; name: string };
+      club: { id: string; name: string };
       parent: { displayName: string };
     }>
   ).map((r) => ({
     id: r.id,
     type: "Rating",
-    title: `${r.camp.name} — ${r.rating}/5`,
+    title: `${r.club.name} — ${r.rating}/5`,
     submittedBy: r.parent.displayName,
     submittedAt: r.createdAt,
     status: r.moderationStatus,

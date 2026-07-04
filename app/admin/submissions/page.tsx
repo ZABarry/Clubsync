@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getPendingSubmissions } from "@/lib/actions/admin";
-import type { ModerationItem } from "@/lib/types/camp";
+import type { ModerationItem } from "@/lib/types/club";
 
 import { SubmissionsView } from "./submissions-view";
 
@@ -10,7 +10,7 @@ export default async function AdminSubmissionsPage() {
   const items: ModerationItem[] = (
     submissions as Array<{
       id: string;
-      campName: string;
+      clubName: string;
       providerName: string | null;
       notes: string | null;
       createdAt: Date;
@@ -19,8 +19,8 @@ export default async function AdminSubmissionsPage() {
     }>
   ).map((s) => ({
     id: s.id,
-    type: "Camp submission",
-    title: s.campName,
+    type: "Club submission",
+    title: s.clubName,
     submittedBy: s.submittedBy.displayName,
     submittedAt: s.createdAt,
     status: s.moderationStatus,
@@ -30,8 +30,8 @@ export default async function AdminSubmissionsPage() {
   return (
     <div>
       <PageHeader
-        title="Camp submissions"
-        description="Review new camps submitted by parents"
+        title="Club submissions"
+        description="Review new clubs submitted by parents"
       />
       <SubmissionsView items={items} />
     </div>

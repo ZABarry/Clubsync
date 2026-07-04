@@ -1,6 +1,6 @@
-import { PlannedCampStatus } from "@prisma/client";
+import { PlannedClubStatus } from "@prisma/client";
 
-const VISIBLE_STATUSES: PlannedCampStatus[] = [
+const VISIBLE_STATUSES: PlannedClubStatus[] = [
   "INTERESTED",
   "FAVOURITE",
   "PLANNED",
@@ -8,16 +8,16 @@ const VISIBLE_STATUSES: PlannedCampStatus[] = [
   "PAID",
 ];
 
-export function isVisibleToFriends(status: PlannedCampStatus): boolean {
+export function isVisibleToFriends(status: PlannedClubStatus): boolean {
   return VISIBLE_STATUSES.includes(status);
 }
 
-export type FriendCampActivity = {
-  campId: string;
-  campName: string;
+export type FriendClubActivity = {
+  clubId: string;
+  clubName: string;
   startDate: Date | null;
   endDate: Date | null;
-  status: PlannedCampStatus;
+  status: PlannedClubStatus;
   parentDisplayName: string;
   childNickname: string | null;
   childAge: number | null;
@@ -25,19 +25,19 @@ export type FriendCampActivity = {
 
 export function sanitizeFriendActivity(
   rows: Array<{
-    status: PlannedCampStatus;
+    status: PlannedClubStatus;
     parent: { displayName: string };
     child: { nickname: string; age: number } | null;
-    camp: { id: string; name: string; startDate: Date | null; endDate: Date | null };
+    club: { id: string; name: string; startDate: Date | null; endDate: Date | null };
   }>,
-): FriendCampActivity[] {
+): FriendClubActivity[] {
   return rows
     .filter((r) => isVisibleToFriends(r.status))
     .map((r) => ({
-      campId: r.camp.id,
-      campName: r.camp.name,
-      startDate: r.camp.startDate,
-      endDate: r.camp.endDate,
+      clubId: r.club.id,
+      clubName: r.club.name,
+      startDate: r.club.startDate,
+      endDate: r.club.endDate,
       status: r.status,
       parentDisplayName: r.parent.displayName,
       childNickname: r.child?.nickname ?? null,
@@ -45,7 +45,7 @@ export function sanitizeFriendActivity(
     }));
 }
 
-export function sanitizeSharedCampChild(child: {
+export function sanitizeSharedClubChild(child: {
   nickname: string;
   age: number;
   notes?: string | null;

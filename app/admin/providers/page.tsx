@@ -10,7 +10,7 @@ export default async function AdminProvidersPage() {
     <div>
       <PageHeader
         title="Manage providers"
-        description="Create and edit camp providers"
+        description="Create and edit club providers"
       />
       <AdminProvidersView providers={providers} />
     </div>

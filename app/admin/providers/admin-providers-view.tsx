@@ -39,7 +39,7 @@ type Provider = {
   name: string;
   website: string | null;
   contactEmail: string | null;
-  _count: { camps: number };
+  _count: { clubs: number };
 };
 
 type AdminProvidersViewProps = {
@@ -130,7 +130,7 @@ export function AdminProvidersView({ providers }: AdminProvidersViewProps) {
                 <TableHead>Name</TableHead>
                 <TableHead>Website</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Camps</TableHead>
+                <TableHead>Clubs</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -144,7 +144,7 @@ export function AdminProvidersView({ providers }: AdminProvidersViewProps) {
                   <TableCell className="text-sm">
                     {provider.contactEmail ?? "—"}
                   </TableCell>
-                  <TableCell>{provider._count.camps}</TableCell>
+                  <TableCell>{provider._count.clubs}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button

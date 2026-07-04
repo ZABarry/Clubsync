@@ -8,7 +8,7 @@ import {
   isValidInviteToken,
 } from "@/lib/auth/invite-token";
 import { sanitizeFriendActivity } from "@/lib/privacy/friend-visibility";
-import type { TrustedConnection } from "@/lib/types/camp";
+import type { TrustedConnection } from "@/lib/types/club";
 
 async function requireParentProfileId() {
   const user = await requireAuth();
@@ -120,24 +120,24 @@ export async function getFriendActivity() {
 
   if (friendIds.length === 0) return [];
 
-  const activity = await prisma.plannedCamp.findMany({
+  const activity = await prisma.plannedClub.findMany({
     where: { parentProfileId: { in: friendIds } },
     include: {
       parent: { select: { displayName: true } },
       child: { select: { nickname: true, age: true } },
-      camp: {
+      club: {
         select: { id: true, name: true, startDate: true, endDate: true },
       },
     },
-    orderBy: { camp: { startDate: "asc" } },
+    orderBy: { club: { startDate: "asc" } },
   });
 
   return sanitizeFriendActivity(activity);
 }
 
-export async function getFriendActivityForCamp(campId: string) {
+export async function getFriendActivityForClub(clubId: string) {
   const activity = await getFriendActivity();
-  return activity.filter((a) => a.campId === campId);
+  return activity.filter((a) => a.clubId === clubId);
 }
 
 export async function getInvitePreview(token: string) {

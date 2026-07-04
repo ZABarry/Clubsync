@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { ModerationQueue } from "@/components/admin/moderation-queue";
 import { moderateChangeRequest } from "@/lib/actions/admin";
-import type { ModerationItem } from "@/lib/types/camp";
+import type { ModerationItem } from "@/lib/types/club";
 
 type ChangeRequestsViewProps = {
   items: ModerationItem[];

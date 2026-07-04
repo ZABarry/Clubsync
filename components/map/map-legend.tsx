@@ -1,20 +1,20 @@
-import type { CampMapMarker } from "@/lib/types/camp";
+import type { ClubMapMarker } from "@/lib/types/club";
 import { cn } from "@/lib/utils";
 
 const LEGEND_ITEMS: Array<{
-  variant: CampMapMarker["variant"];
+  variant: ClubMapMarker["variant"];
   label: string;
   color: string;
 }> = [
-  { variant: "mine", label: "My camps", color: "#0ea5e9" },
-  { variant: "friend", label: "Friend camps", color: "#8b5cf6" },
-  { variant: "shared", label: "Shared camps", color: "#ec4899" },
+  { variant: "mine", label: "My clubs", color: "#0ea5e9" },
+  { variant: "friend", label: "Friend clubs", color: "#8b5cf6" },
+  { variant: "shared", label: "Shared clubs", color: "#ec4899" },
   { variant: "suggested", label: "Suggested", color: "#f59e0b" },
 ];
 
 type MapLegendProps = {
   className?: string;
-  variants?: CampMapMarker["variant"][];
+  variants?: ClubMapMarker["variant"][];
 };
 
 export function MapLegend({ className, variants }: MapLegendProps) {

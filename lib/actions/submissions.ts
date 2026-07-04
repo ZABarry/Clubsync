@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import {
-  campSubmissionSchema,
+  clubSubmissionSchema,
   changeRequestSchema,
 } from "@/lib/validation/schemas";
 
@@ -15,14 +15,14 @@ async function requireParentProfileId() {
   return profile;
 }
 
-export async function submitCamp(data: unknown) {
+export async function submitClub(data: unknown) {
   const profile = await requireParentProfileId();
-  const parsed = campSubmissionSchema.parse(data);
+  const parsed = clubSubmissionSchema.parse(data);
 
-  const submission = await prisma.campSubmission.create({
+  const submission = await prisma.clubSubmission.create({
     data: {
       submittedByParentId: profile.id,
-      campName: parsed.campName,
+      clubName: parsed.clubName,
       providerName: parsed.providerName ?? null,
       website: parsed.website || null,
       notes: parsed.notes ?? null,
@@ -38,14 +38,14 @@ export async function submitChangeRequest(data: unknown) {
   const profile = await requireParentProfileId();
   const parsed = changeRequestSchema.parse(data);
 
-  const camp = await prisma.camp.findFirst({
-    where: { id: parsed.campId, status: "ACTIVE" },
+  const club = await prisma.club.findFirst({
+    where: { id: parsed.clubId, status: "ACTIVE" },
   });
-  if (!camp) throw new Error("Camp not found");
+  if (!club) throw new Error("Club not found");
 
-  const request = await prisma.campChangeRequest.create({
+  const request = await prisma.clubChangeRequest.create({
     data: {
-      campId: parsed.campId,
+      clubId: parsed.clubId,
       submittedByParentId: profile.id,
       fieldName: parsed.fieldName,
       suggestedValue: parsed.suggestedValue,
@@ -55,6 +55,6 @@ export async function submitChangeRequest(data: unknown) {
   });
 
   revalidatePath("/admin");
-  revalidatePath(`/camps/${parsed.campId}`);
+  revalidatePath(`/clubs/${parsed.clubId}`);
   return request;
 }

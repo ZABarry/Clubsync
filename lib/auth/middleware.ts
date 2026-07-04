@@ -14,8 +14,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/friends") ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/planner") ||
-    pathname.startsWith("/camps") ||
-    pathname.startsWith("/shared-camps") ||
+    pathname.startsWith("/clubs") ||
+    pathname.startsWith("/shared-clubs") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/invite");
   const isPublic =

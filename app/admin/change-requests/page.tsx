@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getPendingChangeRequests } from "@/lib/actions/admin";
-import type { ModerationItem } from "@/lib/types/camp";
+import type { ModerationItem } from "@/lib/types/club";
 
 import { ChangeRequestsView } from "./change-requests-view";
 
@@ -14,13 +14,13 @@ export default async function AdminChangeRequestsPage() {
       suggestedValue: string;
       createdAt: Date;
       moderationStatus: ModerationItem["status"];
-      camp: { id: string; name: string };
+      club: { id: string; name: string };
       submittedBy: { displayName: string };
     }>
   ).map((r) => ({
     id: r.id,
     type: "Change request",
-    title: `${r.camp.name} — ${r.fieldName}`,
+    title: `${r.club.name} — ${r.fieldName}`,
     submittedBy: r.submittedBy.displayName,
     submittedAt: r.createdAt,
     status: r.moderationStatus,
@@ -31,7 +31,7 @@ export default async function AdminChangeRequestsPage() {
     <div>
       <PageHeader
         title="Change requests"
-        description="Review suggested updates to camp listings"
+        description="Review suggested updates to club listings"
       />
       <ChangeRequestsView items={items} />
     </div>

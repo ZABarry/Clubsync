@@ -25,8 +25,8 @@ export const childProfileSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
-export const plannedCampSchema = z.object({
-  campId: z.string().uuid(),
+export const plannedClubSchema = z.object({
+  clubId: z.string().uuid(),
   childProfileId: z.string().uuid().optional(),
   status: z.enum([
     "SUGGESTED",
@@ -40,7 +40,7 @@ export const plannedCampSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
-export const campFilterSchema = z.object({
+export const clubFilterSchema = z.object({
   search: z.string().optional(),
   age: z.coerce.number().optional(),
   activity: z.string().optional(),
@@ -55,20 +55,20 @@ export const campFilterSchema = z.object({
 });
 
 export const ratingSchema = z.object({
-  campId: z.string().uuid(),
+  clubId: z.string().uuid(),
   rating: z.coerce.number().min(1).max(5),
   reviewText: z.string().max(1000).optional(),
 });
 
-export const campSubmissionSchema = z.object({
-  campName: z.string().min(2),
+export const clubSubmissionSchema = z.object({
+  clubName: z.string().min(2),
   providerName: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   notes: z.string().max(1000).optional(),
 });
 
 export const changeRequestSchema = z.object({
-  campId: z.string().uuid(),
+  clubId: z.string().uuid(),
   fieldName: z.string().min(1),
   suggestedValue: z.string().min(1),
   notes: z.string().max(500).optional(),
@@ -93,7 +93,7 @@ export const providerSchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal("")),
 });
 
-export const campSchema = z.object({
+export const clubSchema = z.object({
   providerId: z.string().uuid(),
   name: z.string().min(2),
   description: z.string().optional(),
@@ -118,8 +118,8 @@ export const campSchema = z.object({
   accessibilityNotes: z.string().optional(),
 });
 
-export const sharedCampSchema = z.object({
-  campId: z.string().uuid(),
+export const sharedClubSchema = z.object({
+  clubId: z.string().uuid(),
   title: z.string().min(2).max(100),
   notes: z.string().max(500).optional(),
 });

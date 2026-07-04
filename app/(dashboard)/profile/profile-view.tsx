@@ -196,7 +196,7 @@ export function ProfileView({
             <CardTitle className="text-base">Welcome to ClubSync!</CardTitle>
             <CardDescription>
               Complete your profile and add your children to start planning
-              camps.
+              clubs.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -277,7 +277,7 @@ export function ProfileView({
           <div>
             <h2 className="text-lg font-semibold">Children</h2>
             <p className="text-muted-foreground text-sm">
-              Add children to plan camps for each of them
+              Add children to plan clubs for each of them
             </p>
           </div>
           <Dialog open={childDialogOpen} onOpenChange={setChildDialogOpen}>
@@ -397,7 +397,7 @@ export function ProfileView({
         {initialChildren.length === 0 ? (
           <Card className="py-8">
             <CardContent className="text-muted-foreground text-center text-sm">
-              No children added yet. Add a child to start planning camps.
+              No children added yet. Add a child to start planning clubs.
             </CardContent>
           </Card>
         ) : (

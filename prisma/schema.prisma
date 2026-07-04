@@ -11,7 +11,7 @@ enum UserRole {
   ADMIN
 }
 
-enum CampStatus {
+enum ClubStatus {
   ACTIVE
   DRAFT
   ARCHIVED
@@ -21,7 +21,7 @@ enum Region {
   SOUTH_WEST_LONDON
 }
 
-enum PlannedCampStatus {
+enum PlannedClubStatus {
   SUGGESTED
   INTERESTED
   FAVOURITE
@@ -38,7 +38,7 @@ enum ConnectionStatus {
   REVOKED
 }
 
-enum SharedCampParticipantStatus {
+enum SharedClubParticipantStatus {
   INTERESTED
   PLANNED
   BOOKED
@@ -75,14 +75,14 @@ model ParentProfile {
 
   user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   children          ChildProfile[]
-  plannedCamps      PlannedCamp[]
+  plannedClubs      PlannedClub[]
   sentConnections   TrustedParentConnection[] @relation("Requester")
   receivedConnections TrustedParentConnection[] @relation("Recipient")
-  sharedCampsCreated SharedCamp[]
-  sharedCampParticipants SharedCampParticipant[]
+  sharedClubsCreated SharedClub[]
+  sharedClubParticipants SharedClubParticipant[]
   ratings           Rating[]
-  campSubmissions   CampSubmission[]
-  campChangeRequests CampChangeRequest[]
+  clubSubmissions   ClubSubmission[]
+  clubChangeRequests ClubChangeRequest[]
 }
 
 model ChildProfile {
@@ -99,8 +99,8 @@ model ChildProfile {
   updatedAt         DateTime  @updatedAt
 
   parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  plannedCamps PlannedCamp[]
-  sharedCampParticipants SharedCampParticipant[]
+  plannedClubs PlannedClub[]
+  sharedClubParticipants SharedClubParticipant[]
 }
 
 model Provider {
@@ -116,10 +116,10 @@ model Provider {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  camps Camp[]
+  clubs Club[]
 }
 
-model Camp {
+model Club {
   id              String     @id @default(uuid())
   providerId      String
   name            String
@@ -143,7 +143,7 @@ model Camp {
   dataConfidence  String?
   ratingAverage   Float      @default(0)
   ratingCount     Int        @default(0)
-  status          CampStatus @default(ACTIVE)
+  status          ClubStatus @default(ACTIVE)
   region          Region     @default(SOUTH_WEST_LONDON)
   isIndoor        Boolean    @default(false)
   isOutdoor       Boolean    @default(true)
@@ -153,10 +153,10 @@ model Camp {
   updatedAt       DateTime   @updatedAt
 
   provider       Provider           @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  plannedCamps   PlannedCamp[]
-  sharedCamps    SharedCamp[]
+  plannedClubs   PlannedClub[]
+  sharedClubs    SharedClub[]
   ratings        Rating[]
-  changeRequests CampChangeRequest[]
+  changeRequests ClubChangeRequest[]
 
   @@unique([providerId, name, locationName])
   @@index([latitude, longitude])
@@ -164,23 +164,23 @@ model Camp {
   @@index([providerId])
 }
 
-model PlannedCamp {
+model PlannedClub {
   id              String            @id @default(uuid())
   parentProfileId String
   childProfileId  String?
-  campId          String
-  status          PlannedCampStatus @default(INTERESTED)
+  clubId          String
+  status          PlannedClubStatus @default(INTERESTED)
   notes           String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
   parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
   child        ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
-  camp         Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
-  sharedCampParticipants SharedCampParticipant[]
+  club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sharedClubParticipants SharedClubParticipant[]
 
-  @@unique([parentProfileId, campId, childProfileId])
-  @@index([campId])
+  @@unique([parentProfileId, clubId, childProfileId])
+  @@index([clubId])
   @@index([parentProfileId])
 }
 
@@ -200,39 +200,39 @@ model TrustedParentConnection {
   @@index([recipientParentId])
 }
 
-model SharedCamp {
+model SharedClub {
   id                String   @id @default(uuid())
-  campId            String
+  clubId            String
   createdByParentId String
   title             String
   notes             String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  camp         Camp                    @relation(fields: [campId], references: [id], onDelete: Cascade)
+  club         Club                    @relation(fields: [clubId], references: [id], onDelete: Cascade)
   createdBy    ParentProfile           @relation(fields: [createdByParentId], references: [id], onDelete: Cascade)
-  participants SharedCampParticipant[]
+  participants SharedClubParticipant[]
 }
 
-model SharedCampParticipant {
+model SharedClubParticipant {
   id              String                      @id @default(uuid())
-  sharedCampId    String
+  sharedClubId    String
   parentProfileId String
   childProfileId  String?
-  plannedCampId   String?
-  status          SharedCampParticipantStatus @default(INTERESTED)
+  plannedClubId   String?
+  status          SharedClubParticipantStatus @default(INTERESTED)
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 
-  sharedCamp    SharedCamp    @relation(fields: [sharedCampId], references: [id], onDelete: Cascade)
+  sharedClub    SharedClub    @relation(fields: [sharedClubId], references: [id], onDelete: Cascade)
   parent        ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
   child         ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
-  plannedCamp   PlannedCamp?  @relation(fields: [plannedCampId], references: [id], onDelete: SetNull)
+  plannedClub   PlannedClub?  @relation(fields: [plannedClubId], references: [id], onDelete: SetNull)
 }
 
 model Rating {
   id               String           @id @default(uuid())
-  campId           String
+  clubId           String
   parentProfileId  String
   rating           Int
   reviewText       String?
@@ -240,17 +240,17 @@ model Rating {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  camp   Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
+  club   Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
   parent ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
 
-  @@unique([campId, parentProfileId])
-  @@index([campId])
+  @@unique([clubId, parentProfileId])
+  @@index([clubId])
 }
 
-model CampSubmission {
+model ClubSubmission {
   id                  String           @id @default(uuid())
   submittedByParentId String
-  campName            String
+  clubName            String
   providerName        String?
   website             String?
   notes               String?
@@ -261,9 +261,9 @@ model CampSubmission {
   submittedBy ParentProfile @relation(fields: [submittedByParentId], references: [id], onDelete: Cascade)
 }
 
-model CampChangeRequest {
+model ClubChangeRequest {
   id                  String           @id @default(uuid())
-  campId              String
+  clubId              String
   submittedByParentId String
   fieldName           String
   suggestedValue      String
@@ -272,6 +272,6 @@ model CampChangeRequest {
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
-  camp        Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
+  club        Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
   submittedBy ParentProfile @relation(fields: [submittedByParentId], references: [id], onDelete: Cascade)
 }

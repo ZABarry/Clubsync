@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getTrustedConnections } from "@/lib/actions/friends";
 import { getChildren } from "@/lib/actions/profiles";
-import type { ChildOption } from "@/lib/types/camp";
+import type { ChildOption } from "@/lib/types/club";
 
 import { PlannerView } from "./planner-view";
 
@@ -32,7 +32,7 @@ export default async function PlannerPage() {
     <div>
       <PageHeader
         title="Smart planner"
-        description="Get personalised camp recommendations for your child"
+        description="Get personalised club recommendations for your child"
       />
       <PlannerView children={children} friends={friendOptions} />
     </div>

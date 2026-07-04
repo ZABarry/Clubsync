@@ -4,15 +4,15 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireAdmin } from "@/lib/auth/server";
 import {
-  campSchema,
+  clubSchema,
   providerSchema,
 } from "@/lib/validation/schemas";
 
 type ModerationDecision = "APPROVED" | "REJECTED";
 
-async function recalculateCampRating(campId: string) {
+async function recalculateClubRating(clubId: string) {
   const ratings = await prisma.rating.findMany({
-    where: { campId, moderationStatus: "APPROVED" },
+    where: { clubId, moderationStatus: "APPROVED" },
   });
   const count = ratings.length;
   const avg =
@@ -20,13 +20,13 @@ async function recalculateCampRating(campId: string) {
       ? ratings.reduce((sum, r) => sum + r.rating, 0) / count
       : 0;
 
-  await prisma.camp.update({
-    where: { id: campId },
+  await prisma.club.update({
+    where: { id: clubId },
     data: { ratingAverage: avg, ratingCount: count },
   });
 }
 
-function parseCampFieldValue(
+function parseClubFieldValue(
   fieldName: string,
   value: string,
 ): string | number | boolean | Date | string[] {
@@ -97,23 +97,23 @@ export async function deleteProvider(providerId: string) {
 export async function getAdminProviders() {
   await requireAdmin();
   return prisma.provider.findMany({
-    include: { _count: { select: { camps: true } } },
+    include: { _count: { select: { clubs: true } } },
     orderBy: { name: "asc" },
   });
 }
 
-// --- Camps ---
+// --- Clubs ---
 
-export async function createCamp(data: unknown) {
+export async function createClub(data: unknown) {
   await requireAdmin();
-  const parsed = campSchema.parse(data);
+  const parsed = clubSchema.parse(data);
 
   const provider = await prisma.provider.findUnique({
     where: { id: parsed.providerId },
   });
   if (!provider) throw new Error("Provider not found");
 
-  const camp = await prisma.camp.create({
+  const club = await prisma.club.create({
     data: {
       providerId: parsed.providerId,
       name: parsed.name,
@@ -142,15 +142,15 @@ export async function createCamp(data: unknown) {
 
   revalidatePath("/admin");
   revalidatePath("/discover");
-  return camp;
+  return club;
 }
 
-export async function updateCamp(campId: string, data: unknown) {
+export async function updateClub(clubId: string, data: unknown) {
   await requireAdmin();
-  const parsed = campSchema.parse(data);
+  const parsed = clubSchema.parse(data);
 
-  const camp = await prisma.camp.update({
-    where: { id: campId },
+  const club = await prisma.club.update({
+    where: { id: clubId },
     data: {
       providerId: parsed.providerId,
       name: parsed.name,
@@ -179,24 +179,24 @@ export async function updateCamp(campId: string, data: unknown) {
 
   revalidatePath("/admin");
   revalidatePath("/discover");
-  revalidatePath(`/camps/${campId}`);
-  return camp;
+  revalidatePath(`/clubs/${clubId}`);
+  return club;
 }
 
-export async function deleteCamp(campId: string) {
+export async function deleteClub(clubId: string) {
   await requireAdmin();
-  await prisma.camp.update({
-    where: { id: campId },
+  await prisma.club.update({
+    where: { id: clubId },
     data: { status: "ARCHIVED" },
   });
   revalidatePath("/admin");
   revalidatePath("/discover");
-  revalidatePath(`/camps/${campId}`);
+  revalidatePath(`/clubs/${clubId}`);
 }
 
-export async function getAdminCamps() {
+export async function getAdminClubs() {
   await requireAdmin();
-  return prisma.camp.findMany({
+  return prisma.club.findMany({
     include: { provider: { select: { name: true } } },
     orderBy: { startDate: "asc" },
   });
@@ -206,7 +206,7 @@ export async function getAdminCamps() {
 
 export async function getPendingSubmissions() {
   await requireAdmin();
-  return prisma.campSubmission.findMany({
+  return prisma.clubSubmission.findMany({
     where: { moderationStatus: "PENDING" },
     include: {
       submittedBy: { select: { displayName: true } },
@@ -231,7 +231,7 @@ async function findOrCreateSubmissionProvider(providerName: string | null) {
   return prisma.provider.create({
     data: {
       name,
-      description: "Created from a parent camp submission",
+      description: "Created from a parent club submission",
     },
   });
 }
@@ -242,7 +242,7 @@ export async function moderateSubmission(
 ) {
   await requireAdmin();
 
-  const submission = await prisma.campSubmission.findUnique({
+  const submission = await prisma.clubSubmission.findUnique({
     where: { id: submissionId },
   });
   if (!submission) throw new Error("Submission not found");
@@ -252,10 +252,10 @@ export async function moderateSubmission(
       submission.providerName,
     );
 
-    await prisma.camp.create({
+    await prisma.club.create({
       data: {
         providerId: provider.id,
-        name: submission.campName,
+        name: submission.clubName,
         description: submission.notes,
         bookingUrl: submission.website,
         status: "DRAFT",
@@ -269,7 +269,7 @@ export async function moderateSubmission(
     });
   }
 
-  const updated = await prisma.campSubmission.update({
+  const updated = await prisma.clubSubmission.update({
     where: { id: submissionId },
     data: { moderationStatus: status },
   });
@@ -282,10 +282,10 @@ export async function moderateSubmission(
 
 export async function getPendingChangeRequests() {
   await requireAdmin();
-  return prisma.campChangeRequest.findMany({
+  return prisma.clubChangeRequest.findMany({
     where: { moderationStatus: "PENDING" },
     include: {
-      camp: { select: { id: true, name: true } },
+      club: { select: { id: true, name: true } },
       submittedBy: { select: { displayName: true } },
     },
     orderBy: { createdAt: "asc" },
@@ -298,29 +298,29 @@ export async function moderateChangeRequest(
 ) {
   await requireAdmin();
 
-  const request = await prisma.campChangeRequest.findUnique({
+  const request = await prisma.clubChangeRequest.findUnique({
     where: { id: requestId },
   });
   if (!request) throw new Error("Change request not found");
 
   if (status === "APPROVED") {
-    const value = parseCampFieldValue(
+    const value = parseClubFieldValue(
       request.fieldName,
       request.suggestedValue,
     );
-    await prisma.camp.update({
-      where: { id: request.campId },
+    await prisma.club.update({
+      where: { id: request.clubId },
       data: { [request.fieldName]: value },
     });
   }
 
-  const updated = await prisma.campChangeRequest.update({
+  const updated = await prisma.clubChangeRequest.update({
     where: { id: requestId },
     data: { moderationStatus: status },
   });
 
   revalidatePath("/admin");
-  revalidatePath(`/camps/${request.campId}`);
+  revalidatePath(`/clubs/${request.clubId}`);
   revalidatePath("/discover");
   return updated;
 }
@@ -330,7 +330,7 @@ export async function getPendingRatings() {
   return prisma.rating.findMany({
     where: { moderationStatus: "PENDING" },
     include: {
-      camp: { select: { id: true, name: true } },
+      club: { select: { id: true, name: true } },
       parent: { select: { displayName: true } },
     },
     orderBy: { createdAt: "asc" },
@@ -348,10 +348,10 @@ export async function moderateRating(
     data: { moderationStatus: status },
   });
 
-  await recalculateCampRating(rating.campId);
+  await recalculateClubRating(rating.clubId);
 
   revalidatePath("/admin");
-  revalidatePath(`/camps/${rating.campId}`);
+  revalidatePath(`/clubs/${rating.clubId}`);
   revalidatePath("/discover");
   return rating;
 }

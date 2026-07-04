@@ -4,10 +4,10 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { isVisibleToFriends } from "@/lib/privacy/friend-visibility";
 import {
-  buildCampMapMarkers,
+  buildClubMapMarkers,
   type MapMarkerContext,
-} from "@/lib/map/build-camp-markers";
-import type { CampMapMarker } from "@/lib/types/camp";
+} from "@/lib/map/build-club-markers";
+import type { ClubMapMarker } from "@/lib/types/club";
 
 async function getTrustedFriendIds(parentProfileId: string) {
   const connections = await prisma.trustedParentConnection.findMany({
@@ -32,56 +32,56 @@ export async function getMapMarkerContext(): Promise<MapMarkerContext> {
   const profile = user.parentProfile;
   if (!profile) {
     return {
-      myCampIds: new Set(),
-      friendCampIds: new Set(),
-      sharedCampIds: new Set(),
+      myClubIds: new Set(),
+      friendClubIds: new Set(),
+      sharedClubIds: new Set(),
     };
   }
 
   const [myPlanned, friendIds, sharedParticipants] = await Promise.all([
-    prisma.plannedCamp.findMany({
+    prisma.plannedClub.findMany({
       where: {
         parentProfileId: profile.id,
         status: { not: "CANCELLED" },
       },
-      select: { campId: true },
+      select: { clubId: true },
     }),
     getTrustedFriendIds(profile.id),
-    prisma.sharedCampParticipant.findMany({
+    prisma.sharedClubParticipant.findMany({
       where: { parentProfileId: profile.id },
-      include: { sharedCamp: { select: { campId: true } } },
+      include: { sharedClub: { select: { clubId: true } } },
     }),
   ]);
 
-  const myCampIds = new Set(myPlanned.map((p) => p.campId));
-  const sharedCampIds = new Set(
-    sharedParticipants.map((p) => p.sharedCamp.campId),
+  const myClubIds = new Set(myPlanned.map((p) => p.clubId));
+  const sharedClubIds = new Set(
+    sharedParticipants.map((p) => p.sharedClub.clubId),
   );
 
-  let friendCampIds = new Set<string>();
+  let friendClubIds = new Set<string>();
   if (friendIds.length > 0) {
-    const friendPlanned = await prisma.plannedCamp.findMany({
+    const friendPlanned = await prisma.plannedClub.findMany({
       where: { parentProfileId: { in: friendIds } },
-      select: { campId: true, status: true },
+      select: { clubId: true, status: true },
     });
-    friendCampIds = new Set(
+    friendClubIds = new Set(
       friendPlanned
         .filter((p) => isVisibleToFriends(p.status))
-        .map((p) => p.campId),
+        .map((p) => p.clubId),
     );
   }
 
-  return { myCampIds, friendCampIds, sharedCampIds };
+  return { myClubIds, friendClubIds, sharedClubIds };
 }
 
-export async function buildMapMarkersForCamps(
-  camps: Array<{
+export async function buildMapMarkersForClubs(
+  clubs: Array<{
     id: string;
     name: string;
     latitude: number;
     longitude: number;
   }>,
-): Promise<CampMapMarker[]> {
+): Promise<ClubMapMarker[]> {
   const context = await getMapMarkerContext();
-  return buildCampMapMarkers(camps, context);
+  return buildClubMapMarkers(clubs, context);
 }

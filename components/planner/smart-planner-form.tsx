@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ChildOption, FriendOption } from "@/lib/types/camp";
+import type { ChildOption, FriendOption } from "@/lib/types/club";
 import { smartPlannerSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
 
@@ -257,7 +257,7 @@ export function SmartPlannerForm({
 
         <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-          Find camps
+          Find clubs
         </Button>
       </form>
     </Form>

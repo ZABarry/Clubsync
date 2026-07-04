@@ -9,7 +9,7 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/page-header";
 import {
-  getAdminCamps,
+  getAdminClubs,
   getPendingChangeRequests,
   getPendingRatings,
   getPendingSubmissions,
@@ -23,27 +23,27 @@ import {
 
 const SECTIONS = [
   {
-    href: "/admin/camps",
-    title: "Camps",
-    description: "Create and manage camp listings",
+    href: "/admin/clubs",
+    title: "Clubs",
+    description: "Create and manage club listings",
     icon: MapPin,
   },
   {
     href: "/admin/providers",
     title: "Providers",
-    description: "Manage camp providers",
+    description: "Manage club providers",
     icon: Building2,
   },
   {
     href: "/admin/submissions",
     title: "Submissions",
-    description: "Review new camp submissions",
+    description: "Review new club submissions",
     icon: ClipboardList,
   },
   {
     href: "/admin/change-requests",
     title: "Change requests",
-    description: "Review suggested camp updates",
+    description: "Review suggested club updates",
     icon: FileEdit,
   },
   {
@@ -55,8 +55,8 @@ const SECTIONS = [
 ];
 
 export default async function AdminDashboardPage() {
-  const [camps, submissions, changeRequests, ratings] = await Promise.all([
-    getAdminCamps(),
+  const [clubs, submissions, changeRequests, ratings] = await Promise.all([
+    getAdminClubs(),
     getPendingSubmissions(),
     getPendingChangeRequests(),
     getPendingRatings(),
@@ -69,7 +69,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       <PageHeader
         title="Admin dashboard"
-        description={`${camps.length} camps · ${pendingTotal} items pending review`}
+        description={`${clubs.length} clubs · ${pendingTotal} items pending review`}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

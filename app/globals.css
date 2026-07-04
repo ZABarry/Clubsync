@@ -126,7 +126,7 @@
   }
 }
 
-.camp-calendar .fc {
+.club-calendar .fc {
   --fc-border-color: var(--border);
   --fc-button-bg-color: var(--primary);
   --fc-button-border-color: var(--primary);
@@ -141,18 +141,18 @@
   font-size: 0.875rem;
 }
 
-.camp-calendar .fc .fc-toolbar-title {
+.club-calendar .fc .fc-toolbar-title {
   font-size: 1.125rem;
   font-weight: 600;
 }
 
-.camp-calendar .fc .fc-button {
+.club-calendar .fc .fc-button {
   border-radius: var(--radius);
   font-weight: 500;
   text-transform: capitalize;
 }
 
-.camp-calendar .fc .fc-daygrid-event {
+.club-calendar .fc .fc-daygrid-event {
   border-radius: calc(var(--radius) - 2px);
   padding: 1px 4px;
   font-size: 0.75rem;

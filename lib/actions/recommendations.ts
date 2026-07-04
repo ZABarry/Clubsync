@@ -4,11 +4,11 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { smartPlannerSchema } from "@/lib/validation/schemas";
 import {
-  scoreCamps,
-  type RecommendationCamp,
-} from "@/lib/recommendations/score-camps";
+  scoreClubs,
+  type RecommendationClub,
+} from "@/lib/recommendations/score-clubs";
 import { isVisibleToFriends } from "@/lib/privacy/friend-visibility";
-import type { CampCardData } from "@/lib/types/camp";
+import type { ClubCardData } from "@/lib/types/club";
 
 async function getTrustedFriendIds(parentProfileId: string) {
   const connections = await prisma.trustedParentConnection.findMany({
@@ -46,7 +46,7 @@ export async function getRecommendations(input: unknown) {
   const startDate = new Date(parsed.startDate);
   const endDate = new Date(parsed.endDate);
 
-  const camps = await prisma.camp.findMany({
+  const clubs = await prisma.club.findMany({
     where: {
       status: "ACTIVE",
       ageMin: { lte: child.age },
@@ -77,20 +77,20 @@ export async function getRecommendations(input: unknown) {
     );
   }
 
-  const friendCampCounts = new Map<string, number>();
+  const friendClubCounts = new Map<string, number>();
   if (friendIds.length > 0) {
-    const friendPlanned = await prisma.plannedCamp.findMany({
+    const friendPlanned = await prisma.plannedClub.findMany({
       where: {
         parentProfileId: { in: friendIds },
-        campId: { in: camps.map((c) => c.id) },
+        clubId: { in: clubs.map((c) => c.id) },
       },
     });
 
     for (const planned of friendPlanned) {
       if (!isVisibleToFriends(planned.status)) continue;
-      friendCampCounts.set(
-        planned.campId,
-        (friendCampCounts.get(planned.campId) ?? 0) + 1,
+      friendClubCounts.set(
+        planned.clubId,
+        (friendClubCounts.get(planned.clubId) ?? 0) + 1,
       );
     }
   }
@@ -98,7 +98,7 @@ export async function getRecommendations(input: unknown) {
   const interests =
     parsed.interests.length > 0 ? parsed.interests : child.interests;
 
-  return scoreCamps(camps as RecommendationCamp[], {
+  return scoreClubs(clubs as RecommendationClub[], {
     child: {
       age: child.age,
       interests,
@@ -110,14 +110,14 @@ export async function getRecommendations(input: unknown) {
       lng: profile.longitude,
       radiusKm: parsed.maxDistanceKm,
     },
-    trustedFriendPlannedCampIds: friendCampCounts,
+    trustedFriendPlannedClubIds: friendClubCounts,
     budget: parsed.budget,
   });
 }
 
 export async function getDashboardRecommendations(
   limit = 4,
-): Promise<CampCardData[]> {
+): Promise<ClubCardData[]> {
   const user = await requireAuth();
   const profile = user.parentProfile;
   if (!profile?.latitude || !profile?.longitude) return [];
@@ -129,7 +129,7 @@ export async function getDashboardRecommendations(
   if (!child) return [];
 
   const now = new Date();
-  const camps = await prisma.camp.findMany({
+  const clubs = await prisma.club.findMany({
     where: {
       status: "ACTIVE",
       endDate: { gte: now },
@@ -139,33 +139,33 @@ export async function getDashboardRecommendations(
   });
 
   const friendIds = await getTrustedFriendIds(profile.id);
-  const friendCampCounts = new Map<string, number>();
+  const friendClubCounts = new Map<string, number>();
 
   if (friendIds.length > 0) {
-    const friendPlanned = await prisma.plannedCamp.findMany({
+    const friendPlanned = await prisma.plannedClub.findMany({
       where: {
         parentProfileId: { in: friendIds },
-        campId: { in: camps.map((c) => c.id) },
+        clubId: { in: clubs.map((c) => c.id) },
       },
     });
 
     for (const planned of friendPlanned) {
       if (!isVisibleToFriends(planned.status)) continue;
-      friendCampCounts.set(
-        planned.campId,
-        (friendCampCounts.get(planned.campId) ?? 0) + 1,
+      friendClubCounts.set(
+        planned.clubId,
+        (friendClubCounts.get(planned.clubId) ?? 0) + 1,
       );
     }
   }
 
-  const planned = await prisma.plannedCamp.findMany({
+  const planned = await prisma.plannedClub.findMany({
     where: { parentProfileId: profile.id },
-    select: { campId: true, status: true },
+    select: { clubId: true, status: true },
   });
-  const plannedByCamp = new Map(planned.map((p) => [p.campId, p.status]));
+  const plannedByClub = new Map(planned.map((p) => [p.clubId, p.status]));
 
-  const scored = scoreCamps(
-    camps.map((c) => ({
+  const scored = scoreClubs(
+    clubs.map((c) => ({
       id: c.id,
       name: c.name,
       ageMin: c.ageMin,
@@ -191,26 +191,26 @@ export async function getDashboardRecommendations(
         lng: profile.longitude,
         radiusKm: profile.defaultSearchRadiusKm,
       },
-      trustedFriendPlannedCampIds: friendCampCounts,
+      trustedFriendPlannedClubIds: friendClubCounts,
     },
   );
 
-  return scored.slice(0, limit).map((camp) => {
-    const source = camps.find((c) => c.id === camp.id)!;
+  return scored.slice(0, limit).map((club) => {
+    const source = clubs.find((c) => c.id === club.id)!;
     return {
-      id: camp.id,
-      name: camp.name,
+      id: club.id,
+      name: club.name,
       providerName: source.provider.name,
-      startDate: camp.startDate,
-      endDate: camp.endDate,
-      price: camp.price,
-      ratingAverage: camp.ratingAverage,
-      ratingCount: camp.ratingCount,
-      activities: camp.activities,
-      distanceKm: camp.distanceKm,
+      startDate: club.startDate,
+      endDate: club.endDate,
+      price: club.price,
+      ratingAverage: club.ratingAverage,
+      ratingCount: club.ratingCount,
+      activities: club.activities,
+      distanceKm: club.distanceKm,
       imageUrl: source.imageUrl,
-      plannedStatus: plannedByCamp.get(camp.id) ?? null,
-      recommendationReasons: camp.recommendationReasons,
+      plannedStatus: plannedByClub.get(club.id) ?? null,
+      recommendationReasons: club.recommendationReasons,
     };
   });
 }

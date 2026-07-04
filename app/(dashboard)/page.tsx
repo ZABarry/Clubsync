@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { CampCalendar } from "@/components/calendar/camp-calendar";
-import { CampCard } from "@/components/camp/camp-card";
-import { FriendActivityList } from "@/components/camp/friend-activity-list";
+import { ClubCalendar } from "@/components/calendar/club-calendar";
+import { ClubCard } from "@/components/club/club-card";
+import { FriendActivityList } from "@/components/club/friend-activity-list";
 import { PageHeader } from "@/components/layout/page-header";
-import { CampMap } from "@/components/map/camp-map";
+import { ClubMap } from "@/components/map/club-map";
 import { MapLegend } from "@/components/map/map-legend";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,21 +22,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCampById, getCamps } from "@/lib/actions/camps";
+import { getClubById, getClubs } from "@/lib/actions/clubs";
 import { getFriendActivity } from "@/lib/actions/friends";
-import { buildMapMarkersForCamps } from "@/lib/actions/map-markers";
+import { buildMapMarkersForClubs } from "@/lib/actions/map-markers";
 import {
-  getPlannedCampsForCalendar,
-  getPlannedCampsForParent,
-} from "@/lib/actions/planned-camps";
+  getPlannedClubsForCalendar,
+  getPlannedClubsForParent,
+} from "@/lib/actions/planned-clubs";
 import { getDashboardRecommendations } from "@/lib/actions/recommendations";
 import { syncUser } from "@/lib/auth/server";
-import type { CampMapMarker, PlannedCampStatus } from "@/lib/types/camp";
+import type { ClubMapMarker, PlannedClubStatus } from "@/lib/types/club";
 
-type PlannedCampRow = {
+type PlannedClubRow = {
   id: string;
-  status: PlannedCampStatus;
-  camp: {
+  status: PlannedClubStatus;
+  club: {
     id: string;
     name: string;
     startDate: Date | string | null;
@@ -49,52 +49,52 @@ export default async function HomePage() {
   const user = await syncUser();
   const displayName = user?.parentProfile?.displayName ?? "there";
 
-  let recommendedCamps: Awaited<ReturnType<typeof getCamps>> = [];
-  let upcomingPlanned: PlannedCampRow[] = [];
-  let calendarEvents: Awaited<ReturnType<typeof getPlannedCampsForCalendar>> =
+  let recommendedClubs: Awaited<ReturnType<typeof getClubs>> = [];
+  let upcomingPlanned: PlannedClubRow[] = [];
+  let calendarEvents: Awaited<ReturnType<typeof getPlannedClubsForCalendar>> =
     [];
   let friendActivity: Awaited<ReturnType<typeof getFriendActivity>> = [];
-  let mapMarkers: CampMapMarker[] = [];
+  let mapMarkers: ClubMapMarker[] = [];
 
   try {
-    recommendedCamps = await getDashboardRecommendations(4);
-    if (recommendedCamps.length === 0) {
-      const allCamps = await getCamps();
-      recommendedCamps = [...allCamps]
+    recommendedClubs = await getDashboardRecommendations(4);
+    if (recommendedClubs.length === 0) {
+      const allClubs = await getClubs();
+      recommendedClubs = [...allClubs]
         .sort((a, b) => (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0))
         .slice(0, 4);
     }
 
-    const planned = (await getPlannedCampsForParent()) as PlannedCampRow[];
+    const planned = (await getPlannedClubsForParent()) as PlannedClubRow[];
     upcomingPlanned = planned.filter(
       (p) =>
         p.status !== "CANCELLED" &&
-        p.camp.startDate != null &&
-        new Date(p.camp.startDate) >= new Date(),
+        p.club.startDate != null &&
+        new Date(p.club.startDate) >= new Date(),
     ).slice(0, 4);
 
-    calendarEvents = await getPlannedCampsForCalendar();
+    calendarEvents = await getPlannedClubsForCalendar();
     friendActivity = (await getFriendActivity()).slice(0, 5);
 
-    const mapCampIds = [
+    const mapClubIds = [
       ...new Set([
-        ...upcomingPlanned.map((p) => p.camp.id),
-        ...recommendedCamps.map((c) => c.id),
+        ...upcomingPlanned.map((p) => p.club.id),
+        ...recommendedClubs.map((c) => c.id),
       ]),
     ].slice(0, 12);
 
-    const campDetails = await Promise.all(
-      mapCampIds.map((id) => getCampById(id)),
+    const clubDetails = await Promise.all(
+      mapClubIds.map((id) => getClubById(id)),
     );
 
-    mapMarkers = await buildMapMarkersForCamps(
-      campDetails
+    mapMarkers = await buildMapMarkersForClubs(
+      clubDetails
         .filter((c): c is NonNullable<typeof c> => c != null)
-        .map((camp) => ({
-          id: camp.id,
-          name: camp.name,
-          latitude: camp.latitude,
-          longitude: camp.longitude,
+        .map((club) => ({
+          id: club.id,
+          name: club.name,
+          latitude: club.latitude,
+          longitude: club.longitude,
         })),
     );
   } catch {
@@ -126,7 +126,7 @@ export default async function HomePage() {
           <CardHeader>
             <CardTitle className="text-base">Complete your profile</CardTitle>
             <CardDescription>
-              Add your details and children to get personalised camp
+              Add your details and children to get personalised club
               recommendations.
             </CardDescription>
           </CardHeader>
@@ -154,32 +154,32 @@ export default async function HomePage() {
         <Button variant="outline" className="h-auto flex-col gap-2 py-4" asChild>
           <Link href="/discover">
             <Compass className="size-5" />
-            <span>Find camps</span>
+            <span>Find clubs</span>
           </Link>
         </Button>
       </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recommended camps</h2>
+          <h2 className="text-lg font-semibold">Recommended clubs</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/discover">View all</Link>
           </Button>
         </div>
-        {recommendedCamps.length === 0 ? (
+        {recommendedClubs.length === 0 ? (
           <Card className="py-8">
             <CardContent className="text-muted-foreground text-center text-sm">
-              No camps found yet.{" "}
+              No clubs found yet.{" "}
               <Link href="/discover" className="text-primary hover:underline">
-                Explore camps
+                Explore clubs
               </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {recommendedCamps.map((camp) => (
-              <Link key={camp.id} href={`/camps/${camp.id}`}>
-                <CampCard camp={camp} />
+            {recommendedClubs.map((club) => (
+              <Link key={club.id} href={`/clubs/${club.id}`}>
+                <ClubCard club={club} />
               </Link>
             ))}
           </div>
@@ -199,23 +199,23 @@ export default async function HomePage() {
         {upcomingPlanned.length === 0 ? (
           <Card className="py-8">
             <CardContent className="text-muted-foreground text-center text-sm">
-              No upcoming camps planned.{" "}
+              No upcoming clubs planned.{" "}
               <Link href="/discover" className="text-primary hover:underline">
-                Find a camp
+                Find a club
               </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {upcomingPlanned.map((planned) => (
-              <Link key={planned.id} href={`/camps/${planned.camp.id}`}>
-                <CampCard
-                  camp={{
-                    id: planned.camp.id,
-                    name: planned.camp.name,
-                    providerName: planned.camp.provider.name,
-                    startDate: planned.camp.startDate,
-                    endDate: planned.camp.endDate,
+              <Link key={planned.id} href={`/clubs/${planned.club.id}`}>
+                <ClubCard
+                  club={{
+                    id: planned.club.id,
+                    name: planned.club.name,
+                    providerName: planned.club.provider.name,
+                    startDate: planned.club.startDate,
+                    endDate: planned.club.endDate,
                     activities: [],
                     plannedStatus: planned.status,
                   }}
@@ -245,27 +245,27 @@ export default async function HomePage() {
           {calendarEvents.length === 0 ? (
             <Card className="py-8">
               <CardContent className="text-muted-foreground text-center text-sm">
-                Your calendar is empty. Add camps from Discover.
+                Your calendar is empty. Add clubs from Discover.
               </CardContent>
             </Card>
           ) : (
-            <CampCalendar events={calendarEvents.slice(0, 10)} />
+            <ClubCalendar events={calendarEvents.slice(0, 10)} />
           )}
         </div>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Nearby camps</h2>
+        <h2 className="text-lg font-semibold">Nearby clubs</h2>
         {mapMarkers.length === 0 ? (
           <Card className="py-8">
             <CardContent className="text-muted-foreground text-center text-sm">
-              Set your home postcode in Profile to see camps on the map.
+              Set your home postcode in Profile to see clubs on the map.
             </CardContent>
           </Card>
         ) : (
           <>
             <MapLegend className="mb-2" />
-            <CampMap
+            <ClubMap
               markers={mapMarkers}
               center={
                 parentLat != null && parentLng != null

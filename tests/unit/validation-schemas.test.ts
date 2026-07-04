@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   parentProfileSchema,
   childProfileSchema,
-  plannedCampSchema,
-  campFilterSchema,
+  plannedClubSchema,
+  clubFilterSchema,
 } from "@/lib/validation/schemas";
 
 describe("parentProfileSchema", () => {
@@ -84,15 +84,15 @@ describe("childProfileSchema", () => {
   });
 });
 
-describe("plannedCampSchema", () => {
-  const validCampId = "00000000-0000-4000-8000-000000000001";
+describe("plannedClubSchema", () => {
+  const validClubId = "00000000-0000-4000-8000-000000000001";
 
-  it("accepts valid planned camp data", () => {
-    const result = plannedCampSchema.parse({
-      campId: validCampId,
+  it("accepts valid planned club data", () => {
+    const result = plannedClubSchema.parse({
+      clubId: validClubId,
       status: "INTERESTED",
     });
-    expect(result.campId).toBe(validCampId);
+    expect(result.clubId).toBe(validClubId);
     expect(result.status).toBe("INTERESTED");
   });
 
@@ -106,35 +106,35 @@ describe("plannedCampSchema", () => {
       "PAID",
       "CANCELLED",
     ]) {
-      const result = plannedCampSchema.parse({
-        campId: validCampId,
+      const result = plannedClubSchema.parse({
+        clubId: validClubId,
         status,
       });
       expect(result.status).toBe(status);
     }
   });
 
-  it("rejects invalid camp id", () => {
+  it("rejects invalid club id", () => {
     expect(() =>
-      plannedCampSchema.parse({ campId: "not-a-uuid", status: "PLANNED" }),
+      plannedClubSchema.parse({ clubId: "not-a-uuid", status: "PLANNED" }),
     ).toThrow();
   });
 
   it("rejects invalid status", () => {
     expect(() =>
-      plannedCampSchema.parse({ campId: validCampId, status: "MAYBE" }),
+      plannedClubSchema.parse({ clubId: validClubId, status: "MAYBE" }),
     ).toThrow();
   });
 });
 
-describe("campFilterSchema", () => {
+describe("clubFilterSchema", () => {
   it("accepts empty filters", () => {
-    const result = campFilterSchema.parse({});
+    const result = clubFilterSchema.parse({});
     expect(result).toEqual({});
   });
 
   it("coerces numeric filters from strings", () => {
-    const result = campFilterSchema.parse({
+    const result = clubFilterSchema.parse({
       age: "9",
       maxPrice: "200",
       minRating: "4",
@@ -147,7 +147,7 @@ describe("campFilterSchema", () => {
   });
 
   it("coerces boolean filters", () => {
-    const fromBooleans = campFilterSchema.parse({
+    const fromBooleans = clubFilterSchema.parse({
       friendsOnly: true,
       indoor: false,
       outdoor: true,
@@ -157,12 +157,12 @@ describe("campFilterSchema", () => {
     expect(fromBooleans.outdoor).toBe(true);
 
     // z.coerce.boolean treats non-empty strings as true
-    const fromTruthyString = campFilterSchema.parse({ friendsOnly: "true" });
+    const fromTruthyString = clubFilterSchema.parse({ friendsOnly: "true" });
     expect(fromTruthyString.friendsOnly).toBe(true);
   });
 
   it("preserves optional search and activity strings", () => {
-    const result = campFilterSchema.parse({
+    const result = clubFilterSchema.parse({
       search: "football",
       activity: "tennis",
       startDate: "2026-07-01",

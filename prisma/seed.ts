@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "dotenv";
-import { CampStatus, UserRole } from "@prisma/client";
+import { ClubStatus, UserRole } from "@prisma/client";
 import { createPrismaClient } from "../lib/db/create-prisma-client";
 
 config({ path: ".env.local" });
@@ -20,7 +20,7 @@ type ProviderSeed = {
   sourceUrl?: string;
 };
 
-type CampSeed = {
+type ClubSeed = {
   providerId: string;
   name: string;
   locationName: string;
@@ -84,14 +84,14 @@ function parsePriceFrom(priceFrom?: string): {
   };
 }
 
-function parseCampStatus(status?: string): CampStatus {
+function parseClubStatus(status?: string): ClubStatus {
   switch (status?.trim().toLowerCase()) {
     case "draft":
-      return CampStatus.DRAFT;
+      return ClubStatus.DRAFT;
     case "archived":
-      return CampStatus.ARCHIVED;
+      return ClubStatus.ARCHIVED;
     default:
-      return CampStatus.ACTIVE;
+      return ClubStatus.ACTIVE;
   }
 }
 
@@ -161,53 +161,53 @@ async function seedProvidersFromJson() {
   return providerIdBySlug;
 }
 
-async function seedCampsFromJson(providerIdBySlug: Map<string, string>) {
-  const camps = loadJson<CampSeed[]>("camps.json");
+async function seedClubsFromJson(providerIdBySlug: Map<string, string>) {
+  const clubs = loadJson<ClubSeed[]>("clubs.json");
   let created = 0;
   let updated = 0;
   let skipped = 0;
 
-  for (const camp of camps) {
-    const providerId = providerIdBySlug.get(camp.providerId);
+  for (const club of clubs) {
+    const providerId = providerIdBySlug.get(club.providerId);
     if (!providerId) {
       console.warn(
-        `Skipping camp "${camp.name}" — unknown provider slug "${camp.providerId}"`,
+        `Skipping club "${club.name}" — unknown provider slug "${club.providerId}"`,
       );
       skipped += 1;
       continue;
     }
 
-    const { price, priceNote } = parsePriceFrom(camp.priceFrom);
-    const { isIndoor, isOutdoor } = parseIndoorOutdoor(camp.indoorOutdoor);
+    const { price, priceNote } = parsePriceFrom(club.priceFrom);
+    const { isIndoor, isOutdoor } = parseIndoorOutdoor(club.indoorOutdoor);
     const data = {
       providerId,
-      name: camp.name.trim(),
-      locationName: camp.locationName.trim(),
-      description: emptyToNull(camp.description),
-      address: emptyToNull(camp.address),
-      latitude: camp.lat,
-      longitude: camp.lon,
-      activities: parseActivities(camp.activities),
-      ageMin: camp.ageMin,
-      ageMax: camp.ageMax,
-      startDate: parseDate(camp.startDate),
-      endDate: parseDate(camp.endDate),
-      dailyStartTime: emptyToNull(camp.dailyStartTime),
-      dailyEndTime: emptyToNull(camp.dailyEndTime),
+      name: club.name.trim(),
+      locationName: club.locationName.trim(),
+      description: emptyToNull(club.description),
+      address: emptyToNull(club.address),
+      latitude: club.lat,
+      longitude: club.lon,
+      activities: parseActivities(club.activities),
+      ageMin: club.ageMin,
+      ageMax: club.ageMax,
+      startDate: parseDate(club.startDate),
+      endDate: parseDate(club.endDate),
+      dailyStartTime: emptyToNull(club.dailyStartTime),
+      dailyEndTime: emptyToNull(club.dailyEndTime),
       price,
       priceNote,
-      bookingUrl: emptyToNull(camp.bookingUrl),
-      sourceUrl: emptyToNull(camp.sourceUrl),
-      dataConfidence: emptyToNull(camp.dataConfidence),
-      ratingAverage: parseRatingAverage(camp.ratingAverage),
-      ratingCount: camp.ratingCount ?? 0,
-      status: parseCampStatus(camp.status),
+      bookingUrl: emptyToNull(club.bookingUrl),
+      sourceUrl: emptyToNull(club.sourceUrl),
+      dataConfidence: emptyToNull(club.dataConfidence),
+      ratingAverage: parseRatingAverage(club.ratingAverage),
+      ratingCount: club.ratingCount ?? 0,
+      status: parseClubStatus(club.status),
       isIndoor,
       isOutdoor,
-      sendFriendly: parseSendFriendly(camp.sendFriendly),
+      sendFriendly: parseSendFriendly(club.sendFriendly),
     };
 
-    const existing = await prisma.camp.findUnique({
+    const existing = await prisma.club.findUnique({
       where: {
         providerId_name_locationName: {
           providerId,
@@ -218,19 +218,19 @@ async function seedCampsFromJson(providerIdBySlug: Map<string, string>) {
     });
 
     if (existing) {
-      await prisma.camp.update({
+      await prisma.club.update({
         where: { id: existing.id },
         data,
       });
       updated += 1;
     } else {
-      await prisma.camp.create({ data });
+      await prisma.club.create({ data });
       created += 1;
     }
   }
 
   console.log(
-    `Upserted ${camps.length} camps (${created} created, ${updated} updated, ${skipped} skipped)`,
+    `Upserted ${clubs.length} clubs (${created} created, ${updated} updated, ${skipped} skipped)`,
   );
 }
 
@@ -330,37 +330,37 @@ async function seedDemoUsersIfMissing() {
     },
   });
 
-  const sampleCamps = await prisma.camp.findMany({
-    where: { status: CampStatus.ACTIVE },
+  const sampleClubs = await prisma.club.findMany({
+    where: { status: ClubStatus.ACTIVE },
     take: 4,
     orderBy: { createdAt: "asc" },
   });
 
-  if (sampleCamps.length >= 2) {
-    await prisma.plannedCamp.createMany({
+  if (sampleClubs.length >= 2) {
+    await prisma.plannedClub.createMany({
       data: [
         {
           parentProfileId: parent1.parentProfile.id,
           childProfileId: child1.id,
-          campId: sampleCamps[0].id,
+          clubId: sampleClubs[0].id,
           status: "PLANNED",
         },
         {
           parentProfileId: parent1.parentProfile.id,
           childProfileId: child1.id,
-          campId: sampleCamps[Math.min(2, sampleCamps.length - 1)].id,
+          clubId: sampleClubs[Math.min(2, sampleClubs.length - 1)].id,
           status: "INTERESTED",
         },
         {
           parentProfileId: parent2.parentProfile.id,
           childProfileId: child2.id,
-          campId: sampleCamps[0].id,
+          clubId: sampleClubs[0].id,
           status: "INTERESTED",
         },
         {
           parentProfileId: parent2.parentProfile.id,
           childProfileId: child2.id,
-          campId: sampleCamps[Math.min(3, sampleCamps.length - 1)].id,
+          clubId: sampleClubs[Math.min(3, sampleClubs.length - 1)].id,
           status: "BOOKED",
         },
       ],
@@ -386,33 +386,33 @@ async function seedDemoUsersIfMissing() {
       });
     }
 
-    const existingSharedCamp = await prisma.sharedCamp.findFirst({
+    const existingSharedClub = await prisma.sharedClub.findFirst({
       where: {
-        campId: sampleCamps[0].id,
+        clubId: sampleClubs[0].id,
         createdByParentId: parent1.parentProfile.id,
       },
     });
 
-    if (!existingSharedCamp) {
-      const sharedCamp = await prisma.sharedCamp.create({
+    if (!existingSharedClub) {
+      const sharedClub = await prisma.sharedClub.create({
         data: {
-          campId: sampleCamps[0].id,
+          clubId: sampleClubs[0].id,
           createdByParentId: parent1.parentProfile.id,
-          title: "Football camp buddies",
+          title: "Football club buddies",
           notes: "Let's coordinate drop-off at 8:45am",
         },
       });
 
-      await prisma.sharedCampParticipant.createMany({
+      await prisma.sharedClubParticipant.createMany({
         data: [
           {
-            sharedCampId: sharedCamp.id,
+            sharedClubId: sharedClub.id,
             parentProfileId: parent1.parentProfile.id,
             childProfileId: child1.id,
             status: "PLANNED",
           },
           {
-            sharedCampId: sharedCamp.id,
+            sharedClubId: sharedClub.id,
             parentProfileId: parent2.parentProfile.id,
             childProfileId: child2.id,
             status: "INTERESTED",
@@ -425,14 +425,14 @@ async function seedDemoUsersIfMissing() {
     await prisma.rating.createMany({
       data: [
         {
-          campId: sampleCamps[0].id,
+          clubId: sampleClubs[0].id,
           parentProfileId: parent1.parentProfile.id,
           rating: 5,
           reviewText: "Lily loved it! Great coaches.",
           moderationStatus: "APPROVED",
         },
         {
-          campId: sampleCamps[Math.min(3, sampleCamps.length - 1)].id,
+          clubId: sampleClubs[Math.min(3, sampleClubs.length - 1)].id,
           parentProfileId: parent2.parentProfile.id,
           rating: 4,
           reviewText: "Really engaging coding projects.",
@@ -450,17 +450,17 @@ async function main() {
   console.log("Seeding ClubSync database from JSON (upsert, no deletes)...");
 
   const providerIdBySlug = await seedProvidersFromJson();
-  await seedCampsFromJson(providerIdBySlug);
+  await seedClubsFromJson(providerIdBySlug);
   await seedDemoUsersIfMissing();
 
-  const [providerCount, campCount, activeCampCount] = await Promise.all([
+  const [providerCount, clubCount, activeClubCount] = await Promise.all([
     prisma.provider.count(),
-    prisma.camp.count(),
-    prisma.camp.count({ where: { status: CampStatus.ACTIVE } }),
+    prisma.club.count(),
+    prisma.club.count({ where: { status: ClubStatus.ACTIVE } }),
   ]);
 
   console.log(
-    `Done. Database now has ${providerCount} providers and ${campCount} camps (${activeCampCount} active).`,
+    `Done. Database now has ${providerCount} providers and ${clubCount} clubs (${activeClubCount} active).`,
   );
 }
 
