@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseConfigOrNull } from "@/lib/auth/env";
 
+function isSupabaseNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError) return true;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = String((error as { message: unknown }).message).toLowerCase();
+    return (
+      message.includes("fetch failed") ||
+      message.includes("failed to fetch") ||
+      message.includes("network")
+    );
+  }
+  return false;
+}
+
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthRoute =
@@ -54,13 +67,29 @@ export async function updateSession(request: NextRequest) {
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      // Stale or invalid session cookies — clear them so we don't retry every request.
-      await supabase.auth.signOut();
+      if (isSupabaseNetworkError(error)) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        user = sessionData.session?.user ?? null;
+      } else {
+        // Stale or invalid session — clear cookies locally only (no remote call).
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {
+          // Ignore — cookies will expire or user can sign in again.
+        }
+      }
     } else {
       user = data.user;
     }
-  } catch {
-    // Supabase unreachable (network/proxy) — continue as logged out rather than 500.
+  } catch (error) {
+    if (isSupabaseNetworkError(error)) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        user = sessionData.session?.user ?? null;
+      } catch {
+        // Supabase unreachable — continue as logged out rather than 500.
+      }
+    }
   }
 
   if (!user && isProtected && !isPublic) {
