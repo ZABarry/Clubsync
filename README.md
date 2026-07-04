@@ -43,7 +43,7 @@ ClubSync uses Prisma 7 with the PostgreSQL adapter (`@prisma/adapter-pg`). Ensur
 
 ```bash
 # Clone and install
-cd campsync
+cd clubsync
 npm install
 
 # Configure environment
