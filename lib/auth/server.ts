@@ -8,9 +8,14 @@ export { createClient, getSession } from "@/lib/auth/supabase-server";
 
 export const syncUser = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) return null;
+    user = data.user;
+  } catch {
+    return null;
+  }
   if (!user?.email) return null;
 
   const adminEmail = process.env.ADMIN_EMAIL;

@@ -27,9 +27,18 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      // Stale or invalid session cookies — clear them so we don't retry every request.
+      await supabase.auth.signOut();
+    } else {
+      user = data.user;
+    }
+  } catch {
+    // Supabase unreachable (network/proxy) — continue as logged out rather than 500.
+  }
 
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/login") ||

@@ -55,7 +55,7 @@ function createSolidPng(size, r, g, b) {
   ]);
 }
 
-const dir = path.join(__dirname, "public", "icons");
+const dir = path.join(__dirname, "..", "public", "icons");
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(path.join(dir, "icon-192.png"), createSolidPng(192, 15, 76, 92));
 fs.writeFileSync(path.join(dir, "icon-512.png"), createSolidPng(512, 15, 76, 92));
