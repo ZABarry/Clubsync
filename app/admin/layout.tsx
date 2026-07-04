@@ -25,7 +25,7 @@ export default async function AdminLayout({
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-8">
           <Link href="/admin" className="flex items-center gap-2">
             <Tent className="size-5 text-primary" />
-            <span className="font-semibold">ClubSync Admin</span>
+            <span className="font-semibold">ClubZer Admin</span>
           </Link>
           <Link
             href="/"

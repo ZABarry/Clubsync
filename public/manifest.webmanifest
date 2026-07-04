@@ -1,6 +1,6 @@
 {
-  "name": "ClubSync",
-  "short_name": "ClubSync",
+  "name": "ClubZer",
+  "short_name": "ClubZer",
   "description": "Discover, plan and coordinate clubs and activities with trusted parent friends",
   "start_url": "/",
   "display": "standalone",

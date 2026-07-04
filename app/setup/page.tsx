@@ -16,7 +16,7 @@ export default function SetupPage() {
         <CardHeader>
           <CardTitle>Database connection required</CardTitle>
           <CardDescription>
-            ClubSync needs your Supabase Postgres URLs to load after sign-in.
+            ClubZer needs your Supabase Postgres URLs to load after sign-in.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
@@ -30,7 +30,7 @@ export default function SetupPage() {
             <code className="text-xs">DATABASE_URL</code> and{" "}
             <code className="text-xs">DIRECT_URL</code> in{" "}
             <a
-              href="https://vercel.com/barrys-projects-4e566e47/clubsync/settings/environment-variables"
+              href="https://vercel.com/barrys-projects-4e566e47/clubzer/settings/environment-variables"
               className="text-primary underline"
               target="_blank"
               rel="noreferrer"

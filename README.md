@@ -1,6 +1,6 @@
-# ClubSync
+# ClubZer
 
-ClubSync helps parents discover, plan, and coordinate children's clubs and activities with trusted parent friends. MVP focuses on summer clubs around New Malden and South West London.
+ClubZer helps parents discover, plan, and coordinate children's clubs and activities with trusted parent friends. MVP focuses on summer clubs around New Malden and South West London.
 
 ## Tech Stack
 
@@ -38,12 +38,12 @@ ClubSync helps parents discover, plan, and coordinate children's clubs and activ
 
 ## Prisma 7 + Supabase
 
-ClubSync uses Prisma 7 with the PostgreSQL adapter (`@prisma/adapter-pg`). Ensure `DATABASE_URL` uses the **pooled** connection string (port 6543) and `DIRECT_URL` uses the direct connection (port 5432) for migrations.
+ClubZer uses Prisma 7 with the PostgreSQL adapter (`@prisma/adapter-pg`). Ensure `DATABASE_URL` uses the **pooled** connection string (port 6543) and `DIRECT_URL` uses the direct connection (port 5432) for migrations.
 
 
 ```bash
 # Clone and install
-cd clubsync
+cd clubzer
 npm install
 
 # Configure environment
@@ -256,7 +256,7 @@ tests/             Unit + E2E tests
 
 ## PWA
 
-ClubSync is installable as a PWA. The service worker caches the app shell for offline access. Install via browser "Add to Home Screen" on mobile.
+ClubZer is installable as a PWA. The service worker caches the app shell for offline access. Install via browser "Add to Home Screen" on mobile.
 
 ## Testing
 

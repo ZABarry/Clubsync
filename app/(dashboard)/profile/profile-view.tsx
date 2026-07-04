@@ -193,7 +193,7 @@ export function ProfileView({
       {showOnboarding ? (
         <Card className="border-primary/30 bg-accent/30">
           <CardHeader>
-            <CardTitle className="text-base">Welcome to ClubSync!</CardTitle>
+            <CardTitle className="text-base">Welcome to ClubZer!</CardTitle>
             <CardDescription>
               Complete your profile and add your children to start planning
               clubs.

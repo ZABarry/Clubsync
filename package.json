@@ -1,9 +1,9 @@
 {
-  "name": "clubsync",
+  "name": "clubzer",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
@@ -71,6 +71,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.3",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",

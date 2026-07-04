@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { ClubSyncLogo } from "@/components/brand/clubsync-logo";
+import { ClubZerLogo } from "@/components/brand/clubzer-logo";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
@@ -47,7 +47,7 @@ export function Sidebar({ showAdmin = false }: SidebarProps) {
     <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-16 items-center gap-2 px-6">
         <Link href="/">
-          <ClubSyncLogo size="md" />
+          <ClubZerLogo size="md" />
         </Link>
       </div>
       <Separator />

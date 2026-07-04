@@ -292,7 +292,7 @@ async function seedDemoUsersIfMissing() {
       role: UserRole.ADMIN,
       parentProfile: {
         create: {
-          displayName: "ClubSync Admin",
+          displayName: "ClubZer Admin",
           homePostcode: "KT3 4AA",
           latitude: 51.401,
           longitude: -0.256,
@@ -456,7 +456,7 @@ async function seedDemoUsersIfMissing() {
 }
 
 async function main() {
-  console.log("Seeding ClubSync database from JSON (upsert, no deletes)...");
+  console.log("Seeding ClubZer database from JSON (upsert, no deletes)...");
 
   const providerIdBySlug = await seedProvidersFromJson();
   await seedClubsFromJson(providerIdBySlug);

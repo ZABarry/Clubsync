@@ -48,8 +48,8 @@ export function InviteView({ token, requesterName }: InviteViewProps) {
         <CardTitle>Friend invite</CardTitle>
         <CardDescription>
           {requesterName
-            ? `${requesterName} invited you to connect as trusted parent friends on ClubSync.`
-            : "Accept this invite to connect as trusted parent friends on ClubSync."}
+            ? `${requesterName} invited you to connect as trusted parent friends on ClubZer.`
+            : "Accept this invite to connect as trusted parent friends on ClubZer."}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">

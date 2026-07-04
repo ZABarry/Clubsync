@@ -6,8 +6,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "ClubSync",
-    template: "%s | ClubSync",
+    default: "ClubZer",
+    template: "%s | ClubZer",
   },
   description:
     "Discover, plan and coordinate clubs and activities with trusted parent friends",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ClubSync",
+    title: "ClubZer",
   },
 };
 
