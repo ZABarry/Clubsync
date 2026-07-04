@@ -69,6 +69,7 @@ export default async function HomePage() {
     upcomingPlanned = planned.filter(
       (p) =>
         p.status !== "CANCELLED" &&
+        p.camp.startDate != null &&
         new Date(p.camp.startDate) >= new Date(),
     ).slice(0, 4);
 
