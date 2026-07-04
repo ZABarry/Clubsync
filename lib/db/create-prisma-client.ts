@@ -3,7 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import pg from "pg";
 
 export function createPrismaClient(connectionString?: string) {
-  const url = connectionString ?? process.env.DATABASE_URL;
+  const url =
+    connectionString ?? process.env.DATABASE_URL ?? process.env.DIRECT_URL;
   if (!url) {
     throw new Error(
       "DATABASE_URL or DIRECT_URL is required to create a Prisma client",

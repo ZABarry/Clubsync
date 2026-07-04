@@ -10,6 +10,8 @@ export function isDbConnectionError(error: unknown): boolean {
   }
   if (error instanceof Error) {
     return (
+      error.message.includes("DATABASE_URL") ||
+      error.message.includes("DIRECT_URL is required") ||
       error.message.includes("ECONNREFUSED") ||
       error.message.includes("Authentication failed") ||
       error.message.includes("credentials") ||

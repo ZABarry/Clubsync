@@ -14,22 +14,30 @@ export default function SetupPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="max-w-lg">
         <CardHeader>
-          <CardTitle>One last step: database password</CardTitle>
+          <CardTitle>Database connection required</CardTitle>
           <CardDescription>
-            Your Supabase tables are created and seeded. ClubSync just needs
-            your database password in <code className="text-xs">.env.local</code>.
+            ClubSync needs your Supabase Postgres URLs to load after sign-in.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <p className="text-muted-foreground">
-            The Supabase MCP cannot read your database password for security
-            reasons. Replace <code>YOUR_DB_PASSWORD</code> in{" "}
-            <code>.env.local</code>, then restart the dev server.
+            <strong>Local dev:</strong> add the URLs to{" "}
+            <code className="text-xs">.env.local</code>, then restart{" "}
+            <code className="text-xs">npm run dev</code>.
           </p>
           <p className="text-muted-foreground">
-            On Vercel, add <code>DATABASE_URL</code> and <code>DIRECT_URL</code>{" "}
-            under Project Settings → Environment Variables (same pooler URLs as
-            below), then redeploy.
+            <strong>Production (Vercel):</strong> add{" "}
+            <code className="text-xs">DATABASE_URL</code> and{" "}
+            <code className="text-xs">DIRECT_URL</code> in{" "}
+            <a
+              href="https://vercel.com/barrys-projects-4e566e47/clubsync/settings/environment-variables"
+              className="text-primary underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Vercel → Environment Variables
+            </a>
+            , enable them for <strong>Production</strong>, then redeploy.
           </p>
           <ol className="list-decimal space-y-2 pl-5">
             <li>
@@ -61,7 +69,7 @@ export default function SetupPage() {
               page first
             </li>
             <li>
-              Restart <code>npm run dev</code>
+              Restart dev or redeploy on Vercel after saving env vars
             </li>
           </ol>
           <Button asChild>

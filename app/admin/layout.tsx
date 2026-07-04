@@ -3,13 +3,20 @@ import Link from "next/link";
 import { Tent } from "lucide-react";
 
 import { syncUser } from "@/lib/auth/server";
+import { isDbConnectionError } from "@/lib/db/errors";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await syncUser();
+  let user;
+  try {
+    user = await syncUser();
+  } catch (error) {
+    if (isDbConnectionError(error)) redirect("/setup");
+    throw error;
+  }
   if (!user || user.role !== "ADMIN") redirect("/");
 
   return (
