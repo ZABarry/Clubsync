@@ -1,0 +1,14 @@
+<svg width="192" height="192" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ClubSync">
+  <rect width="48" height="48" rx="14" fill="url(#clubsync-bg)"/>
+  <circle cx="19" cy="24" r="11" stroke="white" stroke-width="3.2" stroke-opacity="0.95"/>
+  <circle cx="29" cy="24" r="11" stroke="#F4A261" stroke-width="3.2"/>
+  <circle cx="24" cy="24" r="3.5" fill="white"/>
+  <path d="M24 17.5V14M24 34V30.5" stroke="#7ECFCF" stroke-width="2" stroke-linecap="round"/>
+  <path d="M17.5 24H14M34 24H30.5" stroke="#7ECFCF" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="clubsync-bg" x1="6" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F4C5C"/>
+      <stop offset="1" stop-color="#2A8F9A"/>
+    </linearGradient>
+  </defs>
+</svg>

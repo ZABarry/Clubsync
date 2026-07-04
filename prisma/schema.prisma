@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  PARENT
+  ADMIN
+}
+
+enum CampStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+enum Region {
+  SOUTH_WEST_LONDON
+}
+
+enum PlannedCampStatus {
+  SUGGESTED
+  INTERESTED
+  FAVOURITE
+  PLANNED
+  BOOKED
+  PAID
+  CANCELLED
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
+enum SharedCampParticipantStatus {
+  INTERESTED
+  PLANNED
+  BOOKED
+  PAID
+  CANCELLED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      UserRole @default(PARENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentProfile ParentProfile?
+}
+
+model ParentProfile {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  displayName          String
+  homePostcode         String?
+  latitude             Float?
+  longitude            Float?
+  defaultSearchRadiusKm Float   @default(10)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children          ChildProfile[]
+  plannedCamps      PlannedCamp[]
+  sentConnections   TrustedParentConnection[] @relation("Requester")
+  receivedConnections TrustedParentConnection[] @relation("Recipient")
+  sharedCampsCreated SharedCamp[]
+  sharedCampParticipants SharedCampParticipant[]
+  ratings           Rating[]
+  campSubmissions   CampSubmission[]
+  campChangeRequests CampChangeRequest[]
+}
+
+model ChildProfile {
+  id                String    @id @default(uuid())
+  parentProfileId   String
+  nickname          String
+  age               Int
+  schoolYear        String?
+  interests         String[]
+  availabilityStart DateTime?
+  availabilityEnd   DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  plannedCamps PlannedCamp[]
+  sharedCampParticipants SharedCampParticipant[]
+}
+
+model Provider {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  website      String?
+  contactEmail String?
+  phone        String?
+  logoUrl      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  camps Camp[]
+}
+
+model Camp {
+  id              String     @id @default(uuid())
+  providerId      String
+  name            String
+  description     String?
+  locationName    String
+  address         String?
+  latitude        Float
+  longitude       Float
+  activities      String[]
+  ageMin          Int
+  ageMax          Int
+  startDate       DateTime
+  endDate         DateTime
+  dailyStartTime  String?
+  dailyEndTime    String?
+  price           Float?
+  bookingUrl      String?
+  imageUrl        String?
+  ratingAverage   Float      @default(0)
+  ratingCount     Int        @default(0)
+  status          CampStatus @default(ACTIVE)
+  region          Region     @default(SOUTH_WEST_LONDON)
+  isIndoor        Boolean    @default(false)
+  isOutdoor       Boolean    @default(true)
+  sendFriendly    Boolean    @default(false)
+  accessibilityNotes String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  provider       Provider           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  plannedCamps   PlannedCamp[]
+  sharedCamps    SharedCamp[]
+  ratings        Rating[]
+  changeRequests CampChangeRequest[]
+
+  @@index([latitude, longitude])
+  @@index([startDate, endDate])
+  @@index([providerId])
+}
+
+model PlannedCamp {
+  id              String            @id @default(uuid())
+  parentProfileId String
+  childProfileId  String?
+  campId          String
+  status          PlannedCampStatus @default(INTERESTED)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  child        ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
+  camp         Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
+  sharedCampParticipants SharedCampParticipant[]
+
+  @@unique([parentProfileId, campId, childProfileId])
+  @@index([campId])
+  @@index([parentProfileId])
+}
+
+model TrustedParentConnection {
+  id                 String           @id @default(uuid())
+  requesterParentId  String
+  recipientParentId  String?
+  status             ConnectionStatus @default(PENDING)
+  inviteToken        String           @unique
+  createdAt          DateTime         @default(now())
+  acceptedAt         DateTime?
+
+  requester ParentProfile  @relation("Requester", fields: [requesterParentId], references: [id], onDelete: Cascade)
+  recipient ParentProfile? @relation("Recipient", fields: [recipientParentId], references: [id], onDelete: SetNull)
+
+  @@index([requesterParentId])
+  @@index([recipientParentId])
+}
+
+model SharedCamp {
+  id                String   @id @default(uuid())
+  campId            String
+  createdByParentId String
+  title             String
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  camp         Camp                    @relation(fields: [campId], references: [id], onDelete: Cascade)
+  createdBy    ParentProfile           @relation(fields: [createdByParentId], references: [id], onDelete: Cascade)
+  participants SharedCampParticipant[]
+}
+
+model SharedCampParticipant {
+  id              String                      @id @default(uuid())
+  sharedCampId    String
+  parentProfileId String
+  childProfileId  String?
+  plannedCampId   String?
+  status          SharedCampParticipantStatus @default(INTERESTED)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  sharedCamp    SharedCamp    @relation(fields: [sharedCampId], references: [id], onDelete: Cascade)
+  parent        ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  child         ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
+  plannedCamp   PlannedCamp?  @relation(fields: [plannedCampId], references: [id], onDelete: SetNull)
+}
+
+model Rating {
+  id               String           @id @default(uuid())
+  campId           String
+  parentProfileId  String
+  rating           Int
+  reviewText       String?
+  moderationStatus ModerationStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  camp   Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
+  parent ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([campId, parentProfileId])
+  @@index([campId])
+}
+
+model CampSubmission {
+  id                  String           @id @default(uuid())
+  submittedByParentId String
+  campName            String
+  providerName        String?
+  website             String?
+  notes               String?
+  moderationStatus    ModerationStatus @default(PENDING)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  submittedBy ParentProfile @relation(fields: [submittedByParentId], references: [id], onDelete: Cascade)
+}
+
+model CampChangeRequest {
+  id                  String           @id @default(uuid())
+  campId              String
+  submittedByParentId String
+  fieldName           String
+  suggestedValue      String
+  notes               String?
+  moderationStatus    ModerationStatus @default(PENDING)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  camp        Camp          @relation(fields: [campId], references: [id], onDelete: Cascade)
+  submittedBy ParentProfile @relation(fields: [submittedByParentId], references: [id], onDelete: Cascade)
+}
