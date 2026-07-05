@@ -57,11 +57,7 @@ export function ClubDetail({
   const dailyRateDisplay = formatClubDetailDailyRate(club);
   const bookingSummary =
     booking && booking.bookedDates.length > 0
-      ? formatBookingSummary(
-          booking.bookedDates.length,
-          booking.effectiveDailyRate,
-          booking.effectiveTotalPrice,
-        )
+      ? formatBookingSummary(booking.bookedDates.length, null, null)
       : null;
   const directionsUrl = buildGoogleMapsDirectionsUrl({
     address: club.address,
@@ -239,6 +235,15 @@ export function ClubDetail({
             </p>
           </CardContent>
         </Card>
+      ) : null}
+
+      {club.bookingUrl ? (
+        <Button asChild>
+          <a href={club.bookingUrl} target="_blank" rel="noopener noreferrer">
+            Book now
+            <ExternalLink className="size-4" />
+          </a>
+        </Button>
       ) : null}
 
       {onStatusChange ? (

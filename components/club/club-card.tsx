@@ -1,9 +1,10 @@
-import { MapPin, Star } from "lucide-react";
+import { ExternalLink, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 
 import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn, formatOptionalDateRange } from "@/lib/utils";
 import { formatClubCardRates } from "@/lib/utils/club-booking";
@@ -151,6 +152,22 @@ export function ClubCard({
             ? club.recommendationReasons.slice(0, 3).join(" · ")
             : "\u00A0"}
         </p>
+
+        {club.bookingUrl ? (
+          <div className="pointer-events-auto relative z-20 pt-1">
+            <Button size="sm" asChild className="h-7 text-xs">
+              <a
+                href={club.bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Book now
+                <ExternalLink className="size-3" />
+              </a>
+            </Button>
+          </div>
+        ) : null}
       </div>
     </Card>
   );

@@ -116,6 +116,18 @@ export function SharedClubView({
         </Link>
       </Button>
 
+      {sharedClub.club.bookingUrl ? (
+        <Button asChild>
+          <a
+            href={sharedClub.club.bookingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book club
+          </a>
+        </Button>
+      ) : null}
+
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Participants</h2>
         {sharedClub.participants.length === 0 ? (

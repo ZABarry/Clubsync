@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
 import type {
@@ -20,14 +19,7 @@ import type {
   PlannedClubBookingData,
   PlannedClubStatus,
 } from "@/lib/types/club";
-import {
-  computeTotalPrice,
-  enumerateCampDates,
-  formatBookingSummary,
-  formatCampDayLabel,
-  resolveDailyRate,
-} from "@/lib/utils/club-booking";
-import { formatPrice } from "@/lib/utils";
+import { enumerateCampDates, formatCampDayLabel } from "@/lib/utils/club-booking";
 
 type ClubBookingPanelProps = {
   club: ClubDetailData;
@@ -50,131 +42,36 @@ export function ClubBookingPanel({
     return enumerateCampDates(club.startDate, club.endDate);
   }, [club.startDate, club.endDate]);
 
-  const clubDefaultDailyRate = resolveDailyRate(club);
-
   const [selectedDates, setSelectedDates] = useState<string[]>(
     booking?.bookedDates ?? [],
   );
-  const [dailyRateInput, setDailyRateInput] = useState<string>(() => {
-    const rate = booking?.dailyRateOverride ?? clubDefaultDailyRate;
-    return rate != null ? String(rate) : "";
-  });
-  const [totalInput, setTotalInput] = useState<string>(() => {
-    if (booking?.totalPriceOverride != null) {
-      return String(booking.totalPriceOverride);
-    }
-    const rate = parseDailyRate(dailyRateInput);
-    const total = computeTotalPrice(
-      rate,
-      booking?.bookedDates.length ?? 0,
-      null,
-    );
-    return total != null ? String(total) : "";
-  });
-  const [totalTouched, setTotalTouched] = useState(
-    booking?.totalPriceOverride != null,
-  );
-
-  const parsedDailyRate = parseDailyRate(dailyRateInput);
-  const computedTotal = computeTotalPrice(
-    parsedDailyRate,
-    selectedDates.length,
-    totalTouched ? parsePositiveNumber(totalInput) : null,
-  );
-  const dailyRateChangedFromDefault =
-    parsedDailyRate != null &&
-    clubDefaultDailyRate != null &&
-    parsedDailyRate !== clubDefaultDailyRate;
-  const dailyRateOverride =
-    dailyRateChangedFromDefault ||
-    (parsedDailyRate != null && clubDefaultDailyRate == null)
-      ? parsedDailyRate
-      : undefined;
-  const totalPriceOverride = totalTouched
-    ? parsePositiveNumber(totalInput) ?? undefined
-    : undefined;
 
   const datesUnavailable = campDates.length === 0;
   const status = plannedStatus ?? "INTERESTED";
 
   const toggleDate = (date: string) => {
-    setSelectedDates((current) => {
-      const next = current.includes(date)
+    setSelectedDates((current) =>
+      current.includes(date)
         ? current.filter((d) => d !== date)
-        : [...current, date].sort();
-      if (!totalTouched) {
-        const rate = parseDailyRate(dailyRateInput);
-        const total = computeTotalPrice(rate, next.length, null);
-        setTotalInput(total != null ? String(total) : "");
-      }
-      return next;
-    });
+        : [...current, date].sort(),
+    );
   };
 
   const selectAll = () => {
     setSelectedDates([...campDates]);
-    if (!totalTouched) {
-      const rate = parseDailyRate(dailyRateInput);
-      const total = computeTotalPrice(rate, campDates.length, null);
-      setTotalInput(total != null ? String(total) : "");
-    }
   };
 
   const clearAll = () => {
     setSelectedDates([]);
-    if (!totalTouched) {
-      setTotalInput("");
-    }
   };
 
   const resetToSaved = () => {
-    const savedDates = booking?.bookedDates ?? [];
-    const savedRate = booking?.dailyRateOverride ?? clubDefaultDailyRate;
-    setSelectedDates(savedDates);
-    setDailyRateInput(savedRate != null ? String(savedRate) : "");
-    setTotalTouched(booking?.totalPriceOverride != null);
-    if (booking?.totalPriceOverride != null) {
-      setTotalInput(String(booking.totalPriceOverride));
-      return;
-    }
-    const rate = savedRate;
-    const total = computeTotalPrice(rate, savedDates.length, null);
-    setTotalInput(total != null ? String(total) : "");
+    setSelectedDates(booking?.bookedDates ?? []);
   };
 
   const savedDates = booking?.bookedDates ?? [];
-  const savedDailyRate =
-    booking?.dailyRateOverride ?? clubDefaultDailyRate ?? null;
-  const savedTotal =
-    booking?.totalPriceOverride ??
-    computeTotalPrice(savedDailyRate, savedDates.length, null);
   const isDirty =
-    JSON.stringify(selectedDates) !== JSON.stringify(savedDates) ||
-    parsedDailyRate !== savedDailyRate ||
-    (totalTouched
-      ? parsePositiveNumber(totalInput) !== savedTotal
-      : computedTotal !== savedTotal);
-
-  const handleDailyRateChange = (value: string) => {
-    setDailyRateInput(value);
-    if (!totalTouched) {
-      const rate = parseDailyRate(value);
-      const total = computeTotalPrice(rate, selectedDates.length, null);
-      setTotalInput(total != null ? String(total) : "");
-    }
-  };
-
-  const handleTotalChange = (value: string) => {
-    setTotalTouched(true);
-    setTotalInput(value);
-  };
-
-  const resetTotalToComputed = () => {
-    setTotalTouched(false);
-    const rate = parseDailyRate(dailyRateInput);
-    const total = computeTotalPrice(rate, selectedDates.length, null);
-    setTotalInput(total != null ? String(total) : "");
-  };
+    JSON.stringify(selectedDates) !== JSON.stringify(savedDates);
 
   const handleSave = () => {
     if (status === "BOOKED" && selectedDates.length === 0) {
@@ -188,8 +85,6 @@ export function ClubBookingPanel({
           clubId: club.id,
           status,
           bookedDates: selectedDates,
-          dailyRateOverride,
-          totalPriceOverride,
         });
         toast.success("Booking saved");
         onSaved?.();
@@ -201,21 +96,18 @@ export function ClubBookingPanel({
     });
   };
 
-  const summary = formatBookingSummary(
-    selectedDates.length,
-    parsedDailyRate,
-    computedTotal,
-  );
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Your booking</CardTitle>
-        <CardDescription>
-          {datesUnavailable
-            ? "Club dates are not set yet — day selection will be available once dates are confirmed."
-            : "Choose the days you want to book and adjust pricing if needed."}
-        </CardDescription>
+        <CardTitle className="text-base">
+          Choose the days you have booked to show on your calendar
+        </CardTitle>
+        {datesUnavailable ? (
+          <CardDescription>
+            Club dates are not set yet — day selection will be available once
+            dates are confirmed.
+          </CardDescription>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-6">
         {!datesUnavailable ? (
@@ -266,62 +158,6 @@ export function ClubBookingPanel({
           </div>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="daily-rate">Daily rate</Label>
-            <Input
-              id="daily-rate"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder={
-                clubDefaultDailyRate != null
-                  ? String(clubDefaultDailyRate)
-                  : "Enter daily rate"
-              }
-              value={dailyRateInput}
-              onChange={(e) => handleDailyRateChange(e.target.value)}
-              disabled={disabled || pending}
-            />
-            {clubDefaultDailyRate != null ? (
-              <p className="text-muted-foreground text-xs">
-                Club default: {formatPrice(clubDefaultDailyRate)}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label htmlFor="total-price">Total</Label>
-              {totalTouched ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto px-2 py-1 text-xs"
-                  onClick={resetTotalToComputed}
-                  disabled={disabled || pending}
-                >
-                  Reset to calculated
-                </Button>
-              ) : null}
-            </div>
-            <Input
-              id="total-price"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="Calculated total"
-              value={totalInput}
-              onChange={(e) => handleTotalChange(e.target.value)}
-              disabled={disabled || pending}
-            />
-            {summary ? (
-              <p className="text-muted-foreground text-xs">{summary}</p>
-            ) : null}
-          </div>
-        </div>
-
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -347,18 +183,4 @@ export function ClubBookingPanel({
       </CardContent>
     </Card>
   );
-}
-
-function parseDailyRate(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseFloat(trimmed);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-}
-
-function parsePositiveNumber(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseFloat(trimmed);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }

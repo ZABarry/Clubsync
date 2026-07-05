@@ -20,7 +20,6 @@ import { deletePlannedClub, upsertPlannedClub } from "@/lib/actions/planned-club
 import type { ClubCalendarEvent, PlannedClubStatus } from "@/lib/types/club";
 import { formatOptionalDateRange } from "@/lib/utils";
 import {
-  computeTotalPrice,
   enumerateCampDates,
   formatBookedDateRange,
   formatBookingSummary,
@@ -61,17 +60,7 @@ export function CalendarCampSheet({
         ? formatOptionalDateRange(event.start, event.end)
         : "Dates TBC";
 
-  const effectiveDailyRate = event?.effectiveDailyRate ?? null;
-  const computedTotal = computeTotalPrice(
-    effectiveDailyRate,
-    selectedDates.length,
-    event?.totalPriceOverride ?? null,
-  );
-  const summary = formatBookingSummary(
-    selectedDates.length,
-    effectiveDailyRate,
-    computedTotal,
-  );
+  const summary = formatBookingSummary(selectedDates.length, null, null);
 
   const datesChanged =
     JSON.stringify(selectedDates) !==
@@ -103,8 +92,6 @@ export function CalendarCampSheet({
           clubId: event.clubId,
           status,
           bookedDates: selectedDates,
-          dailyRateOverride: event.dailyRateOverride ?? undefined,
-          totalPriceOverride: event.totalPriceOverride ?? undefined,
         });
         toast.success("Status updated");
         onUpdated?.();
@@ -147,8 +134,6 @@ export function CalendarCampSheet({
           clubId: event.clubId,
           status: event.status,
           bookedDates: selectedDates,
-          dailyRateOverride: event.dailyRateOverride ?? undefined,
-          totalPriceOverride: event.totalPriceOverride ?? undefined,
         });
         toast.success("Dates updated");
         onRefresh?.();
