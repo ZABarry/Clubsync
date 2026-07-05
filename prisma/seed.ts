@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { config } from "dotenv";
 import { ClubPromotionStatus, ClubStatus, UserRole } from "@prisma/client";
 import { createPrismaClient } from "../lib/db/create-prisma-client";
+import { parseClubPrice } from "../lib/clubs/parse-club-price";
 
 config({ path: ".env.local" });
 config();
@@ -72,25 +73,8 @@ function parseActivities(value?: string): string[] {
     .filter(Boolean);
 }
 
-function parsePriceFrom(priceFrom?: string): {
-  price: number | null;
-  priceNote: string | null;
-  dailyRate: number | null;
-} {
-  const note = emptyToNull(priceFrom);
-  if (!note) return { price: null, priceNote: null, dailyRate: null };
-  const match = note.match(/(\d+(?:\.\d+)?)/);
-  const price = match ? Number.parseFloat(match[1]) : null;
-  const lower = note.toLowerCase();
-  const dailyRate =
-    price != null && (lower.includes("per day") || lower.includes("/ day"))
-      ? price
-      : null;
-  return {
-    price,
-    priceNote: note,
-    dailyRate,
-  };
+function parsePriceFrom(priceFrom?: string) {
+  return parseClubPrice(priceFrom);
 }
 
 function parseClubStatus(status?: string): ClubStatus {

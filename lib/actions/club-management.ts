@@ -5,6 +5,7 @@ import {
   ClubPromotionStatus,
   ClubStatus,
   NotificationType,
+  Prisma,
   UserRole,
 } from "@prisma/client";
 
@@ -45,6 +46,64 @@ export type ManagedClubListItem = {
   distanceKm: number | null;
   updatedAt: Date;
 };
+
+const STATUS_SORT_ORDER: Record<ClubStatus, number> = {
+  ACTIVE: 0,
+  DRAFT: 1,
+  ARCHIVED: 2,
+};
+
+function sortManagedClubs(
+  clubs: ManagedClubListItem[],
+  sortBy: NonNullable<
+    ReturnType<typeof clubManagementFilterSchema.parse>["sortBy"]
+  > = "updatedAt",
+  sortDir: "asc" | "desc" = "desc",
+) {
+  const direction = sortDir === "asc" ? 1 : -1;
+
+  return [...clubs].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortBy) {
+      case "name":
+        comparison = a.name.localeCompare(b.name, undefined, {
+          sensitivity: "base",
+        });
+        break;
+      case "locationName":
+        comparison = a.locationName.localeCompare(b.locationName, undefined, {
+          sensitivity: "base",
+        });
+        break;
+      case "provider":
+        comparison = a.providerName.localeCompare(b.providerName, undefined, {
+          sensitivity: "base",
+        });
+        break;
+      case "status":
+        comparison =
+          STATUS_SORT_ORDER[a.status] - STATUS_SORT_ORDER[b.status];
+        break;
+      case "distance":
+        if (a.distanceKm == null && b.distanceKm == null) comparison = 0;
+        else if (a.distanceKm == null) comparison = 1;
+        else if (b.distanceKm == null) comparison = -1;
+        else comparison = a.distanceKm - b.distanceKm;
+        break;
+      case "updatedAt":
+      default:
+        comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+        break;
+    }
+
+    if (comparison === 0) {
+      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+    }
+
+    return comparison * direction;
+  });
+}
 
 function parseOptionalDate(value?: string) {
   if (!value) return null;
@@ -130,6 +189,9 @@ export async function getManagedClubs(
 
   if (mode === "admin") {
     await requireReviewer();
+    if (filters.includeDeleted) {
+      await requireMasterAdmin();
+    }
     return listClubs(filters, null, mode);
   }
 
@@ -142,19 +204,20 @@ async function listClubs(
   ownerParentProfileId: string | null,
   mode: "admin" | "personal",
 ) {
-  const where: {
-    ownerParentProfileId?: string | null;
-    status?: ClubStatus;
-    promotionStatus?: ClubPromotionStatus;
-    region?: typeof filters.region;
-    OR?: Array<Record<string, unknown>>;
-  } = {};
+  const where: Prisma.ClubWhereInput = {};
 
   if (mode === "personal" && ownerParentProfileId) {
     where.ownerParentProfileId = ownerParentProfileId;
   }
 
-  if (filters.status) where.status = filters.status;
+  if (filters.status) {
+    where.status = filters.status;
+  } else if (mode === "admin" && !filters.includeDeleted) {
+    where.status = { not: ClubStatus.ARCHIVED };
+  } else if (mode === "personal") {
+    where.status = { not: ClubStatus.ARCHIVED };
+  }
+
   if (filters.promotionStatus) where.promotionStatus = filters.promotionStatus;
   if (filters.region) where.region = filters.region;
 
@@ -212,12 +275,11 @@ async function listClubs(
         )
       : mapped;
 
-  return filtered.sort((a, b) => {
-    if (a.distanceKm != null && b.distanceKm != null) {
-      return a.distanceKm - b.distanceKm;
-    }
-    return b.updatedAt.getTime() - a.updatedAt.getTime();
-  });
+  return sortManagedClubs(
+    filtered,
+    filters.sortBy ?? "updatedAt",
+    filters.sortDir ?? "desc",
+  );
 }
 
 export async function getClubForEdit(clubId: string, mode: "admin" | "personal") {
@@ -305,11 +367,40 @@ export async function deactivateClub(clubId: string, mode: "admin" | "personal")
   return updated;
 }
 
+export async function publishClub(clubId: string, mode: "admin" | "personal") {
+  const club = await getClubForEdit(clubId, mode);
+  if (club.status !== ClubStatus.DRAFT) {
+    throw new Error("Only draft clubs can be published");
+  }
+  const updated = await prisma.club.update({
+    where: { id: clubId },
+    data: { status: ClubStatus.ACTIVE },
+  });
+  revalidateClubPaths(clubId);
+  return updated;
+}
+
 export async function archiveClub(clubId: string, mode: "admin" | "personal") {
   await getClubForEdit(clubId, mode);
   const updated = await prisma.club.update({
     where: { id: clubId },
     data: { status: ClubStatus.ARCHIVED },
+  });
+  revalidateClubPaths(clubId);
+  return updated;
+}
+
+export async function reinstateClub(clubId: string) {
+  await requireMasterAdmin();
+
+  const club = await prisma.club.findUnique({ where: { id: clubId } });
+  if (!club || club.status !== ClubStatus.ARCHIVED) {
+    throw new Error("Only deleted clubs can be reinstated");
+  }
+
+  const updated = await prisma.club.update({
+    where: { id: clubId },
+    data: { status: ClubStatus.ACTIVE },
   });
   revalidateClubPaths(clubId);
   return updated;

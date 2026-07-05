@@ -63,10 +63,10 @@ describe("validateBookedDates", () => {
 });
 
 describe("resolveDailyRate", () => {
-  it("prefers override, then dailyRate, then price", () => {
+  it("prefers override, then dailyRate only", () => {
     expect(resolveDailyRate({ dailyRate: 60, price: 42 }, 50)).toBe(50);
     expect(resolveDailyRate({ dailyRate: 60, price: 42 })).toBe(60);
-    expect(resolveDailyRate({ dailyRate: null, price: 42 })).toBe(42);
+    expect(resolveDailyRate({ dailyRate: null, price: 42 })).toBeNull();
     expect(resolveDailyRate({ dailyRate: null, price: null })).toBeNull();
   });
 });

@@ -24,6 +24,7 @@ type ClubManagementFiltersProps = {
   defaultLatitude?: number | null;
   defaultLongitude?: number | null;
   showAdminFilters?: boolean;
+  showDeletedToggle?: boolean;
   onApply: (filters: ClubManagementFilterValues) => void;
 };
 
@@ -31,6 +32,7 @@ export function ClubManagementFilters({
   defaultLatitude,
   defaultLongitude,
   showAdminFilters = false,
+  showDeletedToggle = false,
   onApply,
 }: ClubManagementFiltersProps) {
   const [search, setSearch] = useState("");
@@ -41,25 +43,37 @@ export function ClubManagementFilters({
   const [longitude, setLongitude] = useState(
     defaultLongitude != null ? String(defaultLongitude) : "",
   );
-  const [status, setStatus] = useState<string>("all");
+  const [publication, setPublication] = useState<string>("all");
   const [promotionStatus, setPromotionStatus] = useState<string>("all");
+  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("updatedAt");
+  const [sortDir, setSortDir] = useState<string>("desc");
 
-  const apply = () => {
-    onApply({
-      search: search || undefined,
-      maxDistanceKm: maxDistanceKm ? Number(maxDistanceKm) : undefined,
-      latitude: latitude ? Number(latitude) : undefined,
-      longitude: longitude ? Number(longitude) : undefined,
-      region: "SOUTH_WEST_LONDON",
-      status:
-        status === "all"
-          ? undefined
-          : (status as ClubManagementFilterValues["status"]),
-      promotionStatus:
-        promotionStatus === "all"
-          ? undefined
-          : (promotionStatus as ClubManagementFilterValues["promotionStatus"]),
-    });
+  const buildFilters = (
+    includeDeletedOverride?: boolean,
+  ): ClubManagementFilterValues => ({
+    search: search || undefined,
+    maxDistanceKm: maxDistanceKm ? Number(maxDistanceKm) : undefined,
+    latitude: latitude ? Number(latitude) : undefined,
+    longitude: longitude ? Number(longitude) : undefined,
+    region: "SOUTH_WEST_LONDON",
+    status:
+      publication === "published"
+        ? "ACTIVE"
+        : publication === "draft"
+          ? "DRAFT"
+          : undefined,
+    promotionStatus:
+      promotionStatus === "all"
+        ? undefined
+        : (promotionStatus as ClubManagementFilterValues["promotionStatus"]),
+    includeDeleted: (includeDeletedOverride ?? includeDeleted) || undefined,
+    sortBy: sortBy as ClubManagementFilterValues["sortBy"],
+    sortDir: sortDir as ClubManagementFilterValues["sortDir"],
+  });
+
+  const apply = (includeDeletedOverride?: boolean) => {
+    onApply(buildFilters(includeDeletedOverride));
   };
 
   return (
@@ -107,19 +121,66 @@ export function ClubManagementFilters({
           onChange={(e) => setLongitude(e.target.value)}
         />
       </div>
+      <div className="space-y-1">
+        <Label>Sort by</Label>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updatedAt">Recently updated</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="locationName">Location</SelectItem>
+            <SelectItem value="provider">Provider</SelectItem>
+            <SelectItem value="status">Status</SelectItem>
+            <SelectItem value="distance">Distance</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1">
+        <Label>Order</Label>
+        <Select value={sortDir} onValueChange={setSortDir}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="asc">
+              {sortBy === "updatedAt"
+                ? "Oldest first"
+                : sortBy === "distance"
+                  ? "Nearest first"
+                  : sortBy === "name" ||
+                      sortBy === "locationName" ||
+                      sortBy === "provider"
+                    ? "A → Z"
+                    : "Ascending"}
+            </SelectItem>
+            <SelectItem value="desc">
+              {sortBy === "updatedAt"
+                ? "Newest first"
+                : sortBy === "distance"
+                  ? "Farthest first"
+                  : sortBy === "name" ||
+                      sortBy === "locationName" ||
+                      sortBy === "provider"
+                    ? "Z → A"
+                    : "Descending"}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       {showAdminFilters ? (
         <>
           <div className="space-y-1">
-            <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Label>Publication</Label>
+            <Select value={publication} onValueChange={setPublication}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                <SelectItem value="all">All clubs</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -140,8 +201,25 @@ export function ClubManagementFilters({
           </div>
         </>
       ) : null}
+      {showDeletedToggle ? (
+        <div className="flex items-end sm:col-span-2">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={includeDeleted}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setIncludeDeleted(next);
+                apply(next);
+              }}
+              className="border-input size-4 rounded border accent-primary"
+            />
+            <span>Show deleted clubs</span>
+          </label>
+        </div>
+      ) : null}
       <div className="flex items-end sm:col-span-2 lg:col-span-4">
-        <Button type="button" onClick={apply}>
+        <Button type="button" onClick={() => apply()}>
           Apply filters
         </Button>
       </div>

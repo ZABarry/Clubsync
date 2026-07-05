@@ -74,6 +74,11 @@ export const clubManagementFilterSchema = z.object({
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
   status: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]).optional(),
+  includeDeleted: z.boolean().optional(),
+  sortBy: z
+    .enum(["updatedAt", "name", "locationName", "provider", "status", "distance"])
+    .optional(),
+  sortDir: z.enum(["asc", "desc"]).optional(),
   promotionStatus: z
     .enum(["OFFICIAL", "LOCAL", "PENDING", "DENIED"])
     .optional(),
@@ -88,6 +93,11 @@ export const clubReviewSchema = z.object({
 export const clubSubmitForReviewSchema = z.object({
   clubId: z.string().uuid(),
   submissionNote: z.string().min(1).max(1000),
+});
+
+export const dashboardRecommendationsSchema = z.object({
+  limit: z.coerce.number().min(1).max(12).default(4),
+  offset: z.coerce.number().min(0).default(0),
 });
 
 export const adminUserFilterSchema = z.object({

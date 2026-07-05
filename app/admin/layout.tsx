@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Tent } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
+import { ClubZerLogo } from "@/components/brand/clubzer-logo";
 import { syncUser } from "@/lib/auth/server";
 import { isReviewerRole } from "@/lib/auth/roles";
 import { isDbConnectionError } from "@/lib/db/errors";
+export const metadata: Metadata = {
+  title: "Admin",
+};
 
 export default async function AdminLayout({
   children,
@@ -21,20 +26,30 @@ export default async function AdminLayout({
   if (!user || !isReviewerRole(user.role)) redirect("/");
 
   return (
-    <div className="min-h-full flex-1">
-      <header className="border-b bg-card">
+    <div className="club-brand-bg min-h-full flex-1">
+      <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-8">
-          <Link href="/admin" className="flex items-center gap-2">
-            <Tent className="size-5 text-primary" />
-            <span className="font-semibold">ClubZer Admin</span>
+          <Link href="/admin" className="flex items-center gap-3">
+            <ClubZerLogo size="md" />
+            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
+              Admin
+            </span>
           </Link>
-          <Link
-            href="/"
-            className="text-muted-foreground text-sm hover:text-foreground"
-          >
-            ← Back to app
-          </Link>
-        </div>
+          <nav className="flex items-center gap-4 text-sm">
+            <Link
+              href="/admin"
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+            >
+              <LayoutDashboard className="size-4" aria-hidden />
+              Admin dashboard
+            </Link>
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ← Back to app
+            </Link>
+          </nav>        </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">{children}</main>
     </div>

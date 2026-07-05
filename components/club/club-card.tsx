@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
+import { formatClubPriceLabel } from "@/lib/utils/club-booking";
 import type { ClubCardData } from "@/lib/types/club";
 
 type ClubCardProps = {
@@ -24,6 +25,7 @@ type ClubCardProps = {
 export function ClubCard({ club, className, onClick }: ClubCardProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
+  const priceLabel = formatClubPriceLabel(club);
 
   return (
     <Card
@@ -70,9 +72,9 @@ export function ClubCard({ club, className, onClick }: ClubCardProps) {
       <CardContent className="space-y-3 px-4">
         <p className="text-sm">{dateLabel}</p>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">
-            {formatPrice(club.price)}
-          </span>
+          {priceLabel ? (
+            <span className="font-medium text-foreground">{priceLabel}</span>
+          ) : null}
           {hasRating ? (
             <span className="inline-flex items-center gap-1">
               <Star className="size-3.5 fill-amber-400 text-amber-400" />

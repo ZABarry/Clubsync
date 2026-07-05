@@ -48,7 +48,23 @@ export function resolveDailyRate(
 ): number | null {
   if (override != null) return override;
   if (club.dailyRate != null) return club.dailyRate;
-  if (club.price != null) return club.price;
+  return null;
+}
+
+export function formatClubPriceLabel(club: {
+  price?: number | null;
+  dailyRate?: number | null;
+  priceNote?: string | null;
+}): string | null {
+  if (club.dailyRate != null) {
+    return `£${club.dailyRate} per day`;
+  }
+  if (club.priceNote?.trim()) {
+    return club.priceNote.trim();
+  }
+  if (club.price != null) {
+    return `From £${club.price}`;
+  }
   return null;
 }
 

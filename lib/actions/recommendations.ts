@@ -4,13 +4,56 @@ import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
-import { smartPlannerSchema } from "@/lib/validation/schemas";
+import {
+  dashboardRecommendationsSchema,
+  smartPlannerSchema,
+} from "@/lib/validation/schemas";
 import {
   scoreClubs,
   type RecommendationClub,
 } from "@/lib/recommendations/score-clubs";
 import { isVisibleToFriends } from "@/lib/privacy/friend-visibility";
 import type { ClubCardData } from "@/lib/types/club";
+import { getClubs } from "@/lib/actions/clubs";
+
+export type DashboardRecommendationsResult = {
+  clubs: ClubCardData[];
+  offset: number;
+  hasMore: boolean;
+  total: number;
+};
+
+function paginateRecommendations(
+  clubs: ClubCardData[],
+  limit: number,
+  offset: number,
+): DashboardRecommendationsResult {
+  const total = clubs.length;
+  if (total === 0) {
+    return { clubs: [], offset: 0, hasMore: false, total: 0 };
+  }
+
+  const effectiveOffset = offset >= total ? 0 : offset;
+  const page = clubs.slice(effectiveOffset, effectiveOffset + limit);
+
+  return {
+    clubs: page,
+    offset: effectiveOffset,
+    hasMore: effectiveOffset + limit < total,
+    total,
+  };
+}
+
+async function getFallbackRecommendations(
+  limit: number,
+  offset: number,
+): Promise<DashboardRecommendationsResult> {
+  const allClubs = await getClubs();
+  const sorted = [...allClubs].sort(
+    (a, b) => (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0),
+  );
+  return paginateRecommendations(sorted, limit, offset);
+}
 
 async function getTrustedFriendIds(parentProfileId: string) {
   const connections = await prisma.trustedParentConnection.findMany({
@@ -118,17 +161,23 @@ export async function getRecommendations(input: unknown) {
 }
 
 export async function getDashboardRecommendations(
-  limit = 4,
-): Promise<ClubCardData[]> {
+  rawOptions: unknown = {},
+): Promise<DashboardRecommendationsResult> {
+  const { limit, offset } = dashboardRecommendationsSchema.parse(rawOptions);
+
   const user = await requireAuth();
   const profile = user.parentProfile;
-  if (!profile?.latitude || !profile?.longitude) return [];
+  if (!profile?.latitude || !profile?.longitude) {
+    return getFallbackRecommendations(limit, offset);
+  }
 
   const child = await prisma.childProfile.findFirst({
     where: { parentProfileId: profile.id },
     orderBy: { createdAt: "asc" },
   });
-  if (!child) return [];
+  if (!child) {
+    return getFallbackRecommendations(limit, offset);
+  }
 
   const now = new Date();
   const clubs = await prisma.club.findMany({
@@ -139,6 +188,10 @@ export async function getDashboardRecommendations(
     include: { provider: { select: { name: true } } },
     orderBy: { startDate: "asc" },
   });
+
+  if (clubs.length === 0) {
+    return getFallbackRecommendations(limit, offset);
+  }
 
   const friendIds = await getTrustedFriendIds(profile.id);
   const friendClubCounts = new Map<string, number>();
@@ -197,7 +250,7 @@ export async function getDashboardRecommendations(
     },
   );
 
-  return scored.slice(0, limit).map((club) => {
+  const ranked: ClubCardData[] = scored.map((club) => {
     const source = clubs.find((c) => c.id === club.id)!;
     return {
       id: club.id,
@@ -215,4 +268,6 @@ export async function getDashboardRecommendations(
       recommendationReasons: club.recommendationReasons,
     };
   });
+
+  return paginateRecommendations(ranked, limit, offset);
 }

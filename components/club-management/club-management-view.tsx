@@ -17,6 +17,8 @@ import {
   archiveClub,
   deactivateClub,
   getManagedClubs,
+  publishClub,
+  reinstateClub,
   type ManagedClubListItem,
 } from "@/lib/actions/club-management";
 
@@ -29,6 +31,7 @@ type ClubManagementViewProps = {
   description: string;
   listPath: string;
   newPath: string;
+  isMasterAdmin?: boolean;
 };
 
 export function ClubManagementView({
@@ -40,13 +43,18 @@ export function ClubManagementView({
   description,
   listPath,
   newPath,
+  isMasterAdmin = false,
 }: ClubManagementViewProps) {
   const router = useRouter();
   const [clubs, setClubs] = useState(initialClubs);
+  const [activeFilters, setActiveFilters] = useState<ClubManagementFilterValues>(
+    {},
+  );
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const refresh = (filters: ClubManagementFilterValues = {}) => {
+  const refresh = (filters: ClubManagementFilterValues = activeFilters) => {
+    setActiveFilters(filters);
     startTransition(async () => {
       try {
         const next = await getManagedClubs(filters, mode);
@@ -59,7 +67,7 @@ export function ClubManagementView({
 
   const runAction = async (
     clubId: string,
-    action: "deactivate" | "archive",
+    action: "deactivate" | "publish" | "archive" | "reinstate",
   ) => {
     setPendingId(clubId);
     startTransition(async () => {
@@ -67,12 +75,18 @@ export function ClubManagementView({
         if (action === "deactivate") {
           await deactivateClub(clubId, mode);
           toast.success("Club deactivated");
+        } else if (action === "publish") {
+          await publishClub(clubId, mode);
+          toast.success("Club published");
+        } else if (action === "reinstate") {
+          await reinstateClub(clubId);
+          toast.success("Club reinstated");
         } else {
           await archiveClub(clubId, mode);
           toast.success("Club deleted");
         }
         router.refresh();
-        refresh();
+        refresh(activeFilters);
       } catch {
         toast.error("Action failed");
       } finally {
@@ -100,6 +114,7 @@ export function ClubManagementView({
         defaultLatitude={defaultLatitude}
         defaultLongitude={defaultLongitude}
         showAdminFilters={mode === "admin"}
+        showDeletedToggle={mode === "admin" && isMasterAdmin}
         onApply={refresh}
       />
 
@@ -108,7 +123,11 @@ export function ClubManagementView({
         editBasePath={listPath}
         pendingId={pendingId ?? (pending ? "loading" : null)}
         onDeactivate={(id) => runAction(id, "deactivate")}
+        onPublish={(id) => runAction(id, "publish")}
         onArchive={(id) => runAction(id, "archive")}
+        onReinstate={
+          isMasterAdmin ? (id) => runAction(id, "reinstate") : undefined
+        }
       />
     </div>
   );

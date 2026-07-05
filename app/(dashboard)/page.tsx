@@ -22,14 +22,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getClubById, getClubs } from "@/lib/actions/clubs";
+import { getClubById } from "@/lib/actions/clubs";
 import { getFriendActivity } from "@/lib/actions/friends";
 import { buildMapMarkersForClubs } from "@/lib/actions/map-markers";
 import {
   getPlannedClubsForCalendar,
   getPlannedClubsForParent,
 } from "@/lib/actions/planned-clubs";
-import { getDashboardRecommendations } from "@/lib/actions/recommendations";
+import {
+  getDashboardRecommendations,
+  type DashboardRecommendationsResult,
+} from "@/lib/actions/recommendations";
+import { RecommendedClubsSection } from "@/components/club/recommended-clubs-section";
 import { syncUser } from "@/lib/auth/server";
 import type { ClubMapMarker, PlannedClubStatus } from "@/lib/types/club";
 
@@ -49,7 +53,12 @@ export default async function HomePage() {
   const user = await syncUser();
   const displayName = user?.parentProfile?.displayName ?? "there";
 
-  let recommendedClubs: Awaited<ReturnType<typeof getClubs>> = [];
+  let recommended: DashboardRecommendationsResult = {
+    clubs: [],
+    offset: 0,
+    hasMore: false,
+    total: 0,
+  };
   let upcomingPlanned: PlannedClubRow[] = [];
   let calendarEvents: Awaited<ReturnType<typeof getPlannedClubsForCalendar>> =
     [];
@@ -57,13 +66,7 @@ export default async function HomePage() {
   let mapMarkers: ClubMapMarker[] = [];
 
   try {
-    recommendedClubs = await getDashboardRecommendations(4);
-    if (recommendedClubs.length === 0) {
-      const allClubs = await getClubs();
-      recommendedClubs = [...allClubs]
-        .sort((a, b) => (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0))
-        .slice(0, 4);
-    }
+    recommended = await getDashboardRecommendations({ limit: 4, offset: 0 });
 
     const planned = (await getPlannedClubsForParent()) as PlannedClubRow[];
     upcomingPlanned = planned.filter(
@@ -79,7 +82,7 @@ export default async function HomePage() {
     const mapClubIds = [
       ...new Set([
         ...upcomingPlanned.map((p) => p.club.id),
-        ...recommendedClubs.map((c) => c.id),
+        ...recommended.clubs.map((c) => c.id),
       ]),
     ].slice(0, 12);
 
@@ -184,32 +187,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recommended clubs</h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/discover">View all</Link>
-          </Button>
-        </div>
-        {recommendedClubs.length === 0 ? (
-          <Card className="py-8">
-            <CardContent className="text-muted-foreground text-center text-sm">
-              No clubs found yet.{" "}
-              <Link href="/discover" className="text-primary hover:underline">
-                Explore clubs
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {recommendedClubs.map((club) => (
-              <Link key={club.id} href={`/clubs/${club.id}`}>
-                <ClubCard club={club} />
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+      <RecommendedClubsSection initial={recommended} />
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">

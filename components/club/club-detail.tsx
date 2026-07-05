@@ -47,7 +47,12 @@ export function ClubDetail({
 }: ClubDetailProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
-  const displayDailyRate = club.dailyRate ?? club.price;
+  const displayDailyRate = club.dailyRate;
+  const priceLabel = displayDailyRate != null ? "Daily rate" : "Price";
+  const priceValue =
+    displayDailyRate != null
+      ? formatPrice(displayDailyRate)
+      : club.priceNote?.trim() || formatPrice(club.price);
   const bookingSummary =
     booking && booking.bookedDates.length > 0
       ? formatBookingSummary(
@@ -86,11 +91,11 @@ export function ClubDetail({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <InfoCard label="Dates" value={dateLabel} />
         <InfoCard
-          label="Daily rate"
+          label={priceLabel}
           value={
             <span>
-              {formatPrice(displayDailyRate)}
-              {club.priceNote ? (
+              {priceValue}
+              {displayDailyRate != null && club.priceNote ? (
                 <span className="text-muted-foreground mt-1 block text-xs font-normal">
                   {club.priceNote}
                 </span>
