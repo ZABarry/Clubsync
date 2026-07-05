@@ -87,9 +87,11 @@ export function RecommendedClubsSection({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {clubs.map((club) => (
-            <Link key={club.id} href={`/clubs/${club.id}`}>
-              <ClubCard club={club} />
-            </Link>
+            <ClubCard
+              key={club.id}
+              club={club}
+              detailHref={`/clubs/${club.id}`}
+            />
           ))}
         </div>
       )}

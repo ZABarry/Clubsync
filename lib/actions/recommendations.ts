@@ -264,6 +264,7 @@ export async function getDashboardRecommendations(
       activities: club.activities,
       distanceKm: club.distanceKm,
       imageUrl: resolveClubImageUrl({ id: club.id, imageUrl: source.imageUrl }),
+      bookingUrl: source.bookingUrl,
       plannedStatus: plannedByClub.get(club.id) ?? null,
       recommendationReasons: club.recommendationReasons,
     };

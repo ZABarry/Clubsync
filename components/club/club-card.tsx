@@ -1,8 +1,10 @@
-import { MapPin, Star } from "lucide-react";
+import { ExternalLink, MapPin, Star } from "lucide-react";
+import Link from "next/link";
 
 import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,35 +21,24 @@ import type { ClubCardData } from "@/lib/types/club";
 type ClubCardProps = {
   club: ClubCardData;
   className?: string;
+  detailHref?: string;
   onClick?: () => void;
 };
 
-export function ClubCard({ club, className, onClick }: ClubCardProps) {
+export function ClubCard({
+  club,
+  className,
+  detailHref,
+  onClick,
+}: ClubCardProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
   const priceRates = formatClubCardRates(club);
+  const showBookingLink = !!club.bookingUrl;
+  const showPlannedFooter = !!club.plannedStatus;
 
-  return (
-    <Card
-      className={cn(
-        "gap-4 py-4 transition-shadow hover:shadow-md",
-        onClick && "cursor-pointer",
-        className,
-      )}
-      onClick={onClick}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-    >
+  const mainContent = (
+    <>
       <ClubImage
         clubId={club.id}
         src={club.imageUrl!}
@@ -121,11 +112,66 @@ export function ClubCard({ club, className, onClick }: ClubCardProps) {
           </p>
         ) : null}
       </CardContent>
-      {club.plannedStatus ? (
-        <CardFooter className="px-4 pt-0">
-          <span className="text-muted-foreground text-xs">
-            Status: {getPlannedClubStatusLabel(club.plannedStatus)}
-          </span>
+    </>
+  );
+
+  return (
+    <Card
+      className={cn(
+        "gap-4 py-4 transition-shadow hover:shadow-md",
+        (onClick || detailHref) && "cursor-pointer",
+        className,
+      )}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
+      {detailHref ? (
+        <Link href={detailHref} className="block">
+          {mainContent}
+        </Link>
+      ) : (
+        mainContent
+      )}
+      {showBookingLink || showPlannedFooter ? (
+        <CardFooter
+          className={cn(
+            "px-4 pt-0",
+            showBookingLink && showPlannedFooter
+              ? "flex flex-wrap items-center justify-between gap-2"
+              : showBookingLink
+                ? "flex justify-end"
+                : undefined,
+          )}
+        >
+          {showPlannedFooter ? (
+            <span className="text-muted-foreground text-xs">
+              Status: {getPlannedClubStatusLabel(club.plannedStatus!)}
+            </span>
+          ) : null}
+          {showBookingLink ? (
+            <Button size="sm" asChild>
+              <a
+                href={club.bookingUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Book now
+                <ExternalLink className="size-3.5" />
+              </a>
+            </Button>
+          ) : null}
         </CardFooter>
       ) : null}
     </Card>

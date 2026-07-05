@@ -211,19 +211,19 @@ export default async function HomePage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {upcomingPlanned.map((planned) => (
-              <Link key={planned.id} href={`/clubs/${planned.club.id}`}>
-                <ClubCard
-                  club={{
-                    id: planned.club.id,
-                    name: planned.club.name,
-                    providerName: planned.club.provider.name,
-                    startDate: planned.club.startDate,
-                    endDate: planned.club.endDate,
-                    activities: [],
-                    plannedStatus: planned.status,
-                  }}
-                />
-              </Link>
+              <ClubCard
+                key={planned.id}
+                club={{
+                  id: planned.club.id,
+                  name: planned.club.name,
+                  providerName: planned.club.provider.name,
+                  startDate: planned.club.startDate,
+                  endDate: planned.club.endDate,
+                  activities: [],
+                  plannedStatus: planned.status,
+                }}
+                detailHref={`/clubs/${planned.club.id}`}
+              />
             ))}
           </div>
         )}

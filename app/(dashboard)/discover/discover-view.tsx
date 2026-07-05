@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -228,9 +227,11 @@ export function DiscoverView({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {clubs.map((club) => (
-            <Link key={club.id} href={`/clubs/${club.id}`}>
-              <ClubCard club={club} />
-            </Link>
+            <ClubCard
+              key={club.id}
+              club={club}
+              detailHref={`/clubs/${club.id}`}
+            />
           ))}
         </div>
       )}

@@ -1,9 +1,6 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { config } from "dotenv";
 import { ClubPromotionStatus, ClubStatus, UserRole } from "@prisma/client";
 import { createPrismaClient } from "../lib/db/create-prisma-client";
-import { parseClubPrice } from "../lib/clubs/parse-club-price";
 
 config({ path: ".env.local" });
 config();
@@ -11,223 +8,6 @@ config();
 const prisma = createPrismaClient(
   process.env.DIRECT_URL ?? process.env.DATABASE_URL,
 );
-
-type ProviderSeed = {
-  providerId: string;
-  name: string;
-  website?: string;
-  contactEmail?: string;
-  phone?: string;
-  sourceUrl?: string;
-};
-
-type ClubSeed = {
-  providerId: string;
-  name: string;
-  locationName: string;
-  address?: string;
-  lat: number;
-  lon: number;
-  activities: string;
-  ageMin: number;
-  ageMax: number;
-  startDate?: string;
-  endDate?: string;
-  dailyStartTime?: string;
-  dailyEndTime?: string;
-  priceFrom?: string;
-  bookingUrl?: string;
-  description?: string;
-  sourceUrl?: string;
-  dataConfidence?: string;
-  ratingAverage?: string | number;
-  ratingCount?: number;
-  status?: string;
-  indoorOutdoor?: string;
-  sendFriendly?: string;
-  imageUrl?: string;
-};
-
-function loadJson<T>(filename: string): T {
-  const filePath = join(__dirname, "seed-data", filename);
-  return JSON.parse(readFileSync(filePath, "utf-8")) as T;
-}
-
-function emptyToNull(value?: string): string | null {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : null;
-}
-
-function parseDate(value?: string): Date | null {
-  const trimmed = value?.trim();
-  if (!trimmed) return null;
-  const parsed = new Date(`${trimmed}T00:00:00.000Z`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function parseActivities(value?: string): string[] {
-  if (!value?.trim()) return [];
-  return value
-    .split(";")
-    .map((activity) => activity.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function parsePriceFrom(priceFrom?: string) {
-  return parseClubPrice(priceFrom);
-}
-
-function parseClubStatus(status?: string): ClubStatus {
-  switch (status?.trim().toLowerCase()) {
-    case "draft":
-      return ClubStatus.DRAFT;
-    case "archived":
-      return ClubStatus.ARCHIVED;
-    default:
-      return ClubStatus.ACTIVE;
-  }
-}
-
-function parseIndoorOutdoor(value?: string): {
-  isIndoor: boolean;
-  isOutdoor: boolean;
-} {
-  switch (value?.trim().toLowerCase()) {
-    case "indoor":
-      return { isIndoor: true, isOutdoor: false };
-    case "outdoor":
-      return { isIndoor: false, isOutdoor: true };
-    default:
-      return { isIndoor: true, isOutdoor: true };
-  }
-}
-
-function parseSendFriendly(value?: string): boolean {
-  return value?.trim().toLowerCase() === "yes";
-}
-
-function parseRatingAverage(value?: string | number): number {
-  if (typeof value === "number" && !Number.isNaN(value)) return value;
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number.parseFloat(value);
-    if (!Number.isNaN(parsed)) return parsed;
-  }
-  return 0;
-}
-
-async function upsertProvider(provider: ProviderSeed) {
-  const slug = provider.providerId.trim();
-  const data = {
-    slug,
-    name: provider.name.trim(),
-    website: emptyToNull(provider.website),
-    contactEmail: emptyToNull(provider.contactEmail),
-    phone: emptyToNull(provider.phone),
-    sourceUrl: emptyToNull(provider.sourceUrl),
-  };
-
-  const bySlug = await prisma.provider.findUnique({ where: { slug } });
-  if (bySlug) {
-    return prisma.provider.update({ where: { id: bySlug.id }, data });
-  }
-
-  const byName = await prisma.provider.findFirst({
-    where: { name: provider.name.trim() },
-  });
-  if (byName) {
-    return prisma.provider.update({ where: { id: byName.id }, data });
-  }
-
-  return prisma.provider.create({ data });
-}
-
-async function seedProvidersFromJson() {
-  const providers = loadJson<ProviderSeed[]>("providers.json");
-  const providerIdBySlug = new Map<string, string>();
-
-  for (const provider of providers) {
-    const record = await upsertProvider(provider);
-    providerIdBySlug.set(provider.providerId, record.id);
-  }
-
-  console.log(`Upserted ${providers.length} providers from seed data`);
-  return providerIdBySlug;
-}
-
-async function seedClubsFromJson(providerIdBySlug: Map<string, string>) {
-  const clubs = loadJson<ClubSeed[]>("clubs.json");
-  let created = 0;
-  let updated = 0;
-  let skipped = 0;
-
-  for (const club of clubs) {
-    const providerId = providerIdBySlug.get(club.providerId);
-    if (!providerId) {
-      console.warn(
-        `Skipping club "${club.name}" — unknown provider slug "${club.providerId}"`,
-      );
-      skipped += 1;
-      continue;
-    }
-
-    const { price, priceNote, dailyRate } = parsePriceFrom(club.priceFrom);
-    const { isIndoor, isOutdoor } = parseIndoorOutdoor(club.indoorOutdoor);
-    const data = {
-      providerId,
-      name: club.name.trim(),
-      locationName: club.locationName.trim(),
-      description: emptyToNull(club.description),
-      address: emptyToNull(club.address),
-      latitude: club.lat,
-      longitude: club.lon,
-      activities: parseActivities(club.activities),
-      ageMin: club.ageMin,
-      ageMax: club.ageMax,
-      startDate: parseDate(club.startDate),
-      endDate: parseDate(club.endDate),
-      dailyStartTime: emptyToNull(club.dailyStartTime),
-      dailyEndTime: emptyToNull(club.dailyEndTime),
-      price,
-      dailyRate,
-      priceNote,
-      bookingUrl: emptyToNull(club.bookingUrl),
-      sourceUrl: emptyToNull(club.sourceUrl),
-      imageUrl: emptyToNull(club.imageUrl),
-      dataConfidence: emptyToNull(club.dataConfidence),
-      ratingAverage: parseRatingAverage(club.ratingAverage),
-      ratingCount: club.ratingCount ?? 0,
-      status: parseClubStatus(club.status),
-      isIndoor,
-      isOutdoor,
-      sendFriendly: parseSendFriendly(club.sendFriendly),
-    };
-
-    const existing = await prisma.club.findUnique({
-      where: {
-        providerId_name_locationName: {
-          providerId,
-          name: data.name,
-          locationName: data.locationName,
-        },
-      },
-    });
-
-    if (existing) {
-      await prisma.club.update({
-        where: { id: existing.id },
-        data,
-      });
-      updated += 1;
-    } else {
-      await prisma.club.create({ data });
-      created += 1;
-    }
-  }
-
-  console.log(
-    `Upserted ${clubs.length} clubs (${created} created, ${updated} updated, ${skipped} skipped)`,
-  );
-}
 
 async function seedDemoUsersIfMissing() {
   const parent1 = await prisma.user.upsert({
@@ -501,10 +281,8 @@ async function seedDemoUsersIfMissing() {
 }
 
 async function main() {
-  console.log("Seeding ClubZer database from JSON (upsert, no deletes)...");
+  console.log("Seeding demo users (clubs/providers live in the database)...");
 
-  const providerIdBySlug = await seedProvidersFromJson();
-  await seedClubsFromJson(providerIdBySlug);
   await seedDemoUsersIfMissing();
 
   const [providerCount, clubCount, activeClubCount] = await Promise.all([
@@ -514,7 +292,7 @@ async function main() {
   ]);
 
   console.log(
-    `Done. Database now has ${providerCount} providers and ${clubCount} clubs (${activeClubCount} active).`,
+    `Done. Database has ${providerCount} providers and ${clubCount} clubs (${activeClubCount} active).`,
   );
 }
 

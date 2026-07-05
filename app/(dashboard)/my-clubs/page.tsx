@@ -19,8 +19,7 @@ export default async function MyClubsPage() {
       mode="personal"
       initialClubs={clubs}
       activityTypes={activityTypes}
-      defaultLatitude={user.parentProfile.latitude}
-      defaultLongitude={user.parentProfile.longitude}
+      defaultPostcode={user.parentProfile.homePostcode}
       title="Community clubs"
       description="Manage community clubs you have added and submit them for review."
       listPath="/my-clubs"

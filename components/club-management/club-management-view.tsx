@@ -26,8 +26,7 @@ type ClubManagementViewProps = {
   mode: "admin" | "personal";
   initialClubs: ManagedClubListItem[];
   activityTypes?: string[];
-  defaultLatitude?: number | null;
-  defaultLongitude?: number | null;
+  defaultPostcode?: string | null;
   title: string;
   description: string;
   listPath: string;
@@ -39,8 +38,7 @@ export function ClubManagementView({
   mode,
   initialClubs,
   activityTypes = [],
-  defaultLatitude,
-  defaultLongitude,
+  defaultPostcode,
   title,
   description,
   listPath,
@@ -113,8 +111,7 @@ export function ClubManagementView({
       />
 
       <ClubManagementFilters
-        defaultLatitude={defaultLatitude}
-        defaultLongitude={defaultLongitude}
+        defaultPostcode={defaultPostcode}
         activityTypes={activityTypes}
         showAdminFilters={mode === "admin"}
         showDeletedToggle={mode === "admin" && isMasterAdmin}

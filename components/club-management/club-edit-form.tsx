@@ -8,6 +8,7 @@ import { useForm, type Resolver } from "react-hook-form";
 import type { z } from "zod";
 
 import { ClubImageField } from "@/components/club-management/club-image-field";
+import { ClubPostcodeField } from "@/components/club-management/club-postcode-field";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { resolveClubCoordinates } from "@/lib/clubs/resolve-club-coordinates";
 import { clubSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
 
@@ -93,6 +95,9 @@ export function ClubEditForm({
 
   const activities = form.watch("activities");
   const imageUrl = form.watch("imageUrl") ?? "";
+  const [postcode, setPostcode] = useState("");
+  const [postcodeError, setPostcodeError] = useState<string | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
 
   const handleActivitiesChange = (value: string) => {
     form.setValue(
@@ -112,7 +117,24 @@ export function ClubEditForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(async (values) => onSave(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          if (!postcode.trim() && !clubId) {
+            setPostcodeError("Enter a UK postcode to place the club on the map");
+            return;
+          }
+
+          setGeocoding(true);
+          setPostcodeError(null);
+          const resolved = await resolveClubCoordinates(values, postcode);
+          setGeocoding(false);
+
+          if ("error" in resolved) {
+            setPostcodeError(resolved.error);
+            return;
+          }
+
+          await onSave({ ...values, ...resolved });
+        })}
         className="space-y-6 rounded-xl border bg-card p-6"
       >
         {reviewNote ? (
@@ -232,44 +254,14 @@ export function ClubEditForm({
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <ClubPostcodeField
+          value={postcode}
+          onChange={(value) => {
+            setPostcode(value);
+            setPostcodeError(null);
+          }}
+          error={postcodeError}
+        />
 
         <FormItem>
           <FormLabel>Activities (comma-separated)</FormLabel>
@@ -483,8 +475,10 @@ export function ClubEditForm({
         </div>
 
         <div className="flex flex-wrap gap-3 border-t pt-4">
-          <Button type="submit" disabled={loading}>
-            {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+          <Button type="submit" disabled={loading || geocoding}>
+            {loading || geocoding ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : null}
             Save
           </Button>
           <Button type="button" variant="outline" asChild>

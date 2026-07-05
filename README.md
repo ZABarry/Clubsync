@@ -80,14 +80,7 @@ npm run db:studio
 
 ### What the seed creates
 
-The seed script is **idempotent** — it upserts data from JSON files and never deletes existing records. Safe to run multiple times.
-
-**Camp data** (from `prisma/seed-data/`):
-
-- 27 real-world providers and 35 summer clubs across New Malden, Kingston, Surbiton, Worcester Park, and surrounding areas
-- Providers matched by `slug` (from JSON `providerId`) or `name`
-- Camps matched by `providerId` + `name` + `locationName`
-- Preserves source URLs, data confidence, status, activities (tags), dates, prices, coordinates, and booking URLs
+The seed script is **idempotent** — it only creates demo users and sample relationships. Safe to run multiple times. **Club and provider data lives in the database** (managed via admin tools or direct DB edits); it is not loaded from JSON.
 
 **Demo data** (created only if missing):
 
@@ -284,46 +277,22 @@ npm run test:e2e
 - [ ] `ADMIN_EMAIL` set to your admin account
 - [ ] Redirect URLs updated for production domain
 - [ ] Database schema pushed/migrated
-- [ ] Seed data loaded (or import real camp data)
+- [ ] Club/provider data present in database
 - [ ] PWA install tested on mobile
 
-## Seed Data
+## Database as source of truth
 
-Camp and provider data lives in `prisma/seed-data/`:
-
-| File | Description |
-|------|-------------|
-| `providers.json` | Camp providers (name, website, contact, source URL) |
-| `clubs.json` | Individual camps with location, dates, activities, pricing |
+Club and provider records are stored in Postgres (Supabase). Manage them via the admin UI or direct database edits — there is no JSON import layer.
 
 ```bash
-# Apply schema migrations first
+# Apply schema migrations
 npm run db:migrate
 
-# Import / refresh camp data (upsert — does not delete existing rows)
+# Optional: seed demo users for local testing
 npm run db:seed
 ```
 
-The seed uses **upsert** logic:
-
-- **Providers** — matched by `slug` (JSON `providerId`) or `name`
-- **Camps** — matched by `providerId` + `name` + `locationName`
-- **Demo users** — created only if they do not already exist
-
-Re-running `npm run db:seed` updates existing records from the JSON files without wiping user data, planned clubs, or ratings.
-
-### Schema fields for import
-
-The following fields were added to support the JSON import:
-
-| Model | Field | Maps from JSON |
-|-------|-------|----------------|
-| Provider | `slug` | `providerId` |
-| Provider | `sourceUrl` | `sourceUrl` |
-| Camp | `sourceUrl` | `sourceUrl` |
-| Camp | `dataConfidence` | `dataConfidence` |
-| Camp | `priceNote` | `priceFrom` (full text; numeric prefix also stored in `price`) |
-| Camp | `startDate` / `endDate` | Optional — null when dates are unverified |
+Re-running `npm run db:seed` only upserts demo users and sample relationships; it does not overwrite club or provider data.
 
 ## Roadmap
 

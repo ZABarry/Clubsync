@@ -136,6 +136,7 @@ function toClubCard(
     ratingCount: number;
     activities: string[];
     imageUrl: string | null;
+    bookingUrl: string | null;
     latitude: number;
     longitude: number;
     provider: { name: string };
@@ -160,6 +161,7 @@ function toClubCard(
     ratingCount: club.ratingCount,
     activities: club.activities,
     imageUrl: resolveClubImageUrl({ id: club.id, imageUrl: club.imageUrl }),
+    bookingUrl: club.bookingUrl,
     distanceKm: opts?.distanceKm ?? null,
     plannedStatus: opts?.plannedStatus ?? null,
     latitude: club.latitude,

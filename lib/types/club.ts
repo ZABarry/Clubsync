@@ -31,6 +31,7 @@ export type ClubCardData = {
   isCommunityClub?: boolean;
   plannedStatus?: PlannedClubStatus | null;
   recommendationReasons?: string[];
+  bookingUrl?: string | null;
   latitude?: number;
   longitude?: number;
 };

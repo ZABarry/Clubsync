@@ -26,8 +26,8 @@ export default async function AdminLayout({
   if (!user || !isReviewerRole(user.role)) redirect("/");
 
   return (
-    <div className="club-brand-bg min-h-full flex-1">
-      <header className="border-b bg-card/80 backdrop-blur-sm">
+    <div className="club-brand-bg flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="shrink-0 border-b bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl min-w-0 items-center justify-between px-4 py-4 md:px-8">
           <Link href="/admin" className="flex min-w-0 items-center gap-3">
             <ClubZerLogo size="md" />
@@ -55,7 +55,9 @@ export default async function AdminLayout({
           </nav>
         </div>
       </header>
-      <main className="mx-auto min-w-0 max-w-6xl px-4 py-8 md:px-8">{children}</main>
+      <main className="mx-auto min-h-0 min-w-0 max-w-6xl flex-1 overflow-y-auto px-4 py-8 md:px-8">
+        {children}
+      </main>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { z } from "zod";
+import { geocodePostcode } from "@/lib/utils/geocode";
 import type { clubManagementFilterSchema } from "@/lib/validation/schemas";
 
 export type ClubManagementFilterValues = z.infer<
@@ -21,8 +23,7 @@ export type ClubManagementFilterValues = z.infer<
 >;
 
 type ClubManagementFiltersProps = {
-  defaultLatitude?: number | null;
-  defaultLongitude?: number | null;
+  defaultPostcode?: string | null;
   activityTypes?: string[];
   showAdminFilters?: boolean;
   showDeletedToggle?: boolean;
@@ -37,8 +38,7 @@ function formatActivityLabel(value: string) {
 }
 
 export function ClubManagementFilters({
-  defaultLatitude,
-  defaultLongitude,
+  defaultPostcode,
   activityTypes = [],
   showAdminFilters = false,
   showDeletedToggle = false,
@@ -46,26 +46,23 @@ export function ClubManagementFilters({
 }: ClubManagementFiltersProps) {
   const [search, setSearch] = useState("");
   const [maxDistanceKm, setMaxDistanceKm] = useState("");
-  const [latitude, setLatitude] = useState(
-    defaultLatitude != null ? String(defaultLatitude) : "",
-  );
-  const [longitude, setLongitude] = useState(
-    defaultLongitude != null ? String(defaultLongitude) : "",
-  );
+  const [postcode, setPostcode] = useState(defaultPostcode ?? "");
   const [publication, setPublication] = useState<string>("all");
   const [promotionStatus, setPromotionStatus] = useState<string>("all");
   const [activity, setActivity] = useState<string>("all");
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [sortBy, setSortBy] = useState<string>("updatedAt");
   const [sortDir, setSortDir] = useState<string>("desc");
+  const [applying, setApplying] = useState(false);
 
   const buildFilters = (
     includeDeletedOverride?: boolean,
+    origin?: { latitude: number; longitude: number },
   ): ClubManagementFilterValues => ({
     search: search || undefined,
     maxDistanceKm: maxDistanceKm ? Number(maxDistanceKm) : undefined,
-    latitude: latitude ? Number(latitude) : undefined,
-    longitude: longitude ? Number(longitude) : undefined,
+    latitude: origin?.latitude,
+    longitude: origin?.longitude,
     region: "SOUTH_WEST_LONDON",
     status:
       publication === "published"
@@ -83,8 +80,35 @@ export function ClubManagementFilters({
     sortDir: sortDir as ClubManagementFilterValues["sortDir"],
   });
 
-  const apply = (includeDeletedOverride?: boolean) => {
-    onApply(buildFilters(includeDeletedOverride));
+  const apply = async (includeDeletedOverride?: boolean) => {
+    const trimmedPostcode = postcode.trim();
+
+    if (maxDistanceKm && !trimmedPostcode) {
+      toast.error("Enter a UK postcode to filter by distance");
+      return;
+    }
+
+    if (sortBy === "distance" && !trimmedPostcode) {
+      toast.error("Enter a UK postcode to sort by distance");
+      return;
+    }
+
+    let origin: { latitude: number; longitude: number } | undefined;
+
+    if (trimmedPostcode) {
+      setApplying(true);
+      const coords = await geocodePostcode(trimmedPostcode);
+      setApplying(false);
+
+      if (!coords) {
+        toast.error("Could not find that UK postcode");
+        return;
+      }
+
+      origin = { latitude: coords.lat, longitude: coords.lng };
+    }
+
+    onApply(buildFilters(includeDeletedOverride, origin));
   };
 
   return (
@@ -103,6 +127,16 @@ export function ClubManagementFilters({
         </div>
       </div>
       <div className="space-y-1">
+        <Label htmlFor="filter-postcode">From postcode</Label>
+        <Input
+          id="filter-postcode"
+          value={postcode}
+          onChange={(e) => setPostcode(e.target.value)}
+          placeholder="e.g. KT3 4AA"
+          autoComplete="postal-code"
+        />
+      </div>
+      <div className="space-y-1">
         <Label htmlFor="max-distance">Max distance (km)</Label>
         <Input
           id="max-distance"
@@ -110,26 +144,6 @@ export function ClubManagementFilters({
           min={1}
           value={maxDistanceKm}
           onChange={(e) => setMaxDistanceKm(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="filter-lat">Latitude</Label>
-        <Input
-          id="filter-lat"
-          type="number"
-          step="any"
-          value={latitude}
-          onChange={(e) => setLatitude(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="filter-lng">Longitude</Label>
-        <Input
-          id="filter-lng"
-          type="number"
-          step="any"
-          value={longitude}
-          onChange={(e) => setLongitude(e.target.value)}
         />
       </div>
       <div className="space-y-1">
@@ -237,7 +251,7 @@ export function ClubManagementFilters({
               onChange={(e) => {
                 const next = e.target.checked;
                 setIncludeDeleted(next);
-                apply(next);
+                void apply(next);
               }}
               className="border-input size-4 rounded border accent-primary"
             />
@@ -246,8 +260,15 @@ export function ClubManagementFilters({
         </div>
       ) : null}
       <div className="flex items-end sm:col-span-2 lg:col-span-4">
-        <Button type="button" onClick={() => apply()}>
-          Apply filters
+        <Button type="button" disabled={applying} onClick={() => void apply()}>
+          {applying ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Looking up postcode…
+            </>
+          ) : (
+            "Apply filters"
+          )}
         </Button>
       </div>
     </div>
