@@ -6,7 +6,6 @@ import { getFriendActivityForClub } from "@/lib/actions/friends";
 import { getRatingsForClub } from "@/lib/actions/ratings";
 import { getSharedClubsForClub } from "@/lib/actions/shared-clubs";
 import { requireAuth } from "@/lib/auth/server";
-import { PageHeader } from "@/components/layout/page-header";
 
 import { ClubDetailView } from "./club-detail-view";
 
@@ -30,17 +29,14 @@ export default async function ClubDetailPage({
   ]);
 
   return (
-    <>
-      <PageHeader title={club.name} />
-      <ClubDetailView
-        club={club}
-        plannedStatus={club.plannedStatus ?? null}
-        booking={booking}
-        ratings={ratings}
-        friendActivity={friendActivity}
-        sharedClubs={sharedClubs}
-        currentParentId={user.parentProfile?.id ?? null}
-      />
-    </>
+    <ClubDetailView
+      club={club}
+      plannedStatus={club.plannedStatus ?? null}
+      booking={booking}
+      ratings={ratings}
+      friendActivity={friendActivity}
+      sharedClubs={sharedClubs}
+      currentParentId={user.parentProfile?.id ?? null}
+    />
   );
 }

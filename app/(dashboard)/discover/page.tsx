@@ -47,7 +47,7 @@ export default async function DiscoverPage({
   );
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="Discover clubs"
         description="Search and filter clubs and activities near you"

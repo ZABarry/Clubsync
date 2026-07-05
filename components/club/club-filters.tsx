@@ -26,14 +26,20 @@ type ClubFiltersProps = {
   onSubmit?: (values: ClubFilterValues) => void;
   collapsible?: boolean;
   defaultOpen?: boolean;
+  embedded?: boolean;
+  showSearch?: boolean;
+  formId?: string;
   className?: string;
 };
 
-function countActiveFilters(values?: ClubFilterValues): number {
+export function countActiveFilters(
+  values?: ClubFilterValues,
+  options?: { excludeSearch?: boolean },
+): number {
   if (!values) return 0;
 
   let count = 0;
-  if (values.search?.trim()) count++;
+  if (!options?.excludeSearch && values.search?.trim()) count++;
   if (values.age != null) count++;
   if (values.activity?.trim()) count++;
   if (values.startDate?.trim()) count++;
@@ -55,6 +61,9 @@ export function ClubFilters({
   onSubmit,
   collapsible = false,
   defaultOpen = false,
+  embedded = false,
+  showSearch = true,
+  formId,
   className,
 }: ClubFiltersProps) {
   const [open, setOpen] = useState(
@@ -89,11 +98,7 @@ export function ClubFilters({
     onChange(watched);
   }, [onChange, watched]);
 
-  const handleSubmit = form.handleSubmit((values) => {
-    onSubmit?.(values);
-  });
-
-  const handleReset = () => {
+  useEffect(() => {
     form.reset({
       search: "",
       age: undefined,
@@ -106,57 +111,58 @@ export function ClubFilters({
       friendsOnly: false,
       indoor: false,
       outdoor: false,
+      ...defaultValues,
     });
+  }, [defaultValues, form]);
+
+  const handleSubmit = form.handleSubmit((values) => {
+    onSubmit?.(values);
+  });
+
+  const emptyValues: FilterFormValues = {
+    search: "",
+    age: undefined,
+    activity: "",
+    startDate: "",
+    endDate: "",
+    maxPrice: undefined,
+    minRating: undefined,
+    maxDistanceKm: undefined,
+    friendsOnly: false,
+    indoor: false,
+    outdoor: false,
   };
 
-  return (
-    <Form {...form}>
-      <div className={cn("rounded-xl border bg-card", className)}>
-        {collapsible ? (
-          <button
-            type="button"
-            className="flex w-full items-center justify-between gap-3 p-4 text-left"
-            onClick={() => setOpen((value) => !value)}
-            aria-expanded={open}
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium">Filters</p>
-              <p className="text-muted-foreground text-xs">
-                {countActiveFilters(defaultValues) > 0
-                  ? `${countActiveFilters(defaultValues)} active`
-                  : "Age, activity, dates, and more"}
-              </p>
-            </div>
-            <ChevronDown
-              className={cn(
-                "text-muted-foreground size-4 shrink-0 transition-transform",
-                open && "rotate-180",
-              )}
-            />
-          </button>
-        ) : null}
+  const handleReset = () => {
+    form.reset(emptyValues);
+    onSubmit?.(emptyValues);
+  };
 
-        <form
-          onSubmit={handleSubmit}
-          className={cn(
-            "space-y-4 p-4",
-            collapsible && "border-t",
-            collapsible && !open && "hidden",
-          )}
-        >
+  const filterForm = (
+    <form
+      id={formId}
+      onSubmit={handleSubmit}
+      className={cn(
+        "space-y-4",
+        !embedded && "p-4",
+        collapsible && !embedded && "border-t",
+        collapsible && !embedded && !open && "hidden",
+      )}
+    >
+      {showSearch ? (
         <FormField
           control={form.control}
           name="search"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Search</FormLabel>
+              <FormLabel>Filter all clubs</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    placeholder="Club name or activity..."
+                    placeholder="Name, activity, or provider…"
                     className="pl-9"
                   />
                 </div>
@@ -164,8 +170,9 @@ export function ClubFilters({
             </FormItem>
           )}
         />
+      ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="age"
@@ -331,13 +338,48 @@ export function ClubFilters({
           />
         </div>
 
-        <div className="flex gap-2">
-          <Button type="submit">Apply filters</Button>
-          <Button type="button" variant="outline" onClick={handleReset}>
-            Reset
-          </Button>
-        </div>
-        </form>
+        {!embedded ? (
+          <div className="flex gap-2">
+            <Button type="submit">Apply filters</Button>
+            <Button type="button" variant="outline" onClick={handleReset}>
+              Reset
+            </Button>
+          </div>
+        ) : null}
+    </form>
+  );
+
+  if (embedded) {
+    return <Form {...form}>{filterForm}</Form>;
+  }
+
+  return (
+    <Form {...form}>
+      <div className={cn("rounded-xl border bg-card", className)}>
+        {collapsible ? (
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 p-4 text-left"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Filters</p>
+              <p className="text-muted-foreground text-xs">
+                {countActiveFilters(defaultValues) > 0
+                  ? `${countActiveFilters(defaultValues)} active`
+                  : "Age, activity, dates, and more"}
+              </p>
+            </div>
+            <ChevronDown
+              className={cn(
+                "text-muted-foreground size-4 shrink-0 transition-transform",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+        ) : null}
+        {filterForm}
       </div>
     </Form>
   );

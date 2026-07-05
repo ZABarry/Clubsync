@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getChildren } from "@/lib/actions/profiles";
 import { syncUser } from "@/lib/auth/server";
+import { sanitizeRedirectPath } from "@/lib/security/safe-redirect";
 
 import { ProfileView } from "./profile-view";
 
@@ -27,6 +28,7 @@ export default async function ProfilePage({
         description="Manage your account, children and preferences"
       />
       <ProfileView
+        userEmail={user?.email ?? ""}
         displayName={profile?.displayName ?? ""}
         firstName={profile?.firstName ?? null}
         lastName={profile?.lastName ?? null}
@@ -35,6 +37,11 @@ export default async function ProfilePage({
         children={children}
         showOnboarding={params.onboarding === "true"}
         showAddChild={params.addChild === "true"}
+        redirectTo={
+          typeof params.redirect === "string"
+            ? sanitizeRedirectPath(params.redirect, "/profile")
+            : undefined
+        }
       />
     </div>
   );

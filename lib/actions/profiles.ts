@@ -5,6 +5,13 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { geocodePostcode } from "@/lib/utils/geocode";
 import {
+  toChildEditData,
+  toChildSummary,
+  type ChildEditData,
+  type ChildSummary,
+} from "@/lib/privacy/child-dto";
+import {
+  childProfileCreateSchema,
   childProfileSchema,
   parentProfileSchema,
 } from "@/lib/validation/schemas";
@@ -75,25 +82,26 @@ export async function upsertParentProfile(data: unknown) {
 
 export async function createChild(data: unknown) {
   const { profile } = await requireParentProfileId();
-  const parsed = childProfileSchema.parse(data);
-  const dates = parseChildDates(parsed);
+  const parsed = childProfileCreateSchema.parse(data);
+  const { childDataConsent: _consent, ...childData } = parsed;
+  const dates = parseChildDates(childData);
 
   const child = await prisma.childProfile.create({
     data: {
       parentProfileId: profile.id,
-      nickname: parsed.nickname,
-      age: parsed.age,
-      sex: parsed.sex,
-      schoolYear: parsed.schoolYear ?? null,
-      interests: parsed.interests,
-      notes: parsed.notes ?? null,
+      nickname: childData.nickname,
+      age: childData.age,
+      sex: childData.sex,
+      schoolYear: childData.schoolYear ?? null,
+      interests: childData.interests,
+      notes: childData.notes ?? null,
       ...dates,
     },
   });
 
   revalidatePath("/profile");
   revalidatePath("/calendar");
-  return child;
+  return toChildSummary(child);
 }
 
 export async function updateChild(childId: string, data: unknown) {
@@ -121,7 +129,7 @@ export async function updateChild(childId: string, data: unknown) {
 
   revalidatePath("/profile");
   revalidatePath("/calendar");
-  return child;
+  return toChildSummary(child);
 }
 
 export async function deleteChild(childId: string) {
@@ -138,11 +146,23 @@ export async function deleteChild(childId: string) {
   revalidatePath("/calendar");
 }
 
-export async function getChildren() {
+export async function getChildren(): Promise<ChildSummary[]> {
   const { profile } = await requireParentProfileId();
 
-  return prisma.childProfile.findMany({
+  const children = await prisma.childProfile.findMany({
     where: { parentProfileId: profile.id },
     orderBy: { nickname: "asc" },
   });
+
+  return children.map(toChildSummary);
+}
+
+export async function getChildForEdit(childId: string): Promise<ChildEditData | null> {
+  const { profile } = await requireParentProfileId();
+
+  const child = await prisma.childProfile.findFirst({
+    where: { id: childId, parentProfileId: profile.id },
+  });
+
+  return child ? toChildEditData(child) : null;
 }

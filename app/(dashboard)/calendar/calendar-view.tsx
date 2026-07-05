@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { CalendarCampSheet } from "@/components/calendar/calendar-camp-sheet";
 import { ClubCalendar } from "@/components/calendar/club-calendar";
+import { Button } from "@/components/ui/button";
 import type { ClubCalendarEvent } from "@/lib/types/club";
 
 type CalendarViewProps = {
@@ -30,11 +31,19 @@ export function CalendarView({ events }: CalendarViewProps) {
   return (
     <>
       {events.length === 0 ? (
-        <div className="text-muted-foreground rounded-xl border bg-card py-12 text-center text-sm">
-          No clubs on your calendar yet.{" "}
-          <Link href="/discover" className="text-primary hover:underline">
-            Discover clubs
-          </Link>
+        <div className="flex flex-col items-center gap-4 rounded-xl border bg-card py-12 text-center">
+          <p className="text-muted-foreground text-sm">
+            No clubs on your calendar yet. Set a status on a club detail page
+            or use Smart planner to find matches.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/discover">Discover clubs</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/planner">Smart planner</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <ClubCalendar

@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Star, Users } from "lucide-react";
+import { Calendar, Loader2, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -13,6 +13,7 @@ import { ClubDetail } from "@/components/club/club-detail";
 import { ClubBookingPanel } from "@/components/club/club-booking-panel";
 import { FriendActivityList } from "@/components/club/friend-activity-list";
 import { SharedClubSection } from "@/components/club/shared-club-section";
+import { BackLink } from "@/components/layout/back-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -45,11 +47,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StarRatingInput } from "@/components/ui/star-rating-input";
 import { Textarea } from "@/components/ui/textarea";
 import { submitRating } from "@/lib/actions/ratings";
 import { createSharedClub } from "@/lib/actions/shared-clubs";
 import { submitChangeRequest } from "@/lib/actions/submissions";
 import { deletePlannedClub, upsertPlannedClub } from "@/lib/actions/planned-clubs";
+import { CLUB_CHANGE_FIELD_OPTIONS } from "@/lib/clubs/change-fields";
 import type { FriendClubActivity } from "@/lib/privacy/friend-visibility";
 import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
 import {
@@ -82,14 +86,6 @@ type ClubDetailViewProps = {
   currentParentId: string | null;
 };
 
-const CHANGE_FIELDS = [
-  { value: "name", label: "Club name" },
-  { value: "description", label: "Description" },
-  { value: "price", label: "Price" },
-  { value: "bookingUrl", label: "Booking URL" },
-  { value: "locationName", label: "Location" },
-];
-
 export function ClubDetailView({
   club,
   plannedStatus,
@@ -102,6 +98,7 @@ export function ClubDetailView({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [shareOpen, setShareOpen] = useState(false);
+  const [planSaved, setPlanSaved] = useState(false);
 
   const ratingForm = useForm<z.infer<typeof ratingSchema>>({
     resolver: zodResolver(ratingSchema) as Resolver<z.infer<typeof ratingSchema>>,
@@ -131,11 +128,17 @@ export function ClubDetailView({
     },
   });
 
+  const handlePlanSaved = () => {
+    setPlanSaved(true);
+    router.refresh();
+  };
+
   const handleStatusChange = (status: PlannedClubStatus) => {
     startTransition(async () => {
       try {
         await upsertPlannedClub({ clubId: club.id, status });
         toast.success("Status updated");
+        setPlanSaved(true);
         router.refresh();
       } catch {
         toast.error("Failed to update status");
@@ -148,6 +151,7 @@ export function ClubDetailView({
       try {
         await deletePlannedClub(club.id);
         toast.success("Removed from your clubs");
+        setPlanSaved(false);
         router.refresh();
       } catch {
         toast.error("Failed to remove club");
@@ -199,6 +203,8 @@ export function ClubDetailView({
     });
   });
 
+  const showPlanSuccess = planSaved || !!plannedStatus;
+
   return (
     <div className="space-y-8">
       <ClubDetail
@@ -214,9 +220,36 @@ export function ClubDetailView({
         club={club}
         plannedStatus={plannedStatus}
         booking={booking}
-        onSaved={() => router.refresh()}
+        onSaved={handlePlanSaved}
         disabled={pending}
       />
+
+      {showPlanSuccess ? (
+        <Card className="border-primary/30 bg-accent/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Added to your plans</CardTitle>
+            <CardDescription>
+              View this club on your calendar or share it with friends.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/calendar">
+                <Calendar className="size-4" />
+                View calendar
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShareOpen(true)}
+            >
+              <Users className="size-4" />
+              Share with friends
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <Dialog open={shareOpen} onOpenChange={setShareOpen}>
@@ -229,6 +262,9 @@ export function ClubDetailView({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create shared club</DialogTitle>
+              <DialogDescription>
+                Coordinate this club with trusted parent friends.
+              </DialogDescription>
             </DialogHeader>
             <Form {...shareForm}>
               <form onSubmit={onShareSubmit} className="space-y-4">
@@ -298,7 +334,7 @@ export function ClubDetailView({
                           {r.rating}
                         </span>
                         {r.moderationStatus === "PENDING" ? (
-                          <Badge variant="secondary">Pending review</Badge>
+                          <Badge variant="secondary">Awaiting review</Badge>
                         ) : null}
                       </div>
                     </div>
@@ -326,16 +362,12 @@ export function ClubDetailView({
                   name="rating"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rating (1–5)</FormLabel>
+                      <FormLabel>Your rating</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={5}
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                        <StarRatingInput
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={pending}
                         />
                       </FormControl>
                       <FormMessage />
@@ -370,6 +402,7 @@ export function ClubDetailView({
         <FriendActivityList
           activities={friendActivity}
           emptyMessage="No friends have planned this club yet."
+          from="discover"
         />
       </section>
 
@@ -392,7 +425,7 @@ export function ClubDetailView({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {CHANGE_FIELDS.map((f) => (
+                          {CLUB_CHANGE_FIELD_OPTIONS.map((f) => (
                             <SelectItem key={f.value} value={f.value}>
                               {f.label}
                             </SelectItem>
@@ -438,9 +471,9 @@ export function ClubDetailView({
         </Card>
       </section>
 
-      <Button variant="ghost" asChild>
-        <Link href="/discover">← Back to discover</Link>
-      </Button>
+      <Suspense fallback={null}>
+        <BackLink fallback="discover" />
+      </Suspense>
     </div>
   );
 }

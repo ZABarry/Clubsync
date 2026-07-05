@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { config } from "dotenv";
 import { ClubPromotionStatus, ClubStatus, UserRole } from "@prisma/client";
 import { createPrismaClient } from "../lib/db/create-prisma-client";
@@ -177,7 +178,7 @@ async function seedDemoUsersIfMissing() {
           requesterParentId: parent1.parentProfile.id,
           recipientParentId: parent2.parentProfile.id,
           status: "ACCEPTED",
-          inviteToken: "a".repeat(64),
+          inviteToken: randomBytes(32).toString("hex"),
           acceptedAt: new Date(),
         },
       });

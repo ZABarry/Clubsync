@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireReviewer } from "@/lib/auth/server";
+import { isAllowedClubChangeField } from "@/lib/clubs/change-fields";
 import {
   clubSchema,
   providerSchema,
@@ -244,6 +245,10 @@ export async function moderateChangeRequest(
   if (!request) throw new Error("Change request not found");
 
   if (status === "APPROVED") {
+    if (!isAllowedClubChangeField(request.fieldName)) {
+      throw new Error("Change request field is not allowed");
+    }
+
     const value = parseClubFieldValue(
       request.fieldName,
       request.suggestedValue,

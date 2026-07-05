@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -37,41 +38,36 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   createChild,
   deleteChild,
+  getChildForEdit,
   updateChild,
   upsertParentProfile,
 } from "@/lib/actions/profiles";
+import { deleteAccount, exportUserData } from "@/lib/actions/account";
 import { signOut } from "@/lib/actions/auth";
 import { CHILD_INTEREST_OPTIONS } from "@/lib/clubs/child-interests";
 import { CHILD_SEX_OPTIONS, type ChildSex } from "@/lib/clubs/child-sex";
+import type { ChildSummary } from "@/lib/privacy/child-dto";
 import {
+  childProfileCreateSchema,
   childProfileSchema,
   parentProfileSchema,
 } from "@/lib/validation/schemas";
 
 type ParentFormValues = z.infer<typeof parentProfileSchema>;
 type ChildFormValues = z.infer<typeof childProfileSchema>;
-
-type Child = {
-  id: string;
-  nickname: string;
-  age: number;
-  sex: "MALE" | "FEMALE" | null;
-  schoolYear: string | null;
-  interests: string[];
-  availabilityStart: Date | null;
-  availabilityEnd: Date | null;
-  notes: string | null;
-};
+type ChildCreateFormValues = z.infer<typeof childProfileCreateSchema>;
 
 type ProfileViewProps = {
+  userEmail: string;
   displayName: string;
   firstName: string | null;
   lastName: string | null;
   homePostcode: string | null;
   defaultSearchRadiusKm: number;
-  children: Child[];
+  children: ChildSummary[];
   showOnboarding: boolean;
   showAddChild: boolean;
+  redirectTo?: string;
 };
 
 function formatDateInput(date: Date | null): string {
@@ -80,6 +76,7 @@ function formatDateInput(date: Date | null): string {
 }
 
 export function ProfileView({
+  userEmail,
   displayName,
   firstName,
   lastName,
@@ -88,10 +85,13 @@ export function ProfileView({
   children: initialChildren,
   showOnboarding,
   showAddChild,
+  redirectTo,
 }: ProfileViewProps) {
   const router = useRouter();
   const [childDialogOpen, setChildDialogOpen] = useState(showAddChild);
-  const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
+  const [childDataConsent, setChildDataConsent] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
   const [pending, startTransition] = useTransition();
 
   const parentForm = useForm<ParentFormValues>({
@@ -119,21 +119,28 @@ export function ProfileView({
     },
   });
 
-  const openChildDialog = (child?: Child) => {
+  const openChildDialog = async (child?: ChildSummary) => {
     if (child) {
-      setEditingChild(child);
+      setEditingChildId(child.id);
+      setChildDataConsent(true);
+      const fullChild = await getChildForEdit(child.id);
+      if (!fullChild) {
+        toast.error("Child not found");
+        return;
+      }
       childForm.reset({
-        nickname: child.nickname,
-        age: child.age,
-        sex: child.sex ?? (undefined as unknown as ChildSex),
-        schoolYear: child.schoolYear ?? "",
-        interests: child.interests,
-        availabilityStart: formatDateInput(child.availabilityStart),
-        availabilityEnd: formatDateInput(child.availabilityEnd),
-        notes: child.notes ?? "",
+        nickname: fullChild.nickname,
+        age: fullChild.age,
+        sex: fullChild.sex ?? (undefined as unknown as ChildSex),
+        schoolYear: fullChild.schoolYear ?? "",
+        interests: fullChild.interests,
+        availabilityStart: formatDateInput(fullChild.availabilityStart),
+        availabilityEnd: formatDateInput(fullChild.availabilityEnd),
+        notes: fullChild.notes ?? "",
       });
     } else {
-      setEditingChild(null);
+      setEditingChildId(null);
+      setChildDataConsent(false);
       childForm.reset({
         nickname: "",
         age: 8,
@@ -154,6 +161,9 @@ export function ProfileView({
         await upsertParentProfile(values);
         toast.success("Profile saved");
         router.refresh();
+        if (redirectTo && redirectTo !== "/profile") {
+          router.push(redirectTo);
+        }
       } catch {
         toast.error("Failed to save profile");
       }
@@ -163,11 +173,20 @@ export function ProfileView({
   const onChildSubmit = childForm.handleSubmit((values) => {
     startTransition(async () => {
       try {
-        if (editingChild) {
-          await updateChild(editingChild.id, values);
+        if (editingChildId) {
+          await updateChild(editingChildId, values);
           toast.success("Child updated");
         } else {
-          await createChild(values);
+          if (!childDataConsent) {
+            toast.error("Please confirm consent to store your child's information");
+            return;
+          }
+          const createValues: ChildCreateFormValues = {
+            ...values,
+            childDataConsent: true,
+          };
+          childProfileCreateSchema.parse(createValues);
+          await createChild(createValues);
           toast.success("Child added");
         }
         setChildDialogOpen(false);
@@ -201,6 +220,17 @@ export function ProfileView({
               and share clubs together.
             </CardDescription>
           </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href="/profile?onboarding=true">Set up profile</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/profile?addChild=true">Add child</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/friends">Invite friends</Link>
+            </Button>
+          </CardContent>
         </Card>
       ) : null}
 
@@ -317,12 +347,20 @@ export function ProfileView({
                 Add child
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[85dvh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {editingChild ? "Edit child" : "Add child"}
+                  {editingChildId ? "Edit child" : "Add child"}
                 </DialogTitle>
               </DialogHeader>
+              {!editingChildId ? (
+                <p className="text-muted-foreground text-sm">
+                  We store your child&apos;s nickname, age, interests and optional
+                  notes to help plan clubs. This information is kept private unless
+                  you join shared clubs or connect with trusted friends, where only
+                  nickname and age may be visible to other parents.
+                </p>
+              ) : null}
               <Form {...childForm}>
                 <form onSubmit={onChildSubmit} className="space-y-4">
                   <FormField
@@ -380,12 +418,18 @@ export function ProfileView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Sex</FormLabel>
-                        <div className="flex flex-wrap gap-2">
+                        <div
+                          role="radiogroup"
+                          aria-label="Child sex"
+                          className="flex flex-wrap gap-2"
+                        >
                           {CHILD_SEX_OPTIONS.map(({ value, label }) => (
                             <Button
                               key={value}
                               type="button"
                               size="sm"
+                              role="radio"
+                              aria-checked={field.value === value}
                               variant={
                                 field.value === value ? "default" : "outline"
                               }
@@ -400,8 +444,12 @@ export function ProfileView({
                     )}
                   />
                   <div className="space-y-2">
-                    <FormLabel>Interests</FormLabel>
-                    <div className="flex flex-wrap gap-2">
+                    <FormLabel id="child-interests-label">Interests</FormLabel>
+                    <div
+                      role="group"
+                      aria-labelledby="child-interests-label"
+                      className="flex flex-wrap gap-2"
+                    >
                       {CHILD_INTEREST_OPTIONS.map(({ value, label }) => {
                         const selected =
                           childForm.watch("interests").includes(value);
@@ -427,6 +475,34 @@ export function ProfileView({
                       })}
                     </div>
                   </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={childForm.control}
+                      name="availabilityStart"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Available from</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={childForm.control}
+                      name="availabilityEnd"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Available until</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={childForm.control}
                     name="notes"
@@ -440,8 +516,24 @@ export function ProfileView({
                       </FormItem>
                     )}
                   />
+                  {!editingChildId ? (
+                    <label className="flex items-start gap-3 text-sm">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={childDataConsent}
+                        onChange={(event) =>
+                          setChildDataConsent(event.target.checked)
+                        }
+                      />
+                      <span>
+                        I confirm I am this child&apos;s parent or guardian and
+                        consent to ClubZer storing this information to plan clubs.
+                      </span>
+                    </label>
+                  ) : null}
                   <Button type="submit" disabled={pending} className="w-full">
-                    {editingChild ? "Update child" : "Add child"}
+                    {editingChildId ? "Update child" : "Add child"}
                   </Button>
                 </form>
               </Form>
@@ -470,6 +562,72 @@ export function ProfileView({
           </ul>
         )}
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your data</CardTitle>
+          <CardDescription>
+            Export or permanently delete your account and associated data
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pending}
+            onClick={() => {
+              startTransition(async () => {
+                try {
+                  const data = await exportUserData();
+                  const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: "application/json",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = `clubzer-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+                  link.click();
+                  URL.revokeObjectURL(url);
+                  toast.success("Data export downloaded");
+                } catch {
+                  toast.error("Failed to export data");
+                }
+              });
+            }}
+          >
+            Download my data
+          </Button>
+          <div className="space-y-2 border-t pt-4">
+            <p className="text-muted-foreground text-sm">
+              Deleting your account permanently removes your profile, children,
+              plans, and friend connections. This cannot be undone.
+            </p>
+            <Input
+              type="email"
+              aria-label={`Type ${userEmail} to confirm account deletion`}
+              placeholder={`Type ${userEmail} to confirm`}
+              value={deleteEmail}
+              onChange={(event) => setDeleteEmail(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={pending || deleteEmail !== userEmail}
+              onClick={() => {
+                startTransition(async () => {
+                  try {
+                    await deleteAccount({ confirmEmail: deleteEmail });
+                  } catch {
+                    toast.error("Failed to delete account");
+                  }
+                });
+              }}
+            >
+              Delete account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="pt-4">
         <form action={signOut}>

@@ -7,7 +7,7 @@ export default async function CalendarPage() {
   const events = await getPlannedClubsForCalendar();
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="Calendar"
         description="View and manage your planned clubs"

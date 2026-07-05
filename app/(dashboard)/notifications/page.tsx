@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +7,8 @@ import {
 import { syncUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 
+import { NotificationsList } from "./notifications-list";
+
 export default async function NotificationsPage() {
   const user = await syncUser();
   if (!user) redirect("/login");
@@ -16,7 +16,7 @@ export default async function NotificationsPage() {
   const notifications = await getNotifications(50);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Notifications"
         description="Your recent activity."
@@ -35,30 +35,7 @@ export default async function NotificationsPage() {
           ) : undefined
         }
       />
-      <div className="space-y-3">
-        {notifications.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No notifications yet.</p>
-        ) : (
-          notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`rounded-xl border bg-card p-4 ${!notification.readAt ? "border-primary/30" : ""}`}
-            >
-              <p className="font-medium">{notification.title}</p>
-              {notification.body ? (
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {notification.body}
-                </p>
-              ) : null}
-              {notification.link ? (
-                <Button variant="link" className="h-auto p-0 mt-2" asChild>
-                  <Link href={notification.link}>View</Link>
-                </Button>
-              ) : null}
-            </div>
-          ))
-        )}
-      </div>
+      <NotificationsList notifications={notifications} />
     </div>
   );
 }

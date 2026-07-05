@@ -19,9 +19,9 @@ import { isReviewerRole } from "@/lib/auth/roles";
 import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 import { prisma } from "@/lib/db/prisma";
 import {
-  createNotification,
-  notifyReviewers,
-} from "@/lib/actions/notifications";
+  createNotificationInternal,
+  notifyReviewersInternal,
+} from "@/lib/notifications/internal";
 import {
   adminUserFilterSchema,
   clubManagementFilterSchema,
@@ -467,7 +467,7 @@ export async function submitClubForReview(data: unknown) {
     },
   });
 
-  await notifyReviewers({
+  await notifyReviewersInternal({
     type: NotificationType.CLUB_SUBMITTED,
     title: `New club submitted: ${club.name}`,
     body: parsed.submissionNote,
@@ -529,7 +529,7 @@ export async function moderateClubPromotion(data: unknown) {
     });
 
     if (club.owner?.userId) {
-      await createNotification({
+      await createNotificationInternal({
         userId: club.owner.userId,
         type: NotificationType.CLUB_APPROVED,
         title: `Your club "${club.name}" was approved`,
@@ -549,7 +549,7 @@ export async function moderateClubPromotion(data: unknown) {
     });
 
     if (club.owner?.userId) {
-      await createNotification({
+      await createNotificationInternal({
         userId: club.owner.userId,
         type: NotificationType.CLUB_DENIED,
         title: `Your club "${club.name}" was not approved`,

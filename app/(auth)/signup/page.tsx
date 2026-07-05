@@ -15,7 +15,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Form,
@@ -60,7 +59,7 @@ export default function SignupPage() {
       });
 
       if (error) {
-        toast.error(error.message);
+        form.setError("password", { message: error.message });
         return;
       }
 
@@ -88,7 +87,7 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create account</CardTitle>
+        <h1 className="text-lg font-semibold leading-none">Create account</h1>
         <CardDescription>Start sharing clubs with parent friends</CardDescription>
       </CardHeader>
       <Form {...form}>

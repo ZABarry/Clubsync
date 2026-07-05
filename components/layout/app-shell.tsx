@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { SHELL_HEADER_ROW_CLASS } from "@/components/layout/shell-header";
 import { Sidebar } from "@/components/layout/sidebar";
 
 type AppShellProps = {
@@ -32,7 +33,7 @@ export function AppShell({
       </a>
       <Sidebar showAdmin={showAdmin} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col md:pl-64">
-        <header className="hidden items-center justify-end border-b px-4 py-2 md:flex md:px-8">
+        <header className={`${SHELL_HEADER_ROW_CLASS} justify-end px-4 md:px-8`}>
           <NotificationBell
             notifications={notifications}
             unreadCount={unreadCount}

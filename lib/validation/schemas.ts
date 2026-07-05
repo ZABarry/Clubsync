@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+import { CLUB_CHANGE_FIELD_NAMES } from "@/lib/clubs/change-fields";
+
 export const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(12, "Password must be at least 12 characters"),
 });
 
 export const signupSchema = loginSchema.extend({
@@ -22,10 +24,16 @@ export const childProfileSchema = z.object({
   age: z.coerce.number().min(3).max(18),
   sex: z.enum(["MALE", "FEMALE"], { message: "Select male or female" }),
   schoolYear: z.string().max(20).optional(),
-  interests: z.array(z.string()).default([]),
+  interests: z.array(z.string().max(50)).max(20).default([]),
   availabilityStart: z.string().optional(),
   availabilityEnd: z.string().optional(),
   notes: z.string().max(500).optional(),
+});
+
+export const childProfileCreateSchema = childProfileSchema.extend({
+  childDataConsent: z.literal(true, {
+    message: "You must confirm consent to store your child's information",
+  }),
 });
 
 export const plannedClubSchema = z.object({
@@ -48,7 +56,7 @@ export const plannedClubSchema = z.object({
 });
 
 export const clubFilterSchema = z.object({
-  search: z.string().optional(),
+  search: z.string().max(200).optional(),
   age: z.coerce.number().optional(),
   activity: z.string().optional(),
   startDate: z.string().optional(),
@@ -72,7 +80,7 @@ export const ratingSchema = z.object({
 });
 
 export const clubManagementFilterSchema = z.object({
-  search: z.string().optional(),
+  search: z.string().max(200).optional(),
   region: z.enum(["SOUTH_WEST_LONDON"]).optional(),
   maxDistanceKm: z.coerce.number().min(1).max(100).optional(),
   latitude: z.coerce.number().optional(),
@@ -116,16 +124,20 @@ export const promoteUserRoleSchema = z.object({
 
 export const changeRequestSchema = z.object({
   clubId: z.string().uuid(),
-  fieldName: z.string().min(1),
+  fieldName: z.enum(CLUB_CHANGE_FIELD_NAMES),
   suggestedValue: z.string().min(1),
   notes: z.string().max(500).optional(),
 });
 
+const isoDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format");
+
 export const smartPlannerSchema = z.object({
   childProfileId: z.string().uuid(),
-  startDate: z.string(),
-  endDate: z.string(),
-  interests: z.array(z.string()).default([]),
+  startDate: isoDateSchema,
+  endDate: isoDateSchema,
+  interests: z.array(z.string().max(50)).max(20).default([]),
   maxDistanceKm: z.coerce.number().min(1).max(50).default(10),
   budget: z.coerce.number().optional(),
   preferredFriendIds: z.array(z.string()).default([]),

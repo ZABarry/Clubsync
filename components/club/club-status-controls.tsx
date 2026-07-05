@@ -40,7 +40,11 @@ export function ClubStatusControls({
   className,
 }: ClubStatusControlsProps) {
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
+    <div
+      role="group"
+      aria-label="Club planning status"
+      className={cn("flex flex-wrap gap-2", className)}
+    >
       {STATUS_OPTIONS.map(({ status, label, icon: Icon }) => {
         const isActive = currentStatus === status;
 

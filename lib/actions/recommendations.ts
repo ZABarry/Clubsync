@@ -15,6 +15,7 @@ import {
 import { isVisibleToFriends } from "@/lib/privacy/friend-visibility";
 import type { ClubCardData } from "@/lib/types/club";
 import { getClubs } from "@/lib/actions/clubs";
+import { activePublicClubWhere } from "@/lib/clubs/visibility";
 
 export type DashboardRecommendationsResult = {
   clubs: ClubCardData[];
@@ -92,13 +93,12 @@ export async function getRecommendations(input: unknown) {
   const endDate = new Date(parsed.endDate);
 
   const clubs = await prisma.club.findMany({
-    where: {
-      status: "ACTIVE",
+    where: activePublicClubWhere({
       ageMin: { lte: child.age },
       ageMax: { gte: child.age },
       startDate: { lte: endDate },
       endDate: { gte: startDate },
-    },
+    }),
     select: {
       id: true,
       name: true,
@@ -181,10 +181,9 @@ export async function getDashboardRecommendations(
 
   const now = new Date();
   const clubs = await prisma.club.findMany({
-    where: {
-      status: "ACTIVE",
+    where: activePublicClubWhere({
       endDate: { gte: now },
-    },
+    }),
     include: { provider: { select: { name: true } } },
     orderBy: { startDate: "asc" },
   });

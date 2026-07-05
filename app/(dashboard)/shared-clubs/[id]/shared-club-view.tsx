@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { Suspense, useTransition } from "react";
 import { toast } from "sonner";
 
-import { ClubStatusBadge } from "@/components/club/club-status-badge";
+import { BackLink } from "@/components/layout/back-link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,9 +79,11 @@ export function SharedClubView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">{sharedClub.title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {sharedClub.title}
+        </h1>
         <p className="text-muted-foreground">
           {sharedClub.club.name} · {sharedClub.club.provider.name}
         </p>
@@ -109,20 +111,10 @@ export function SharedClubView({
       ) : null}
 
       <Button variant="outline" asChild>
-        <Link href={`/clubs/${sharedClub.club.id}`}>View club details</Link>
+        <Link href={`/clubs/${sharedClub.club.id}?from=friends`}>
+          View club details
+        </Link>
       </Button>
-
-      {sharedClub.club.bookingUrl ? (
-        <Button asChild>
-          <a
-            href={sharedClub.club.bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Book club
-          </a>
-        </Button>
-      ) : null}
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Participants</h2>
@@ -164,9 +156,9 @@ export function SharedClubView({
         )}
       </section>
 
-      <Button variant="ghost" asChild>
-        <Link href="/friends">← Back to friends</Link>
-      </Button>
+      <Suspense fallback={null}>
+        <BackLink fallback="friends" />
+      </Suspense>
     </div>
   );
 }

@@ -1,8 +1,12 @@
 "use server";
 
+import { z } from "zod";
+
+import { activePublicClubWhere } from "@/lib/clubs/visibility";
 import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 import { clubFilterSchema } from "@/lib/validation/schemas";
 import { haversineKm } from "@/lib/utils";
 import type { ClubCardData, ClubDetailData } from "@/lib/types/club";
@@ -300,34 +304,26 @@ export async function getClubById(clubId: string): Promise<ClubDetailData | null
   };
 }
 
-export async function searchClubs(query: string) {
+export async function searchClubs(query: unknown) {
   const user = await requireAuth();
   const profile = user.parentProfile;
-  const search = query.trim();
-  if (!search) return [];
+  checkRateLimit(rateLimitKey("search-clubs", user.id), {
+    limit: 60,
+    windowMs: 60 * 1000,
+  });
+
+  const { search } = z.object({ search: z.string().max(200) }).parse({ search: query });
+  const trimmed = search.trim();
+  if (!trimmed) return [];
 
   const clubs = await prisma.club.findMany({
-    where: {
-      status: "ACTIVE",
-      AND: [
-        {
-          OR: [
-            { promotionStatus: "OFFICIAL" },
-            {
-              ownerParentProfileId: { not: null },
-              promotionStatus: { in: ["LOCAL", "DENIED"] },
-            },
-          ],
-        },
-        {
-          OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
-            { activities: { has: search } },
-          ],
-        },
+    where: activePublicClubWhere({
+      OR: [
+        { name: { contains: trimmed, mode: "insensitive" } },
+        { description: { contains: trimmed, mode: "insensitive" } },
+        { activities: { has: trimmed } },
       ],
-    },
+    }),
     include: { provider: { select: { name: true } } },
     orderBy: { name: "asc" },
     take: 20,

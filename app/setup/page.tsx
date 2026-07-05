@@ -1,20 +1,22 @@
 import Link from "next/link";
 
+import { MinimalBrandPage } from "@/components/layout/minimal-brand-page";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 export default function SetupPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="max-w-lg">
+    <MinimalBrandPage>
+      <Card>
         <CardHeader>
-          <CardTitle>Database connection required</CardTitle>
+          <h1 className="text-lg font-semibold leading-none">
+            Database connection required
+          </h1>
           <CardDescription>
             ClubZer needs your Supabase Postgres URLs to load after sign-in.
           </CardDescription>
@@ -77,6 +79,6 @@ export default function SetupPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </MinimalBrandPage>
   );
 }

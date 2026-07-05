@@ -8,6 +8,7 @@ import {
   isValidInviteToken,
 } from "@/lib/auth/invite-token";
 import { sanitizeFriendActivity } from "@/lib/privacy/friend-visibility";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 import type { TrustedConnection } from "@/lib/types/club";
 
 async function requireParentProfileId() {
@@ -19,6 +20,10 @@ async function requireParentProfileId() {
 
 export async function createInviteLink() {
   const profile = await requireParentProfileId();
+  checkRateLimit(rateLimitKey("create-invite", profile.id), {
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  });
 
   const connection = await prisma.trustedParentConnection.create({
     data: {
@@ -37,6 +42,10 @@ export async function createInviteLink() {
 
 export async function acceptInvite(token: string) {
   const profile = await requireParentProfileId();
+  checkRateLimit(rateLimitKey("accept-invite", profile.id), {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
 
   if (!isValidInviteToken(token)) {
     throw new Error("Invalid invite token");
@@ -141,6 +150,12 @@ export async function getFriendActivityForClub(clubId: string) {
 }
 
 export async function getInvitePreview(token: string) {
+  const user = await requireAuth();
+  checkRateLimit(rateLimitKey("invite-preview", user.id), {
+    limit: 30,
+    windowMs: 60 * 60 * 1000,
+  });
+
   if (!isValidInviteToken(token)) return null;
 
   const connection = await prisma.trustedParentConnection.findUnique({

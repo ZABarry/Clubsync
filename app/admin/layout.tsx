@@ -27,6 +27,12 @@ export default async function AdminLayout({
 
   return (
     <div className="club-brand-bg flex min-h-0 flex-1 flex-col overflow-hidden">
+      <a
+        href="#admin-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:shadow-md"
+      >
+        Skip to main content
+      </a>
       <header className="shrink-0 border-b bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl min-w-0 items-center justify-between px-4 py-4 md:px-8">
           <Link href="/admin" className="flex min-w-0 items-center gap-3">
@@ -55,7 +61,10 @@ export default async function AdminLayout({
           </nav>
         </div>
       </header>
-      <main className="mx-auto min-h-0 min-w-0 max-w-6xl flex-1 overflow-y-auto px-4 py-8 md:px-8">
+      <main
+        id="admin-main"
+        className="mx-auto min-h-0 min-w-0 max-w-6xl flex-1 overflow-y-auto px-4 py-8 md:px-8"
+      >
         {children}
       </main>
     </div>

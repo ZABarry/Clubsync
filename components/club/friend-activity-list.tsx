@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Users } from "lucide-react";
 
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyStateCard } from "@/components/ui/empty-state-card";
 import type { FriendClubActivity } from "@/lib/privacy/friend-visibility";
 import { cn, formatOptionalDateRange } from "@/lib/utils";
 
@@ -16,6 +18,8 @@ type FriendActivityListProps = {
   activities: FriendClubActivity[];
   className?: string;
   emptyMessage?: string;
+  /** Query param value for contextual back links on club detail */
+  from?: string;
 };
 
 function initials(name: string): string {
@@ -31,15 +35,13 @@ export function FriendActivityList({
   activities,
   className,
   emptyMessage = "No friend activity yet.",
+  from,
 }: FriendActivityListProps) {
   if (activities.length === 0) {
     return (
-      <Card className={cn("py-8", className)}>
-        <CardContent className="flex flex-col items-center gap-2 text-center">
-          <Users className="text-muted-foreground size-8" />
-          <p className="text-muted-foreground text-sm">{emptyMessage}</p>
-        </CardContent>
-      </Card>
+      <EmptyStateCard icon={Users} className={className}>
+        <p className="text-muted-foreground text-sm">{emptyMessage}</p>
+      </EmptyStateCard>
     );
   }
 
@@ -49,38 +51,43 @@ export function FriendActivityList({
         const childLabel = activity.childNickname
           ? `${activity.childNickname}${activity.childAge ? ` (${activity.childAge})` : ""}`
           : null;
+        const clubHref = from
+          ? `/clubs/${activity.clubId}?from=${from}`
+          : `/clubs/${activity.clubId}`;
 
         return (
           <li key={`${activity.clubId}-${activity.parentDisplayName}-${activity.status}`}>
-            <Card className="gap-3 py-4">
-              <CardHeader className="flex-row items-start gap-3 space-y-0 px-4">
-                <Avatar className="size-9">
-                  <AvatarFallback className="text-xs">
-                    {initials(activity.parentDisplayName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <CardTitle className="text-sm font-medium">
-                      {activity.parentDisplayName}
-                    </CardTitle>
-                    <ClubStatusBadge status={activity.status} />
+            <Link href={clubHref} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <Card className="gap-3 py-4 transition-shadow hover:shadow-md">
+                <CardHeader className="flex-row items-start gap-3 space-y-0 px-4">
+                  <Avatar className="size-9">
+                    <AvatarFallback className="text-xs">
+                      {initials(activity.parentDisplayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-sm font-medium">
+                        {activity.parentDisplayName}
+                      </CardTitle>
+                      <ClubStatusBadge status={activity.status} />
+                    </div>
+                    <CardDescription className="text-sm">
+                      {activity.clubName}
+                    </CardDescription>
                   </div>
-                  <CardDescription className="text-sm">
-                    {activity.clubName}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 text-sm text-muted-foreground">
-                <p>
-                  {formatOptionalDateRange(
-                    activity.startDate,
-                    activity.endDate,
-                  )}
-                </p>
-                {childLabel ? <p className="mt-1">Child: {childLabel}</p> : null}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="px-4 text-sm text-muted-foreground">
+                  <p>
+                    {formatOptionalDateRange(
+                      activity.startDate,
+                      activity.endDate,
+                    )}
+                  </p>
+                  {childLabel ? <p className="mt-1">Child: {childLabel}</p> : null}
+                </CardContent>
+              </Card>
+            </Link>
           </li>
         );
       })}

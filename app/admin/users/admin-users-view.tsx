@@ -88,6 +88,7 @@ export function AdminUsersView({ initialUsers }: AdminUsersViewProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search email or name…"
+          aria-label="Search users by email or name"
         />
         <Button type="button" onClick={refresh}>
           Search

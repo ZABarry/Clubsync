@@ -19,9 +19,14 @@ import { acceptInvite } from "@/lib/actions/friends";
 type InviteViewProps = {
   token: string;
   requesterName?: string | null;
+  hasParentProfile: boolean;
 };
 
-export function InviteView({ token, requesterName }: InviteViewProps) {
+export function InviteView({
+  token,
+  requesterName,
+  hasParentProfile,
+}: InviteViewProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [pending, startTransition] = useTransition();
@@ -41,6 +46,32 @@ export function InviteView({ token, requesterName }: InviteViewProps) {
       }
     });
   };
+
+  if (!hasParentProfile) {
+    return (
+      <Card className="mx-auto max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle>Complete your profile first</CardTitle>
+          <CardDescription>
+            {requesterName
+              ? `${requesterName} invited you to connect on ClubZer.`
+              : "You have a friend invite waiting."}{" "}
+            Set up your parent profile before accepting.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Button asChild className="w-full">
+            <Link href={`/profile?onboarding=true&redirect=/invite/${token}`}>
+              Set up profile
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="w-full">
+            <Link href="/login">Sign in with another account</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mx-auto max-w-md">
@@ -71,9 +102,7 @@ export function InviteView({ token, requesterName }: InviteViewProps) {
           </div>
         ) : (
           <Button onClick={handleAccept} disabled={pending} className="w-full">
-            {pending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : null}
+            {pending ? <Loader2 className="size-4 animate-spin" /> : null}
             Accept invite
           </Button>
         )}

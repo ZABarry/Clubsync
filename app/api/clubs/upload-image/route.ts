@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/auth/supabase-server";
 import { requireAuth } from "@/lib/auth/server";
+import { validateImageBuffer } from "@/lib/security/image-validation";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -12,9 +14,18 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 export async function POST(request: Request) {
+  let userId: string;
   try {
-    await requireAuth();
-  } catch {
+    const user = await requireAuth();
+    userId = user.id;
+    checkRateLimit(rateLimitKey("upload-image", userId), {
+      limit: 20,
+      windowMs: 60 * 60 * 1000,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "RateLimitError") {
+      return NextResponse.json({ error: "Too many uploads. Try again later." }, { status: 429 });
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -33,6 +44,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
   }
 
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const validatedType = validateImageBuffer(buffer, file.type);
+  if (!validatedType) {
+    return NextResponse.json({ error: "Invalid image file" }, { status: 400 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,19 +62,16 @@ export async function POST(request: Request) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${user.id}/${Date.now()}-${safeName}`;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
   const { data, error } = await supabase.storage
     .from("club-images")
     .upload(path, buffer, {
-      contentType: file.type,
+      contentType: validatedType,
       upsert: false,
     });
 
   if (error || !data) {
-    return NextResponse.json(
-      { error: error?.message ?? "Upload failed" },
-      { status: 500 },
-    );
+    console.error("Club image upload failed:", error);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 
   const {

@@ -132,6 +132,18 @@ export function ClubDetail({
               {club.address}
             </p>
           ) : null}
+          {club.latitude != null && club.longitude != null ? (
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${club.latitude},${club.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get directions
+                <ExternalLink className="size-3.5" />
+              </a>
+            </Button>
+          ) : null}
           {club.distanceKm != null ? (
             <p className="text-muted-foreground">
               {club.distanceKm.toFixed(1)} km away
@@ -176,7 +188,7 @@ export function ClubDetail({
 
       {club.activities.length > 0 ? (
         <div className="space-y-2">
-          <h2 className="text-sm font-medium">Activities</h2>
+          <h2 className="text-lg font-semibold">Activities</h2>
           <div className="flex flex-wrap gap-2">
             {club.activities.map((activity) => (
               <Badge key={activity} variant="secondary">
@@ -214,20 +226,11 @@ export function ClubDetail({
         </Card>
       ) : null}
 
-      {club.bookingUrl ? (
-        <Button asChild>
-          <a href={club.bookingUrl} target="_blank" rel="noopener noreferrer">
-            Book now
-            <ExternalLink className="size-4" />
-          </a>
-        </Button>
-      ) : null}
-
       {onStatusChange ? (
         <>
           <Separator />
           <div className="space-y-3">
-            <h2 className="text-sm font-medium">Your status</h2>
+            <h2 className="text-lg font-semibold">Your status</h2>
             {bookingSummary ? (
               <p className="text-muted-foreground text-sm">{bookingSummary}</p>
             ) : null}

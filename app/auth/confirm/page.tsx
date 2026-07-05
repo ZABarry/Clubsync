@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MinimalBrandPage } from "@/components/layout/minimal-brand-page";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 import { createClient } from "@/lib/auth/client";
 
 export default function AuthConfirmPage() {
@@ -41,16 +47,19 @@ export default function AuthConfirmPage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="max-w-md">
+    <MinimalBrandPage>
+      <Card>
         <CardHeader>
-          <CardTitle>Confirming account</CardTitle>
+          <h1 className="text-lg font-semibold leading-none">
+            Confirming account
+          </h1>
           <CardDescription>{message}</CardDescription>
         </CardHeader>
         <CardContent className="text-muted-foreground text-sm">
-          Email links use localhost and only work on the computer running the dev server.
+          Email links use localhost and only work on the computer running the dev
+          server.
         </CardContent>
       </Card>
-    </div>
+    </MinimalBrandPage>
   );
 }

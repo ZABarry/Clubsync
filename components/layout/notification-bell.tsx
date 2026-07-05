@@ -61,7 +61,9 @@ export function NotificationBell({
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           ) : null}
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">
+            Notifications{unreadCount > 0 ? `, ${unreadCount} unread` : ""}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

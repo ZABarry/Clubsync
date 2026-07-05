@@ -84,7 +84,7 @@ export function PlannerView({ children, friends }: PlannerViewProps) {
                     Score: {club.recommendationScore}
                   </span>
                 </div>
-                <Link href={`/clubs/${club.id}`}>
+                <Link href={`/clubs/${club.id}?from=planner`}>
                   <ClubCard
                     club={{
                       id: club.id,

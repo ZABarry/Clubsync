@@ -51,7 +51,10 @@ export function FriendsView({ connections, activities, sharedClubs }: FriendsVie
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Invite a friend</h2>
         <p className="text-muted-foreground text-sm">
-          Share a link with another parent to connect as trusted friends.
+          Share a link with another parent to connect as trusted friends. Once
+          connected, you may see each other&apos;s club plans including your
+          child&apos;s nickname and age — never full names, notes, or contact
+          details.
         </p>
         <InviteButton onCreateInvite={handleCreateInvite} />
       </section>
@@ -82,7 +85,7 @@ export function FriendsView({ connections, activities, sharedClubs }: FriendsVie
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Friend activity</h2>
-        <FriendActivityList activities={activities} />
+        <FriendActivityList activities={activities} from="friends" />
       </section>
     </div>
   );

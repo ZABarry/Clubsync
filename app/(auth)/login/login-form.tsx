@@ -15,7 +15,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Form,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/auth/client";
+import { sanitizeRedirectPath } from "@/lib/security/safe-redirect";
 import { loginSchema } from "@/lib/validation/schemas";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -34,7 +34,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = sanitizeRedirectPath(searchParams.get("redirect"), "/");
   const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -52,7 +52,7 @@ export function LoginForm() {
       });
 
       if (error) {
-        toast.error(error.message);
+        form.setError("password", { message: error.message });
         return;
       }
 
@@ -68,7 +68,7 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
+        <h1 className="text-lg font-semibold leading-none">Welcome back</h1>
         <CardDescription>Pick up planning clubs with your friends</CardDescription>
       </CardHeader>
       <Form {...form}>

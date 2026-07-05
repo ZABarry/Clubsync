@@ -2,38 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { NavMoreSheet } from "@/components/layout/nav-more-sheet";
 import {
-  Calendar,
-  Compass,
-  Home,
-  MapPin,
-  Shield,
-  User,
-  Users,
-} from "lucide-react";
-
+  isNavItemActive,
+  PRIMARY_NAV_ITEMS,
+} from "@/lib/navigation/nav-config";
 import { cn } from "@/lib/utils";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/friends", label: "Friends", icon: Users },
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/my-clubs", label: "Community clubs", icon: MapPin },
-];
-
-const ADMIN_ITEM: NavItem = {
-  href: "/admin",
-  label: "Admin",
-  icon: Shield,
-};
 
 type BottomNavProps = {
   showAdmin?: boolean;
@@ -41,7 +16,6 @@ type BottomNavProps = {
 
 export function BottomNav({ showAdmin = false }: BottomNavProps) {
   const pathname = usePathname();
-  const items = showAdmin ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS;
 
   return (
     <nav
@@ -49,17 +23,15 @@ export function BottomNav({ showAdmin = false }: BottomNavProps) {
       aria-label="Main navigation"
     >
       <ul className="flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
-        {items.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+        {PRIMARY_NAV_ITEMS.map((item) => {
+          const isActive = isNavItemActive(pathname, item);
           const Icon = item.icon;
 
           return (
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
                   isActive
@@ -67,12 +39,15 @@ export function BottomNav({ showAdmin = false }: BottomNavProps) {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className={cn("size-5", isActive && "stroke-[2.5]")} />
+                <Icon className={cn("size-5", isActive && "stroke-[2.5]")} aria-hidden />
                 <span>{item.label}</span>
               </Link>
             </li>
           );
         })}
+        <li className="flex-1">
+          <NavMoreSheet showAdmin={showAdmin} />
+        </li>
       </ul>
     </nav>
   );

@@ -1,7 +1,8 @@
-import { Users } from "lucide-react";
 import Link from "next/link";
+import { Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -40,9 +41,12 @@ export function SharedClubList({
   if (sharedClubs.length === 0) {
     return (
       <Card className={cn("py-8", className)}>
-        <CardContent className="flex flex-col items-center gap-2 text-center">
+        <CardContent className="flex flex-col items-center gap-3 text-center">
           <Users className="text-muted-foreground size-8" />
           <p className="text-muted-foreground text-sm">{emptyMessage}</p>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/discover">Discover clubs</Link>
+          </Button>
         </CardContent>
       </Card>
     );

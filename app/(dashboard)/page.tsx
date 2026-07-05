@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CalendarDays,
   Compass,
   Plus,
   Sparkles,
@@ -8,13 +9,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { ClubCalendar } from "@/components/calendar/club-calendar";
 import { ClubCard } from "@/components/club/club-card";
 import { FriendActivityList } from "@/components/club/friend-activity-list";
+import {
+  HomeCalendarSection,
+  HomeMapSection,
+} from "@/components/dashboard/home-interactive-sections";
 import { PageHeader } from "@/components/layout/page-header";
-import { ClubMap } from "@/components/map/club-map";
-import { MapLegend } from "@/components/map/map-legend";
 import { Button } from "@/components/ui/button";
+import { EmptyStateCard } from "@/components/ui/empty-state-card";
 import {
   Card,
   CardContent,
@@ -164,27 +167,11 @@ export default async function HomePage() {
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Nearby clubs</h2>
-        {mapMarkers.length === 0 ? (
-          <Card className="py-8">
-            <CardContent className="text-muted-foreground text-center text-sm">
-              Set your home postcode in Profile to see clubs on the map.
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <MapLegend className="mb-2" />
-            <ClubMap
-              markers={mapMarkers}
-              center={
-                parentLat != null && parentLng != null
-                  ? { latitude: parentLat, longitude: parentLng }
-                  : undefined
-              }
-              showLocateControl
-              className="h-64"
-            />
-          </>
-        )}
+        <HomeMapSection
+          mapMarkers={mapMarkers}
+          parentLat={parentLat}
+          parentLng={parentLng}
+        />
       </section>
 
       <RecommendedClubsSection initial={recommended} />
@@ -200,14 +187,14 @@ export default async function HomePage() {
           </Button>
         </div>
         {upcomingPlanned.length === 0 ? (
-          <Card className="py-8">
-            <CardContent className="text-muted-foreground text-center text-sm">
+          <EmptyStateCard icon={CalendarDays}>
+            <p className="text-muted-foreground text-sm">
               No upcoming clubs planned.{" "}
               <Link href="/discover" className="text-primary hover:underline">
                 Find a club
               </Link>
-            </CardContent>
-          </Card>
+            </p>
+          </EmptyStateCard>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {upcomingPlanned.map((planned) => (
@@ -222,7 +209,7 @@ export default async function HomePage() {
                   activities: [],
                   plannedStatus: planned.status,
                 }}
-                detailHref={`/clubs/${planned.club.id}`}
+                detailHref={`/clubs/${planned.club.id}?from=home`}
               />
             ))}
           </div>
@@ -240,20 +227,12 @@ export default async function HomePage() {
               </Link>
             </Button>
           </div>
-          <FriendActivityList activities={friendActivity} />
+          <FriendActivityList activities={friendActivity} from="home" />
         </div>
 
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Calendar snapshot</h2>
-          {calendarEvents.length === 0 ? (
-            <Card className="py-8">
-              <CardContent className="text-muted-foreground text-center text-sm">
-                Your calendar is empty. Add clubs from Discover.
-              </CardContent>
-            </Card>
-          ) : (
-            <ClubCalendar events={calendarEvents.slice(0, 10)} />
-          )}
+          <HomeCalendarSection calendarEvents={calendarEvents} />
         </div>
       </section>
     </div>

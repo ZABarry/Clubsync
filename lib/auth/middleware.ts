@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseConfigOrNull } from "@/lib/auth/env";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 
 function isSupabaseNetworkError(error: unknown): boolean {
   if (error instanceof TypeError) return true;
@@ -18,6 +19,28 @@ function isSupabaseNetworkError(error: unknown): boolean {
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  if (
+    pathname.startsWith("/api/clubs/upload-image") &&
+    request.method === "POST"
+  ) {
+    try {
+      const ip =
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        request.headers.get("x-real-ip") ??
+        "unknown";
+      checkRateLimit(rateLimitKey("upload-image-ip", ip), {
+        limit: 30,
+        windowMs: 60 * 60 * 1000,
+      });
+    } catch {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+  }
+
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
   const isProtected =

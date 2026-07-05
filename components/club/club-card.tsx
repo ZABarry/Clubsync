@@ -1,18 +1,10 @@
-import { ExternalLink, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import Link from "next/link";
 
 import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn, formatOptionalDateRange } from "@/lib/utils";
 import { formatClubCardRates } from "@/lib/utils/club-booking";
 import { getPlannedClubStatusLabel } from "@/lib/clubs/planned-club-status-styles";
@@ -34,91 +26,12 @@ export function ClubCard({
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
   const priceRates = formatClubCardRates(club);
-  const showBookingLink = !!club.bookingUrl;
   const showPlannedFooter = !!club.plannedStatus;
-
-  const mainContent = (
-    <>
-      <ClubImage
-        clubId={club.id}
-        src={club.imageUrl!}
-        alt={`${club.name} — ${club.providerName}`}
-        wrapperClassName="px-4"
-        className="aspect-[16/9] w-full rounded-lg object-cover"
-      />
-      <CardHeader className="gap-2 px-4">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base leading-snug">{club.name}</CardTitle>
-          <div className="flex flex-wrap justify-end gap-1">
-            {club.isCommunityClub ? (
-              <Badge variant="secondary">Community</Badge>
-            ) : null}
-            {club.plannedStatus ? (
-              <ClubStatusBadge status={club.plannedStatus} />
-            ) : null}
-          </div>
-        </div>
-        <CardDescription>{club.providerName}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3 px-4">
-        <p className="text-sm">{dateLabel}</p>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          {priceRates ? (
-            <span className="font-medium text-foreground">
-              {"daily" in priceRates ? (
-                <>
-                  {priceRates.daily}
-                  <span className="text-muted-foreground font-normal">
-                    {" "}
-                    · {priceRates.weekly}
-                  </span>
-                </>
-              ) : (
-                priceRates.fallback
-              )}
-            </span>
-          ) : null}
-          {hasRating ? (
-            <span className="inline-flex items-center gap-1">
-              <Star className="size-3.5 fill-amber-400 text-amber-400" />
-              {club.ratingAverage?.toFixed(1)}
-              <span className="text-xs">({club.ratingCount})</span>
-            </span>
-          ) : null}
-          {club.distanceKm != null ? (
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="size-3.5" />
-              {club.distanceKm.toFixed(1)} km
-            </span>
-          ) : null}
-        </div>
-        {club.activities.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {club.activities.slice(0, 4).map((activity) => (
-              <Badge key={activity} variant="secondary" className="text-xs">
-                {activity}
-              </Badge>
-            ))}
-            {club.activities.length > 4 ? (
-              <Badge variant="outline" className="text-xs">
-                +{club.activities.length - 4}
-              </Badge>
-            ) : null}
-          </div>
-        ) : null}
-        {club.recommendationReasons && club.recommendationReasons.length > 0 ? (
-          <p className="text-muted-foreground text-xs leading-relaxed">
-            {club.recommendationReasons.slice(0, 3).join(" · ")}
-          </p>
-        ) : null}
-      </CardContent>
-    </>
-  );
 
   return (
     <Card
       className={cn(
-        "gap-4 py-4 transition-shadow hover:shadow-md",
+        "relative gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md",
         (onClick || detailHref) && "cursor-pointer",
         className,
       )}
@@ -137,43 +50,104 @@ export function ClubCard({
       }
     >
       {detailHref ? (
-        <Link href={detailHref} className="block">
-          {mainContent}
-        </Link>
-      ) : (
-        mainContent
-      )}
-      {showBookingLink || showPlannedFooter ? (
-        <CardFooter
-          className={cn(
-            "px-4 pt-0",
-            showBookingLink && showPlannedFooter
-              ? "flex flex-wrap items-center justify-between gap-2"
-              : showBookingLink
-                ? "flex justify-end"
-                : undefined,
-          )}
-        >
-          {showPlannedFooter ? (
-            <span className="text-muted-foreground text-xs">
-              Status: {getPlannedClubStatusLabel(club.plannedStatus!)}
+        <Link
+          href={detailHref}
+          className="absolute inset-0 z-0"
+          aria-label={`View ${club.name}`}
+        />
+      ) : null}
+
+      <div className="relative pointer-events-none">
+        <ClubImage
+          clubId={club.id}
+          src={club.imageUrl!}
+          alt={`${club.name} — ${club.providerName}`}
+          className="aspect-[2.4/1] w-full object-cover"
+        />
+      </div>
+
+      <div className="relative z-10 space-y-2 p-3 pointer-events-none">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm leading-snug font-semibold line-clamp-2">
+              {club.name}
+            </p>
+            <p className="text-muted-foreground mt-0.5 truncate text-xs">
+              {club.providerName}
+              {dateLabel ? ` · ${dateLabel}` : ""}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap justify-end gap-1">
+            {club.isCommunityClub ? (
+              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+                Community
+              </Badge>
+            ) : null}
+            {club.plannedStatus ? (
+              <ClubStatusBadge status={club.plannedStatus} />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          {priceRates ? (
+            <span className="font-medium text-foreground">
+              {"daily" in priceRates ? (
+                <>
+                  {priceRates.daily}
+                  <span className="text-muted-foreground font-normal">
+                    {" "}
+                    · {priceRates.weekly}
+                  </span>
+                </>
+              ) : (
+                priceRates.fallback
+              )}
             </span>
           ) : null}
-          {showBookingLink ? (
-            <Button size="sm" asChild>
-              <a
-                href={club.bookingUrl!}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Book now
-                <ExternalLink className="size-3.5" />
-              </a>
-            </Button>
+          {hasRating ? (
+            <span className="inline-flex items-center gap-0.5">
+              <Star className="size-3 fill-amber-400 text-amber-400" />
+              {club.ratingAverage?.toFixed(1)}
+              <span>({club.ratingCount})</span>
+            </span>
           ) : null}
-        </CardFooter>
-      ) : null}
+          {club.distanceKm != null ? (
+            <span className="inline-flex items-center gap-0.5">
+              <MapPin className="size-3" />
+              {club.distanceKm.toFixed(1)} km
+            </span>
+          ) : null}
+          {showPlannedFooter ? (
+            <span>{getPlannedClubStatusLabel(club.plannedStatus!)}</span>
+          ) : null}
+        </div>
+
+        {club.activities.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {club.activities.slice(0, 3).map((activity) => (
+              <Badge
+                key={activity}
+                variant="secondary"
+                className="px-1.5 py-0 text-[10px] font-normal"
+              >
+                {activity}
+              </Badge>
+            ))}
+            {club.activities.length > 3 ? (
+              <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal">
+                +{club.activities.length - 3}
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
+
+        {club.recommendationReasons && club.recommendationReasons.length > 0 ? (
+          <p className="text-muted-foreground line-clamp-1 text-[11px] leading-snug">
+            {club.recommendationReasons.slice(0, 3).join(" · ")}
+          </p>
+        ) : null}
+      </div>
     </Card>
   );
 }

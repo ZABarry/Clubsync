@@ -3,14 +3,40 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
-import { sharedClubSchema } from "@/lib/validation/schemas";
 import { sanitizeSharedClubChild } from "@/lib/privacy/friend-visibility";
+import { canJoinSharedClub } from "@/lib/privacy/shared-club-access";
+import { sharedClubSchema } from "@/lib/validation/schemas";
 
 async function requireParentProfileId() {
   const user = await requireAuth();
   const profile = user.parentProfile;
   if (!profile) throw new Error("Parent profile required");
   return profile;
+}
+
+const participantInclude = {
+  parent: { select: { displayName: true } },
+  child: { select: { nickname: true, age: true } },
+} as const;
+
+function sanitizeParticipant<T extends { child: { nickname: string; age: number } | null }>(
+  participant: T,
+) {
+  return {
+    ...participant,
+    child: participant.child ? sanitizeSharedClubChild(participant.child) : null,
+  };
+}
+
+function sanitizeSharedClubResponse<
+  T extends {
+    participants: Array<{ child: { nickname: string; age: number } | null }>;
+  },
+>(sharedClub: T) {
+  return {
+    ...sharedClub,
+    participants: sharedClub.participants.map((p) => sanitizeParticipant(p)),
+  };
 }
 
 export async function createSharedClub(data: unknown) {
@@ -37,18 +63,13 @@ export async function createSharedClub(data: unknown) {
     },
     include: {
       club: { include: { provider: { select: { name: true } } } },
-      participants: {
-        include: {
-          parent: { select: { displayName: true } },
-          child: { select: { nickname: true, age: true, notes: true } },
-        },
-      },
+      participants: { include: participantInclude },
     },
   });
 
   revalidatePath("/friends");
   revalidatePath("/shared-clubs");
-  return sharedClub;
+  return sanitizeSharedClubResponse(sharedClub);
 }
 
 export async function joinSharedClub(
@@ -69,6 +90,25 @@ export async function joinSharedClub(
     if (!child) throw new Error("Child not found");
   }
 
+  const existing = await prisma.sharedClubParticipant.findFirst({
+    where: { sharedClubId, parentProfileId: profile.id },
+  });
+
+  if (!existing) {
+    const isCreator = sharedClub.createdByParentId === profile.id;
+    const friendIds = await getTrustedFriendIds(profile.id);
+    const isFriendOfCreator = friendIds.includes(sharedClub.createdByParentId);
+    if (
+      !canJoinSharedClub({
+        isExistingParticipant: false,
+        isCreator,
+        isFriendOfCreator,
+      })
+    ) {
+      throw new Error("Forbidden");
+    }
+  }
+
   let plannedClubId: string | null = null;
   const existingPlanned = await prisma.plannedClub.findFirst({
     where: {
@@ -78,10 +118,6 @@ export async function joinSharedClub(
     },
   });
   if (existingPlanned) plannedClubId = existingPlanned.id;
-
-  const existing = await prisma.sharedClubParticipant.findFirst({
-    where: { sharedClubId, parentProfileId: profile.id },
-  });
 
   const participantData = {
     childProfileId: opts?.childProfileId ?? null,
@@ -93,10 +129,7 @@ export async function joinSharedClub(
     ? await prisma.sharedClubParticipant.update({
         where: { id: existing.id },
         data: participantData,
-        include: {
-          parent: { select: { displayName: true } },
-          child: { select: { nickname: true, age: true, notes: true } },
-        },
+        include: participantInclude,
       })
     : await prisma.sharedClubParticipant.create({
         data: {
@@ -104,15 +137,12 @@ export async function joinSharedClub(
           parentProfileId: profile.id,
           ...participantData,
         },
-        include: {
-          parent: { select: { displayName: true } },
-          child: { select: { nickname: true, age: true, notes: true } },
-        },
+        include: participantInclude,
       });
 
   revalidatePath("/shared-clubs");
   revalidatePath(`/shared-clubs/${sharedClubId}`);
-  return participant;
+  return sanitizeParticipant(participant);
 }
 
 export async function getSharedClub(sharedClubId: string) {
@@ -126,7 +156,7 @@ export async function getSharedClub(sharedClubId: string) {
       participants: {
         include: {
           parent: { select: { id: true, displayName: true } },
-          child: { select: { nickname: true, age: true, notes: true } },
+          child: { select: { nickname: true, age: true } },
         },
       },
     },
@@ -145,13 +175,7 @@ export async function getSharedClub(sharedClubId: string) {
     throw new Error("Forbidden");
   }
 
-  return {
-    ...sharedClub,
-    participants: sharedClub.participants.map((p) => ({
-      ...p,
-      child: p.child ? sanitizeSharedClubChild(p.child) : null,
-    })),
-  };
+  return sanitizeSharedClubResponse(sharedClub);
 }
 
 async function getTrustedFriendIds(parentProfileId: string) {

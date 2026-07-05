@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 
 import { getSharedClub } from "@/lib/actions/shared-clubs";
 import { requireAuth } from "@/lib/auth/server";
-import { PageHeader } from "@/components/layout/page-header";
 
 import { SharedClubView } from "./shared-club-view";
 
@@ -25,12 +24,9 @@ export default async function SharedClubPage({
   if (!sharedClub) notFound();
 
   return (
-    <>
-      <PageHeader title="Shared club" />
-      <SharedClubView
-        sharedClub={sharedClub}
-        currentParentId={currentParentId}
-      />
-    </>
+    <SharedClubView
+      sharedClub={sharedClub}
+      currentParentId={currentParentId}
+    />
   );
 }
