@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ClubCalendar } from "@/components/calendar/club-calendar";
+import { ClubCalendarLazy } from "@/components/calendar/club-calendar-lazy";
 import { ClubCard } from "@/components/club/club-card";
 import { ClubFilters, countActiveFilters } from "@/components/club/club-filters";
-import { ClubMap } from "@/components/map/club-map";
+import { ClubMapLazy } from "@/components/map/club-map-lazy";
 import { MapLegend } from "@/components/map/map-legend";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -233,7 +233,7 @@ export function DiscoverView({
         </div>
 
         <div className="relative">
-          <ClubMap
+          <ClubMapLazy
             markers={mapMarkers}
             fitBounds={mapFitBounds}
             className="h-56 sm:h-80"
@@ -362,7 +362,7 @@ export function DiscoverView({
             />
           </button>
           {calendarOpen ? (
-            <ClubCalendar
+            <ClubCalendarLazy
               events={calendarEvents}
               onEventClick={(event) => {
                 if (event.clubId) {

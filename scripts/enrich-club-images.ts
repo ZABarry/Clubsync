@@ -99,7 +99,11 @@ const CLUB_IMAGES: Record<string, string> = {
   "Mad Science Guildford Summer Camp": PROVIDER_IMAGES.prov_mad_science,
   "Love the Ball Summer Camp Coombe Hill": PROVIDER_IMAGES.prov_love_the_ball,
   "Rose Theatre Create in Three Days 2026":
-    "https://www.rosetheatre.org/images/default-source/default-album/rose-theatre-exterior.jpg",
+    "https://www.rosetheatre.org/cms_files/system/images/img3200_orig.jpeg",
+  "Rose Theatre Play in a Week 2026":
+    "https://www.rosetheatre.org/cms_files/system/images/img3375_orig.png",
+  "South Side School of Rock Summer Intensive 2026":
+    "https://static.wixstatic.com/media/01dfe0_b81102aa12d048708f30e677851dc355~mv2.png/v1/crop/x_0,y_1246,w_3508,h_2469/fill/w_1226,h_866,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/SCHOOL%20OF%20ROCK%20YAE_.png",
   "Stagecoach Magic of the Musicals Summer Workshop": PROVIDER_IMAGES.prov_stagecoach,
   "Supersharks Holiday Crash Courses": PROVIDER_IMAGES.prov_supersharks,
   "Wilderness Club Holiday Camp": PROVIDER_IMAGES.prov_brilliant_play,

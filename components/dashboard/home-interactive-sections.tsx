@@ -6,8 +6,10 @@ import { useState } from "react";
 import { Calendar, MapPin } from "lucide-react";
 
 import { CalendarCampSheet } from "@/components/calendar/calendar-camp-sheet";
-import { ClubCalendar } from "@/components/calendar/club-calendar";
-import { ClubMap } from "@/components/map/club-map";
+import { ClubCalendarLazy } from "@/components/calendar/club-calendar-lazy";
+import { ClubMapLazy } from "@/components/map/club-map-lazy";
+import { DeferredMount } from "@/components/ui/deferred-mount";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MapLegend } from "@/components/map/map-legend";
 import { Button } from "@/components/ui/button";
 import { EmptyStateCard } from "@/components/ui/empty-state-card";
@@ -46,17 +48,24 @@ export function HomeMapSection({
   return (
     <>
       <MapLegend className="mb-2" />
-      <ClubMap
-        markers={mapMarkers}
-        center={
-          parentLat != null && parentLng != null
-            ? { latitude: parentLat, longitude: parentLng }
-            : undefined
-        }
-        showLocateControl
+      <DeferredMount
         className="h-64"
-        onMarkerClick={(marker) => router.push(`/clubs/${marker.id}?from=home`)}
-      />
+        fallback={<Skeleton className="h-64 w-full rounded-xl" aria-hidden />}
+      >
+        <ClubMapLazy
+          markers={mapMarkers}
+          center={
+            parentLat != null && parentLng != null
+              ? { latitude: parentLat, longitude: parentLng }
+              : undefined
+          }
+          showLocateControl
+          className="h-64"
+          onMarkerClick={(marker) =>
+            router.push(`/clubs/${marker.id}?from=home`)
+          }
+        />
+      </DeferredMount>
     </>
   );
 }
@@ -82,14 +91,18 @@ export function HomeCalendarSection({
 
   return (
     <>
-      <ClubCalendar
-        events={calendarEvents.slice(0, 10)}
-        onEventClick={(event) =>
-          setSelected((current) =>
-            current?.clubId === event.clubId ? null : event,
-          )
-        }
-      />
+      <DeferredMount
+        fallback={<Skeleton className="h-80 w-full rounded-xl" aria-hidden />}
+      >
+        <ClubCalendarLazy
+          events={calendarEvents.slice(0, 10)}
+          onEventClick={(event) =>
+            setSelected((current) =>
+              current?.clubId === event.clubId ? null : event,
+            )
+          }
+        />
+      </DeferredMount>
       <CalendarCampSheet
         event={selected}
         open={!!selected}

@@ -69,18 +69,26 @@ export default async function HomePage() {
   let mapMarkers: ClubMapMarker[] = [];
 
   try {
-    recommended = await getDashboardRecommendations({ limit: 4, offset: 0 });
+    const [recommendedResult, planned, calendarEventsResult, friendActivityResult] =
+      await Promise.all([
+        getDashboardRecommendations({ limit: 4, offset: 0 }),
+        getPlannedClubsForParent(),
+        getPlannedClubsForCalendar(),
+        getFriendActivity(),
+      ]);
 
-    const planned = (await getPlannedClubsForParent()) as PlannedClubRow[];
-    upcomingPlanned = planned.filter(
+    recommended = recommendedResult;
+
+    const plannedRows = planned as PlannedClubRow[];
+    upcomingPlanned = plannedRows.filter(
       (p) =>
         p.status !== "CANCELLED" &&
         p.club.startDate != null &&
         new Date(p.club.startDate) >= new Date(),
     ).slice(0, 4);
 
-    calendarEvents = await getPlannedClubsForCalendar();
-    friendActivity = (await getFriendActivity()).slice(0, 5);
+    calendarEvents = calendarEventsResult;
+    friendActivity = friendActivityResult.slice(0, 5);
 
     const mapClubIds = [
       ...new Set([

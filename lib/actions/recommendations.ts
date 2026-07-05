@@ -112,6 +112,8 @@ export async function getRecommendations(input: unknown) {
       ratingAverage: true,
       ratingCount: true,
       price: true,
+      dailyRate: true,
+      priceNote: true,
     },
   });
 
@@ -257,7 +259,9 @@ export async function getDashboardRecommendations(
       providerName: source.provider.name,
       startDate: club.startDate,
       endDate: club.endDate,
-      price: club.price,
+      price: source.price,
+      dailyRate: source.dailyRate,
+      priceNote: source.priceNote,
       ratingAverage: club.ratingAverage,
       ratingCount: club.ratingCount,
       activities: club.activities,

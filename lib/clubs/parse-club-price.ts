@@ -34,10 +34,22 @@ export function parseClubPrice(priceFrom?: string | null): ParsedClubPrice {
     return { price: null, dailyRate: null, priceNote: null };
   }
 
-  const match = note.match(/(\d+(?:\.\d+)?)/);
-  const amount = match ? Number.parseFloat(match[1]) : null;
   const isDaily = isDailyPriceNote(note);
   const isWeekly = isWeeklyPriceNote(note);
+
+  if (isDaily && isWeekly) {
+    const dailyRate = findRateInNote(note, isDailyPriceNote);
+    const weeklyPrice = findRateInNote(note, isWeeklyPriceNote);
+
+    return {
+      price: weeklyPrice,
+      dailyRate,
+      priceNote: note,
+    };
+  }
+
+  const match = note.match(/(\d+(?:\.\d+)?)/);
+  const amount = match ? Number.parseFloat(match[1]) : null;
 
   if (amount != null && isDaily && !isWeekly) {
     return {
@@ -60,4 +72,24 @@ export function parseClubPrice(priceFrom?: string | null): ParsedClubPrice {
     dailyRate: null,
     priceNote: note,
   };
+}
+
+function parseAmountFromText(text: string): number | null {
+  const match = text.match(/(\d+(?:\.\d+)?)/);
+  return match ? Number.parseFloat(match[1]) : null;
+}
+
+function findRateInNote(
+  note: string,
+  matchesSegment: (segment: string) => boolean,
+): number | null {
+  for (const segment of note.split(/[;,]/)) {
+    const trimmed = segment.trim();
+    if (!trimmed || !matchesSegment(trimmed)) continue;
+
+    const amount = parseAmountFromText(trimmed);
+    if (amount != null) return amount;
+  }
+
+  return null;
 }

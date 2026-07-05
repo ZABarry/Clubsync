@@ -35,6 +35,23 @@ export function formatOptionalDateRange(
   return formatDateRange(s, e);
 }
 
+export function buildGoogleMapsDirectionsUrl(input: {
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}): string | null {
+  const address = input.address?.trim();
+  if (address) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+  }
+
+  if (input.latitude != null && input.longitude != null) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${input.latitude},${input.longitude}`;
+  }
+
+  return null;
+}
+
 export function haversineKm(
   lat1: number,
   lng1: number,

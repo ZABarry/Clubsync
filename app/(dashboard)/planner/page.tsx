@@ -10,13 +10,17 @@ export default async function PlannerPage() {
   let connections: Awaited<ReturnType<typeof getTrustedConnections>> = [];
 
   try {
-    const childRows = (await getChildren()) as ChildOption[];
-    children = childRows.map((c) => ({
+    const [childRows, connectionsResult] = await Promise.all([
+      getChildren(),
+      getTrustedConnections(),
+    ]);
+
+    children = (childRows as ChildOption[]).map((c) => ({
       id: c.id,
       nickname: c.nickname,
       age: c.age,
     }));
-    connections = await getTrustedConnections();
+    connections = connectionsResult;
   } catch {
     // Profile not set up
   }

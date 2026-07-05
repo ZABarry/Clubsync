@@ -26,4 +26,16 @@ describe("parseClubPrice", () => {
       priceNote: "From £195",
     });
   });
+
+  it("parses combined daily and weekly rates from one note", () => {
+    expect(
+      parseClubPrice(
+        "£55 per day; £250 per week; extended hours to 6pm +£10",
+      ),
+    ).toEqual({
+      price: 250,
+      dailyRate: 55,
+      priceNote: "£55 per day; £250 per week; extended hours to 6pm +£10",
+    });
+  });
 });

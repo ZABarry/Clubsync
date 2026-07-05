@@ -14,6 +14,8 @@ export type RecommendationClub = {
   ratingAverage: number;
   ratingCount: number;
   price: number | null;
+  dailyRate?: number | null;
+  priceNote?: string | null;
 };
 
 export type RecommendationInput = {

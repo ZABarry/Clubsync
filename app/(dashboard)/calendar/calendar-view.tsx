@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { CalendarCampSheet } from "@/components/calendar/calendar-camp-sheet";
-import { ClubCalendar } from "@/components/calendar/club-calendar";
+import { ClubCalendarLazy } from "@/components/calendar/club-calendar-lazy";
 import { Button } from "@/components/ui/button";
 import type { ClubCalendarEvent } from "@/lib/types/club";
 
@@ -46,7 +46,7 @@ export function CalendarView({ events }: CalendarViewProps) {
           </div>
         </div>
       ) : (
-        <ClubCalendar
+        <ClubCalendarLazy
           events={events}
           onEventClick={(event) =>
             setSelected((current) =>

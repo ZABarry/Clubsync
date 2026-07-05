@@ -154,9 +154,14 @@ export function formatClubCardRates(club: {
   if (weeklyRate != null) {
     const dailyRate =
       dailyResolved?.rate ?? weeklyRate / STANDARD_CAMP_DAYS_PER_WEEK;
+    const normalizedWeeklyRate =
+      dailyResolved && weeklyRate === dailyResolved.rate
+        ? dailyResolved.rate * STANDARD_CAMP_DAYS_PER_WEEK
+        : weeklyRate;
+
     return {
       daily: `${formatRateAmount(dailyRate)}/day`,
-      weekly: `${formatRateAmount(weeklyRate)}/wk`,
+      weekly: `${formatRateAmount(normalizedWeeklyRate)}/wk`,
     };
   }
 

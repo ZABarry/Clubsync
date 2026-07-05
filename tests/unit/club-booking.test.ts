@@ -124,6 +124,19 @@ describe("formatClubCardRates", () => {
       weekly: "£275/wk",
     });
   });
+
+  it("uses daily rate instead of treating price as weekly", () => {
+    expect(
+      formatClubCardRates({
+        dailyRate: 55,
+        price: 55,
+        priceNote: "£55 per day; £250 per week; extended hours to 6pm +£10",
+      }),
+    ).toEqual({
+      daily: "£55/day",
+      weekly: "£250/wk",
+    });
+  });
 });
 
 describe("computeTotalPrice", () => {

@@ -93,6 +93,8 @@ export function PlannerView({ children, friends }: PlannerViewProps) {
                       startDate: club.startDate,
                       endDate: club.endDate,
                       price: club.price,
+                      dailyRate: club.dailyRate,
+                      priceNote: club.priceNote,
                       ratingAverage: club.ratingAverage,
                       ratingCount: club.ratingCount,
                       activities: club.activities,

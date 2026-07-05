@@ -31,7 +31,7 @@ export function ClubCard({
   return (
     <Card
       className={cn(
-        "relative gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md",
+        "relative flex h-full flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md",
         (onClick || detailHref) && "cursor-pointer",
         className,
       )}
@@ -57,17 +57,18 @@ export function ClubCard({
         />
       ) : null}
 
-      <div className="relative pointer-events-none">
+      <div className="relative shrink-0 pointer-events-none">
         <ClubImage
           clubId={club.id}
           src={club.imageUrl!}
           alt={`${club.name} — ${club.providerName}`}
-          className="aspect-[2.4/1] w-full object-cover"
+          wrapperClassName="aspect-[2.4/1] w-full"
+          className="object-cover"
         />
       </div>
 
-      <div className="relative z-10 space-y-2 p-3 pointer-events-none">
-        <div className="flex items-start justify-between gap-2">
+      <div className="relative z-10 flex flex-1 flex-col gap-2 p-3 pointer-events-none">
+        <div className="flex min-h-[3.25rem] items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-sm leading-snug font-semibold line-clamp-2">
               {club.name}
@@ -89,7 +90,7 @@ export function ClubCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           {priceRates ? (
             <span className="font-medium text-foreground">
               {"daily" in priceRates ? (
@@ -123,30 +124,33 @@ export function ClubCard({
           ) : null}
         </div>
 
-        {club.activities.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {club.activities.slice(0, 3).map((activity) => (
-              <Badge
-                key={activity}
-                variant="secondary"
-                className="px-1.5 py-0 text-[10px] font-normal"
-              >
-                {activity}
-              </Badge>
-            ))}
-            {club.activities.length > 3 ? (
-              <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal">
-                +{club.activities.length - 3}
-              </Badge>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="flex min-h-[1.375rem] flex-wrap gap-1">
+          {club.activities.slice(0, 3).map((activity) => (
+            <Badge
+              key={activity}
+              variant="secondary"
+              className="px-1.5 py-0 text-[10px] font-normal"
+            >
+              {activity}
+            </Badge>
+          ))}
+          {club.activities.length > 3 ? (
+            <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal">
+              +{club.activities.length - 3}
+            </Badge>
+          ) : null}
+        </div>
 
-        {club.recommendationReasons && club.recommendationReasons.length > 0 ? (
-          <p className="text-muted-foreground line-clamp-1 text-[11px] leading-snug">
-            {club.recommendationReasons.slice(0, 3).join(" · ")}
-          </p>
-        ) : null}
+        <p
+          className={cn(
+            "text-muted-foreground mt-auto line-clamp-1 min-h-[1.125rem] text-[11px] leading-snug",
+            !club.recommendationReasons?.length && "invisible",
+          )}
+        >
+          {club.recommendationReasons?.length
+            ? club.recommendationReasons.slice(0, 3).join(" · ")
+            : "\u00A0"}
+        </p>
       </div>
     </Card>
   );

@@ -10,7 +10,7 @@ import {
 import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { ClubStatusControls } from "@/components/club/club-status-controls";
-import { ClubMap } from "@/components/map/club-map";
+import { ClubMapLazy } from "@/components/map/club-map-lazy";
 import { MapLegend } from "@/components/map/map-legend";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,11 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
-import { cn, formatOptionalDateRange } from "@/lib/utils";
+import {
+  buildGoogleMapsDirectionsUrl,
+  cn,
+  formatOptionalDateRange,
+} from "@/lib/utils";
 import {
   formatBookingSummary,
   formatClubDetailDailyRate,
@@ -59,6 +63,11 @@ export function ClubDetail({
           booking.effectiveTotalPrice,
         )
       : null;
+  const directionsUrl = buildGoogleMapsDirectionsUrl({
+    address: club.address,
+    latitude: club.latitude,
+    longitude: club.longitude,
+  });
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -66,7 +75,9 @@ export function ClubDetail({
         clubId={club.id}
         src={club.imageUrl!}
         alt={`${club.name} — ${club.providerName}`}
-        className="aspect-[21/9] w-full rounded-xl object-cover"
+        wrapperClassName="aspect-[21/9] w-full rounded-xl"
+        className="object-cover"
+        priority
       />
 
       <div className="space-y-2">
@@ -126,23 +137,27 @@ export function ClubDetail({
           <CardDescription>{club.locationName}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
-          {club.address ? (
-            <p className="inline-flex items-start gap-2">
-              <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-              {club.address}
-            </p>
-          ) : null}
-          {club.latitude != null && club.longitude != null ? (
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${club.latitude},${club.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get directions
-                <ExternalLink className="size-3.5" />
-              </a>
-            </Button>
+          {club.address || directionsUrl ? (
+            <div className="flex flex-col items-start gap-2">
+              {club.address ? (
+                <p className="flex min-w-0 items-start gap-2">
+                  <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                  <span className="min-w-0 break-words">{club.address}</span>
+                </p>
+              ) : null}
+              {directionsUrl ? (
+                <Button variant="outline" size="sm" className="shrink-0" asChild>
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get directions
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                </Button>
+              ) : null}
+            </div>
           ) : null}
           {club.distanceKm != null ? (
             <p className="text-muted-foreground">
@@ -151,7 +166,7 @@ export function ClubDetail({
           ) : null}
           <div className="space-y-2">
             <MapLegend variants={["mine", "suggested"]} />
-            <ClubMap
+            <ClubMapLazy
               markers={[
                 {
                   id: club.id,
