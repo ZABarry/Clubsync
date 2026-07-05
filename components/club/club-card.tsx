@@ -1,4 +1,3 @@
-import type { PlannedClubStatus } from "@/lib/types/club";
 import { MapPin, Star } from "lucide-react";
 
 import { ClubImage } from "@/components/club/club-image";
@@ -12,8 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
-import { formatClubPriceLabel } from "@/lib/utils/club-booking";
+import { cn, formatOptionalDateRange } from "@/lib/utils";
+import { formatClubCardRates } from "@/lib/utils/club-booking";
+import { getPlannedClubStatusLabel } from "@/lib/clubs/planned-club-status-styles";
 import type { ClubCardData } from "@/lib/types/club";
 
 type ClubCardProps = {
@@ -25,7 +25,7 @@ type ClubCardProps = {
 export function ClubCard({ club, className, onClick }: ClubCardProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
-  const priceLabel = formatClubPriceLabel(club);
+  const priceRates = formatClubCardRates(club);
 
   return (
     <Card
@@ -72,8 +72,20 @@ export function ClubCard({ club, className, onClick }: ClubCardProps) {
       <CardContent className="space-y-3 px-4">
         <p className="text-sm">{dateLabel}</p>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          {priceLabel ? (
-            <span className="font-medium text-foreground">{priceLabel}</span>
+          {priceRates ? (
+            <span className="font-medium text-foreground">
+              {"daily" in priceRates ? (
+                <>
+                  {priceRates.daily}
+                  <span className="text-muted-foreground font-normal">
+                    {" "}
+                    · {priceRates.weekly}
+                  </span>
+                </>
+              ) : (
+                priceRates.fallback
+              )}
+            </span>
           ) : null}
           {hasRating ? (
             <span className="inline-flex items-center gap-1">
@@ -112,14 +124,10 @@ export function ClubCard({ club, className, onClick }: ClubCardProps) {
       {club.plannedStatus ? (
         <CardFooter className="px-4 pt-0">
           <span className="text-muted-foreground text-xs">
-            Status: {formatStatusLabel(club.plannedStatus)}
+            Status: {getPlannedClubStatusLabel(club.plannedStatus)}
           </span>
         </CardFooter>
       ) : null}
     </Card>
   );
-}
-
-function formatStatusLabel(status: PlannedClubStatus): string {
-  return status.charAt(0) + status.slice(1).toLowerCase().replace("_", " ");
 }

@@ -10,8 +10,8 @@
   --popover-foreground: oklch(0.28 0.04 265);
   --primary: oklch(0.708 0.185 31);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.92 0.04 230);
-  --secondary-foreground: oklch(0.35 0.08 230);
+  --secondary: oklch(0.93 0.07 31);
+  --secondary-foreground: oklch(0.45 0.13 31);
   --muted: oklch(0.95 0.015 85);
   --muted-foreground: oklch(0.48 0.03 265);
   --accent: oklch(0.94 0.06 90);
@@ -46,8 +46,8 @@
   --popover-foreground: oklch(0.96 0.01 85);
   --primary: oklch(0.75 0.17 31);
   --primary-foreground: oklch(0.2 0.025 265);
-  --secondary: oklch(0.3 0.05 230);
-  --secondary-foreground: oklch(0.92 0.03 230);
+  --secondary: oklch(0.32 0.06 31);
+  --secondary-foreground: oklch(0.88 0.08 31);
   --muted: oklch(0.28 0.025 265);
   --muted-foreground: oklch(0.68 0.03 265);
   --accent: oklch(0.32 0.06 90);
@@ -166,10 +166,20 @@
   font-weight: 600;
 }
 
+.club-calendar .fc .fc-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .club-calendar .fc .fc-button {
   border-radius: var(--radius);
   font-weight: 500;
   text-transform: capitalize;
+}
+
+.club-calendar .fc .fc-button-group .fc-button.fc-button-active {
+  background-color: color-mix(in oklch, var(--primary) 80%, black);
+  border-color: var(--primary);
 }
 
 .club-calendar .fc .fc-daygrid-event {

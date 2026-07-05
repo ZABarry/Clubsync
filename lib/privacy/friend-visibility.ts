@@ -5,7 +5,6 @@ const VISIBLE_STATUSES: PlannedClubStatus[] = [
   "FAVOURITE",
   "PLANNED",
   "BOOKED",
-  "PAID",
 ];
 
 export function isVisibleToFriends(status: PlannedClubStatus): boolean {

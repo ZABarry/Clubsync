@@ -7,13 +7,17 @@ import FullCalendar from "@fullcalendar/react";
 import { useMemo } from "react";
 
 import type { ClubCalendarEvent } from "@/lib/types/club";
+import { getPlannedClubStatusCalendarColor } from "@/lib/clubs/planned-club-status-styles";
 import { cn } from "@/lib/utils";
+
+type CalendarViewMode = "dayGridDay" | "dayGridMonth";
 
 type ClubCalendarProps = {
   events: ClubCalendarEvent[];
   onEventClick?: (event: ClubCalendarEvent) => void;
   className?: string;
   initialDate?: Date | string;
+  initialView?: CalendarViewMode;
 };
 
 function toRequiredDate(value: Date | string): Date {
@@ -36,21 +40,12 @@ function toAllDayEnd(start: Date, end: Date): Date {
   return next;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  SUGGESTED: "#38bdf8",
-  INTERESTED: "#3b82f6",
-  FAVOURITE: "#8b5cf6",
-  PLANNED: "#f59e0b",
-  BOOKED: "#10b981",
-  PAID: "#22c55e",
-  CANCELLED: "#ef4444",
-};
-
 export function ClubCalendar({
   events,
   onEventClick,
   className,
   initialDate,
+  initialView = "dayGridMonth",
 }: ClubCalendarProps) {
   const calendarEvents = useMemo(
     () =>
@@ -66,9 +61,7 @@ export function ClubCalendar({
             start,
             end: toAllDayEnd(start, end),
             allDay: true,
-            backgroundColor: event.status
-              ? STATUS_COLORS[event.status]
-              : STATUS_COLORS.INTERESTED,
+            backgroundColor: getPlannedClubStatusCalendarColor(event.status),
             borderColor: "transparent",
             extendedProps: {
               clubId: event.clubId,
@@ -93,18 +86,27 @@ export function ClubCalendar({
     <div className={cn("club-calendar rounded-xl border bg-card p-2", className)}>
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        initialView={initialView}
         initialDate={initialDate ? toRequiredDate(initialDate) : undefined}
         events={calendarEvents}
         eventClick={handleEventClick}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
-          right: "",
+          right: "dayGridDay,dayGridMonth",
+        }}
+        views={{
+          dayGridMonth: {
+            buttonText: "Month",
+            dayMaxEvents: 3,
+            fixedWeekCount: false,
+          },
+          dayGridDay: {
+            buttonText: "Day",
+            dayMaxEvents: false,
+          },
         }}
         height="auto"
-        fixedWeekCount={false}
-        dayMaxEvents={3}
         eventDisplay="block"
       />
     </div>

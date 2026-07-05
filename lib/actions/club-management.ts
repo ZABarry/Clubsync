@@ -220,6 +220,7 @@ async function listClubs(
 
   if (filters.promotionStatus) where.promotionStatus = filters.promotionStatus;
   if (filters.region) where.region = filters.region;
+  if (filters.activity) where.activities = { has: filters.activity };
 
   if (filters.search) {
     where.OR = [
@@ -279,6 +280,37 @@ async function listClubs(
     filtered,
     filters.sortBy ?? "updatedAt",
     filters.sortDir ?? "desc",
+  );
+}
+
+export async function getManagedClubActivityTypes(mode: "admin" | "personal") {
+  let where: Prisma.ClubWhereInput;
+
+  if (mode === "admin") {
+    await requireReviewer();
+    where = { status: { not: ClubStatus.ARCHIVED } };
+  } else {
+    const { profile } = await requireParentProfileId();
+    where = {
+      ownerParentProfileId: profile.id,
+      status: { not: ClubStatus.ARCHIVED },
+    };
+  }
+
+  const clubs = await prisma.club.findMany({
+    where,
+    select: { activities: true },
+  });
+
+  const activityTypes = new Set<string>();
+  for (const club of clubs) {
+    for (const activity of club.activities) {
+      if (activity.trim()) activityTypes.add(activity);
+    }
+  }
+
+  return [...activityTypes].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
 }
 

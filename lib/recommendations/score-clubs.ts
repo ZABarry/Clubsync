@@ -1,4 +1,5 @@
 import { haversineKm } from "@/lib/utils";
+import { clubMatchesInterest } from "@/lib/clubs/child-interests";
 
 export type RecommendationClub = {
   id: string;
@@ -80,10 +81,7 @@ export function scoreClubs(
 
       let interestScore = 0;
       for (const interest of input.child.interests) {
-        const match = club.activities.some(
-          (a) => a.toLowerCase() === interest.toLowerCase(),
-        );
-        if (match) {
+        if (clubMatchesInterest(club.activities, interest)) {
           interestScore += WEIGHTS.interestEach;
           reasons.push(`${interest} interest match`);
         }

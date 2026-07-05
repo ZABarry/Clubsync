@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   computeTotalPrice,
   enumerateCampDates,
+  formatClubCardRates,
+  formatClubDetailDailyRate,
   resolveDailyRate,
   uniqueBookedDates,
   validateBookedDates,
@@ -68,6 +70,59 @@ describe("resolveDailyRate", () => {
     expect(resolveDailyRate({ dailyRate: 60, price: 42 })).toBe(60);
     expect(resolveDailyRate({ dailyRate: null, price: 42 })).toBeNull();
     expect(resolveDailyRate({ dailyRate: null, price: null })).toBeNull();
+  });
+});
+
+describe("formatClubDetailDailyRate", () => {
+  it("shows stored daily rate", () => {
+    expect(
+      formatClubDetailDailyRate({
+        dailyRate: 55,
+        price: 250,
+        priceNote: "£250 per week",
+      }),
+    ).toEqual({ value: "£55 per day" });
+  });
+
+  it("derives daily rate from weekly price note", () => {
+    expect(
+      formatClubDetailDailyRate({
+        dailyRate: null,
+        price: 250,
+        priceNote: "£250 per week",
+      }),
+    ).toEqual({
+      value: "£50 per day",
+      footnote: "£250 per week",
+    });
+  });
+});
+
+describe("formatClubCardRates", () => {
+  it("shows day and week rates from headline price", () => {
+    expect(
+      formatClubCardRates({
+        dailyRate: null,
+        price: 250,
+        priceNote: null,
+      }),
+    ).toEqual({
+      daily: "£50/day",
+      weekly: "£250/wk",
+    });
+  });
+
+  it("shows day and week rates when daily rate is stored", () => {
+    expect(
+      formatClubCardRates({
+        dailyRate: 55,
+        price: 55,
+        priceNote: "55 per day",
+      }),
+    ).toEqual({
+      daily: "£55/day",
+      weekly: "£275/wk",
+    });
   });
 });
 

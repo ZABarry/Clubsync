@@ -61,7 +61,7 @@ export function ClubCompactList({
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="grid min-w-0 gap-3">
       {clubs.map((club) => {
         const isDraft = club.status === "DRAFT";
         const isDeleted = club.status === "ARCHIVED";
@@ -70,7 +70,7 @@ export function ClubCompactList({
         <div
           key={club.id}
           className={cn(
-            "relative flex gap-3 rounded-xl border bg-card p-3 sm:items-center",
+            "relative flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-3 lg:flex-row lg:items-center",
             isDraft &&
               "border-dashed border-amber-500/45 bg-amber-500/[0.06]",
             isDeleted &&
@@ -89,64 +89,71 @@ export function ClubCompactList({
               aria-hidden
             />
           ) : null}
-          <ClubImage
-            clubId={club.id}
-            src={club.imageUrl}
-            alt={club.name}
-            wrapperClassName="shrink-0"
-            className={cn(
-              "size-16 rounded-md object-cover sm:size-20",
-              isDraft && "opacity-80 saturate-50",
-              isDeleted && "opacity-60 grayscale",
-            )}
-          />
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-3">
+            <ClubImage
+              clubId={club.id}
+              src={club.imageUrl}
+              alt={club.name}
+              wrapperClassName="shrink-0"
+              className={cn(
+                "size-16 rounded-md object-cover sm:size-20",
+                isDraft && "opacity-80 saturate-50",
+                isDeleted && "opacity-60 grayscale",
+              )}
+            />
+            <div className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  "truncate font-medium",
+                  "font-medium leading-snug line-clamp-2",
                   isDraft && "text-amber-950 dark:text-amber-50",
                   isDeleted && "text-muted-foreground line-through",
                 )}
               >
                 {club.name}
               </p>
-              <Badge
-                variant="outline"
-                className={statusBadgeClass(club.status)}
-              >
-                {STATUS_LABEL[club.status]}
-              </Badge>
-              <Badge
-                variant={
-                  club.promotionStatus === "PENDING" ? "secondary" : "outline"
-                }
-              >
-                {PROMOTION_LABEL[club.promotionStatus]}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge
+                  variant="outline"
+                  className={statusBadgeClass(club.status)}
+                >
+                  {STATUS_LABEL[club.status]}
+                </Badge>
+                <Badge
+                  variant={
+                    club.promotionStatus === "PENDING" ? "secondary" : "outline"
+                  }
+                >
+                  {PROMOTION_LABEL[club.promotionStatus]}
+                </Badge>
+              </div>
+              {isDraft ? (
+                <p className="text-xs font-medium text-amber-800/80 dark:text-amber-200/80">
+                  Not published — hidden from Discover
+                </p>
+              ) : null}
+              {isDeleted ? (
+                <p className="text-destructive/80 text-xs font-medium">
+                  Deleted — removed from all listings
+                </p>
+              ) : null}
+              <p className="text-muted-foreground line-clamp-2 text-sm">
+                {club.locationName} · {club.providerName}
+              </p>
+              {club.distanceKm != null ? (
+                <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+                  <MapPin className="size-3" />
+                  {club.distanceKm.toFixed(1)} km away
+                </p>
+              ) : null}
             </div>
-            {isDraft ? (
-              <p className="text-xs font-medium text-amber-800/80 dark:text-amber-200/80">
-                Not published — hidden from Discover
-              </p>
-            ) : null}
-            {isDeleted ? (
-              <p className="text-destructive/80 text-xs font-medium">
-                Deleted — removed from all listings
-              </p>
-            ) : null}
-            <p className="text-muted-foreground truncate text-sm">
-              {club.locationName} · {club.providerName}
-            </p>
-            {club.distanceKm != null ? (
-              <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-                <MapPin className="size-3" />
-                {club.distanceKm.toFixed(1)} km away
-              </p>
-            ) : null}
           </div>
-          <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
-            <Button size="sm" variant="outline" asChild>
+          <div className="grid w-full min-w-0 grid-cols-2 gap-1.5 border-t pt-2 lg:flex lg:w-auto lg:max-w-none lg:flex-wrap lg:justify-end lg:gap-1 lg:border-t-0 lg:pt-0 lg:shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              className="col-span-2 w-full min-w-0 lg:col-span-1 lg:w-auto"
+              asChild
+            >
               <Link href={`${editBasePath}/${club.id}/edit`}>
                 <Pencil className="size-3.5" />
                 Edit
@@ -156,6 +163,7 @@ export function ClubCompactList({
               <Button
                 size="sm"
                 variant="ghost"
+                className="w-full min-w-0 lg:w-auto"
                 disabled={pendingId === club.id}
                 onClick={() => onPublish(club.id)}
               >
@@ -166,6 +174,7 @@ export function ClubCompactList({
               <Button
                 size="sm"
                 variant="ghost"
+                className="w-full min-w-0 lg:w-auto"
                 disabled={pendingId === club.id}
                 onClick={() => onDeactivate(club.id)}
               >
@@ -176,7 +185,7 @@ export function ClubCompactList({
               <Button
                 size="sm"
                 variant="ghost"
-                className={cn("text-destructive")}
+                className={cn("w-full min-w-0 text-destructive lg:w-auto")}
                 disabled={pendingId === club.id}
                 onClick={() => onArchive(club.id)}
               >
@@ -187,6 +196,7 @@ export function ClubCompactList({
               <Button
                 size="sm"
                 variant="ghost"
+                className="w-full min-w-0 lg:w-auto"
                 disabled={pendingId === club.id}
                 onClick={() => onReinstate(club.id)}
               >

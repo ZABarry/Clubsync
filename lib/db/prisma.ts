@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 import { createPrismaClient } from "@/lib/db/create-prisma-client";
 
-const PRISMA_SCHEMA_TAG = "20260705100000_admin_club_management";
+const PRISMA_SCHEMA_TAG = "20260705130000_child_sex";
 
 type PrismaGlobal = {
   prisma?: PrismaClient;

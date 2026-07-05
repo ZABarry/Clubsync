@@ -92,10 +92,7 @@ export function CalendarCampSheet({
   const handleStatusChange = (status: PlannedClubStatus) => {
     if (!event?.clubId) return;
 
-    if (
-      (status === "BOOKED" || status === "PAID") &&
-      selectedDates.length === 0
-    ) {
+    if (status === "BOOKED" && selectedDates.length === 0) {
       toast.error("Select at least one day when marking as booked or paid");
       return;
     }
@@ -139,10 +136,7 @@ export function CalendarCampSheet({
   const handleSaveDates = () => {
     if (!event?.clubId || !event.status) return;
 
-    if (
-      (event.status === "BOOKED" || event.status === "PAID") &&
-      selectedDates.length === 0
-    ) {
+    if (event.status === "BOOKED" && selectedDates.length === 0) {
       toast.error("Select at least one day when status is booked or paid");
       return;
     }
@@ -170,7 +164,7 @@ export function CalendarCampSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-h-[85vh] gap-0 overflow-y-auto rounded-t-2xl px-0 pb-8 sm:mx-auto sm:max-w-lg"
+        className="max-h-[min(85dvh,calc(100dvh-1rem))] gap-0 overflow-y-auto rounded-t-2xl border-t px-0 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:bottom-4 sm:left-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:rounded-2xl sm:border sm:pb-6 sm:shadow-xl"
       >
         <div
           aria-hidden

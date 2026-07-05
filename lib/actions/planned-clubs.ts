@@ -97,10 +97,7 @@ export async function upsertPlannedClub(data: unknown) {
     throw new Error(dateValidation.error ?? "Invalid booked dates");
   }
 
-  if (
-    (parsed.status === "BOOKED" || parsed.status === "PAID") &&
-    bookedDates.length === 0
-  ) {
+  if (parsed.status === "BOOKED" && bookedDates.length === 0) {
     throw new Error("Select at least one day when marking as booked or paid");
   }
 

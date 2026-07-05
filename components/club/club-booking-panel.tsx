@@ -177,10 +177,7 @@ export function ClubBookingPanel({
   };
 
   const handleSave = () => {
-    if (
-      (status === "BOOKED" || status === "PAID") &&
-      selectedDates.length === 0
-    ) {
+    if (status === "BOOKED" && selectedDates.length === 0) {
       toast.error("Select at least one day when status is booked or paid");
       return;
     }

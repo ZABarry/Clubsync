@@ -20,6 +20,7 @@ export const parentProfileSchema = z.object({
 export const childProfileSchema = z.object({
   nickname: z.string().min(1).max(30),
   age: z.coerce.number().min(3).max(18),
+  sex: z.enum(["MALE", "FEMALE"], { message: "Select male or female" }),
   schoolYear: z.string().max(20).optional(),
   interests: z.array(z.string()).default([]),
   availabilityStart: z.string().optional(),
@@ -36,7 +37,6 @@ export const plannedClubSchema = z.object({
     "FAVOURITE",
     "PLANNED",
     "BOOKED",
-    "PAID",
     "CANCELLED",
   ]),
   notes: z.string().max(500).optional(),
@@ -59,6 +59,10 @@ export const clubFilterSchema = z.object({
   friendsOnly: z.coerce.boolean().optional(),
   indoor: z.coerce.boolean().optional(),
   outdoor: z.coerce.boolean().optional(),
+  minLat: z.coerce.number().optional(),
+  maxLat: z.coerce.number().optional(),
+  minLng: z.coerce.number().optional(),
+  maxLng: z.coerce.number().optional(),
 });
 
 export const ratingSchema = z.object({
@@ -82,6 +86,7 @@ export const clubManagementFilterSchema = z.object({
   promotionStatus: z
     .enum(["OFFICIAL", "LOCAL", "PENDING", "DENIED"])
     .optional(),
+  activity: z.string().optional(),
 });
 
 export const clubReviewSchema = z.object({

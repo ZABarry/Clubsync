@@ -34,6 +34,24 @@ describe("scoreClubs", () => {
     expect(scored[0].recommendationReasons).toContain("football interest match");
   });
 
+  it("matches legacy art interest to arts clubs", () => {
+    const scored = scoreClubs(
+      [{ ...baseClub, activities: ["arts", "crafts"] }],
+      {
+        child: {
+          age: 9,
+          interests: ["art"],
+          availabilityStart: null,
+          availabilityEnd: null,
+        },
+        parent: { lat: 51.401, lng: -0.256, radiusKm: 10 },
+        trustedFriendPlannedClubIds: new Map(),
+      },
+    );
+
+    expect(scored[0].recommendationReasons).toContain("art interest match");
+  });
+
   it("adds friend overlap reasons", () => {
     const scored = scoreClubs([baseClub], {
       child: { age: 9, interests: [], availabilityStart: null, availabilityEnd: null },

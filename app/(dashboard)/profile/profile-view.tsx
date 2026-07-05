@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ChildProfileCard } from "@/components/profile/child-profile-card";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,8 @@ import {
   upsertParentProfile,
 } from "@/lib/actions/profiles";
 import { signOut } from "@/lib/actions/auth";
+import { CHILD_INTEREST_OPTIONS } from "@/lib/clubs/child-interests";
+import { CHILD_SEX_OPTIONS, type ChildSex } from "@/lib/clubs/child-sex";
 import {
   childProfileSchema,
   parentProfileSchema,
@@ -52,6 +55,7 @@ type Child = {
   id: string;
   nickname: string;
   age: number;
+  sex: "MALE" | "FEMALE" | null;
   schoolYear: string | null;
   interests: string[];
   availabilityStart: Date | null;
@@ -106,6 +110,7 @@ export function ProfileView({
     defaultValues: {
       nickname: "",
       age: 8,
+      sex: undefined as unknown as ChildSex,
       schoolYear: "",
       interests: [],
       availabilityStart: "",
@@ -120,6 +125,7 @@ export function ProfileView({
       childForm.reset({
         nickname: child.nickname,
         age: child.age,
+        sex: child.sex ?? (undefined as unknown as ChildSex),
         schoolYear: child.schoolYear ?? "",
         interests: child.interests,
         availabilityStart: formatDateInput(child.availabilityStart),
@@ -131,6 +137,7 @@ export function ProfileView({
       childForm.reset({
         nickname: "",
         age: 8,
+        sex: undefined as unknown as ChildSex,
         schoolYear: "",
         interests: [],
         availabilityStart: "",
@@ -182,17 +189,6 @@ export function ProfileView({
       }
     });
   };
-
-  const COMMON_INTERESTS = [
-    "football",
-    "art",
-    "science",
-    "drama",
-    "swimming",
-    "coding",
-    "music",
-    "nature",
-  ];
 
   return (
     <div className="space-y-8">
@@ -378,15 +374,40 @@ export function ProfileView({
                       )}
                     />
                   </div>
+                  <FormField
+                    control={childForm.control}
+                    name="sex"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sex</FormLabel>
+                        <div className="flex flex-wrap gap-2">
+                          {CHILD_SEX_OPTIONS.map(({ value, label }) => (
+                            <Button
+                              key={value}
+                              type="button"
+                              size="sm"
+                              variant={
+                                field.value === value ? "default" : "outline"
+                              }
+                              onClick={() => field.onChange(value)}
+                            >
+                              {label}
+                            </Button>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <div className="space-y-2">
                     <FormLabel>Interests</FormLabel>
                     <div className="flex flex-wrap gap-2">
-                      {COMMON_INTERESTS.map((interest) => {
+                      {CHILD_INTEREST_OPTIONS.map(({ value, label }) => {
                         const selected =
-                          childForm.watch("interests").includes(interest);
+                          childForm.watch("interests").includes(value);
                         return (
                           <Button
-                            key={interest}
+                            key={value}
                             type="button"
                             size="sm"
                             variant={selected ? "default" : "outline"}
@@ -395,12 +416,12 @@ export function ProfileView({
                               childForm.setValue(
                                 "interests",
                                 selected
-                                  ? current.filter((i) => i !== interest)
-                                  : [...current, interest],
+                                  ? current.filter((i) => i !== value)
+                                  : [...current, value],
                               );
                             }}
                           >
-                            {interest}
+                            {label}
                           </Button>
                         );
                       })}
@@ -438,43 +459,12 @@ export function ProfileView({
           <ul className="space-y-3">
             {initialChildren.map((child) => (
               <li key={child.id}>
-                <Card className="gap-3 py-4">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 px-4">
-                    <div>
-                      <CardTitle className="text-sm">
-                        {child.nickname}
-                      </CardTitle>
-                      <CardDescription>
-                        Age {child.age}
-                        {child.schoolYear ? ` · ${child.schoolYear}` : ""}
-                      </CardDescription>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openChildDialog(child)}
-                        aria-label={`Edit ${child.nickname}`}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteChild(child.id)}
-                        disabled={pending}
-                        aria-label={`Delete ${child.nickname}`}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  {child.interests.length > 0 ? (
-                    <CardContent className="px-4 text-sm text-muted-foreground">
-                      Interests: {child.interests.join(", ")}
-                    </CardContent>
-                  ) : null}
-                </Card>
+                <ChildProfileCard
+                  child={child}
+                  onEdit={() => openChildDialog(child)}
+                  onDelete={() => handleDeleteChild(child.id)}
+                  disabled={pending}
+                />
               </li>
             ))}
           </ul>

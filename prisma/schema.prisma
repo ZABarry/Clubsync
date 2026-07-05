@@ -35,13 +35,17 @@ enum Region {
   SOUTH_WEST_LONDON
 }
 
+enum ChildSex {
+  MALE
+  FEMALE
+}
+
 enum PlannedClubStatus {
   SUGGESTED
   INTERESTED
   FAVOURITE
   PLANNED
   BOOKED
-  PAID
   CANCELLED
 }
 
@@ -56,7 +60,6 @@ enum SharedClubParticipantStatus {
   INTERESTED
   PLANNED
   BOOKED
-  PAID
   CANCELLED
 }
 
@@ -113,6 +116,7 @@ model ChildProfile {
   parentProfileId   String
   nickname          String
   age               Int
+  sex               ChildSex?
   schoolYear        String?
   interests         String[]
   availabilityStart DateTime?

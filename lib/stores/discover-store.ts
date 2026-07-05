@@ -12,6 +12,10 @@ export type DiscoverFilters = {
   friendsOnly?: boolean;
   indoor?: boolean;
   outdoor?: boolean;
+  minLat?: number;
+  maxLat?: number;
+  minLng?: number;
+  maxLng?: number;
 };
 
 type DiscoverStore = {

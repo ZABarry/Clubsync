@@ -25,6 +25,7 @@ import {
 type ClubManagementViewProps = {
   mode: "admin" | "personal";
   initialClubs: ManagedClubListItem[];
+  activityTypes?: string[];
   defaultLatitude?: number | null;
   defaultLongitude?: number | null;
   title: string;
@@ -37,6 +38,7 @@ type ClubManagementViewProps = {
 export function ClubManagementView({
   mode,
   initialClubs,
+  activityTypes = [],
   defaultLatitude,
   defaultLongitude,
   title,
@@ -96,7 +98,7 @@ export function ClubManagementView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title={title}
         description={description}
@@ -113,6 +115,7 @@ export function ClubManagementView({
       <ClubManagementFilters
         defaultLatitude={defaultLatitude}
         defaultLongitude={defaultLongitude}
+        activityTypes={activityTypes}
         showAdminFilters={mode === "admin"}
         showDeletedToggle={mode === "admin" && isMasterAdmin}
         onApply={refresh}

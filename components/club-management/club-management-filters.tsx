@@ -23,14 +23,23 @@ export type ClubManagementFilterValues = z.infer<
 type ClubManagementFiltersProps = {
   defaultLatitude?: number | null;
   defaultLongitude?: number | null;
+  activityTypes?: string[];
   showAdminFilters?: boolean;
   showDeletedToggle?: boolean;
   onApply: (filters: ClubManagementFilterValues) => void;
 };
 
+function formatActivityLabel(value: string) {
+  return value
+    .split(/[\s-]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function ClubManagementFilters({
   defaultLatitude,
   defaultLongitude,
+  activityTypes = [],
   showAdminFilters = false,
   showDeletedToggle = false,
   onApply,
@@ -45,6 +54,7 @@ export function ClubManagementFilters({
   );
   const [publication, setPublication] = useState<string>("all");
   const [promotionStatus, setPromotionStatus] = useState<string>("all");
+  const [activity, setActivity] = useState<string>("all");
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [sortBy, setSortBy] = useState<string>("updatedAt");
   const [sortDir, setSortDir] = useState<string>("desc");
@@ -67,6 +77,7 @@ export function ClubManagementFilters({
       promotionStatus === "all"
         ? undefined
         : (promotionStatus as ClubManagementFilterValues["promotionStatus"]),
+    activity: activity === "all" ? undefined : activity,
     includeDeleted: (includeDeletedOverride ?? includeDeleted) || undefined,
     sortBy: sortBy as ClubManagementFilterValues["sortBy"],
     sortDir: sortDir as ClubManagementFilterValues["sortDir"],
@@ -77,7 +88,7 @@ export function ClubManagementFilters({
   };
 
   return (
-    <div className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid min-w-0 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
       <div className="space-y-1 sm:col-span-2">
         <Label htmlFor="club-search">Search</Label>
         <div className="relative">
@@ -120,6 +131,22 @@ export function ClubManagementFilters({
           value={longitude}
           onChange={(e) => setLongitude(e.target.value)}
         />
+      </div>
+      <div className="space-y-1">
+        <Label>Club type</Label>
+        <Select value={activity} onValueChange={setActivity}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">All types</SelectItem>
+            {activityTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {formatActivityLabel(type)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-1">
         <Label>Sort by</Label>

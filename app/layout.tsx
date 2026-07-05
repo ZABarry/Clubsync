@@ -29,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col font-sans">
+    <html lang="en" className="h-dvh overflow-hidden antialiased">
+      <body className="flex h-full flex-col overflow-hidden font-sans">
         <QueryProvider>
           {children}
           <Toaster richColors position="top-center" closeButton />

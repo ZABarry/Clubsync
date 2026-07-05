@@ -24,7 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ChildOption, FriendOption } from "@/lib/types/club";
+import { formatChildSex } from "@/lib/clubs/child-sex";
 import { smartPlannerSchema } from "@/lib/validation/schemas";
+import { CHILD_INTEREST_OPTIONS } from "@/lib/clubs/child-interests";
 import { cn } from "@/lib/utils";
 
 type SmartPlannerFormProps = {
@@ -91,17 +93,6 @@ export function SmartPlannerForm({
     await onSubmit(values);
   });
 
-  const COMMON_INTERESTS = [
-    "football",
-    "art",
-    "science",
-    "drama",
-    "swimming",
-    "coding",
-    "music",
-    "nature",
-  ];
-
   return (
     <Form {...form}>
       <form
@@ -128,7 +119,11 @@ export function SmartPlannerForm({
                 <SelectContent>
                   {childOptions.map((child) => (
                     <SelectItem key={child.id} value={child.id}>
-                      {child.nickname} (age {child.age})
+                      {child.nickname} (age {child.age}
+                      {formatChildSex(child.sex)
+                        ? `, ${formatChildSex(child.sex)?.toLowerCase()}`
+                        : ""}
+                      )
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -170,17 +165,17 @@ export function SmartPlannerForm({
         <div className="space-y-2">
           <Label>Interests</Label>
           <div className="flex flex-wrap gap-2">
-            {COMMON_INTERESTS.map((interest) => {
-              const selected = interests.includes(interest);
+            {CHILD_INTEREST_OPTIONS.map(({ value, label }) => {
+              const selected = interests.includes(value);
               return (
                 <Button
-                  key={interest}
+                  key={value}
                   type="button"
                   size="sm"
                   variant={selected ? "default" : "outline"}
-                  onClick={() => toggleInterest(interest)}
+                  onClick={() => toggleInterest(value)}
                 >
-                  {interest}
+                  {label}
                 </Button>
               );
             })}

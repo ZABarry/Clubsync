@@ -53,7 +53,7 @@ export async function createSharedClub(data: unknown) {
 
 export async function joinSharedClub(
   sharedClubId: string,
-  opts?: { childProfileId?: string; status?: "INTERESTED" | "PLANNED" | "BOOKED" | "PAID" | "CANCELLED" },
+  opts?: { childProfileId?: string; status?: "INTERESTED" | "PLANNED" | "BOOKED" | "CANCELLED" },
 ) {
   const profile = await requireParentProfileId();
 

@@ -83,6 +83,7 @@ export async function createChild(data: unknown) {
       parentProfileId: profile.id,
       nickname: parsed.nickname,
       age: parsed.age,
+      sex: parsed.sex,
       schoolYear: parsed.schoolYear ?? null,
       interests: parsed.interests,
       notes: parsed.notes ?? null,
@@ -110,6 +111,7 @@ export async function updateChild(childId: string, data: unknown) {
     data: {
       nickname: parsed.nickname,
       age: parsed.age,
+      sex: parsed.sex,
       schoolYear: parsed.schoolYear ?? null,
       interests: parsed.interests,
       notes: parsed.notes ?? null,

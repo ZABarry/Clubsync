@@ -1,4 +1,10 @@
+import {
+  isWeeklyPriceNote,
+  parseClubPrice,
+} from "@/lib/clubs/parse-club-price";
+
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const STANDARD_CAMP_DAYS_PER_WEEK = 5;
 
 export type ClubRateSource = {
   dailyRate?: number | null;
@@ -49,6 +55,120 @@ export function resolveDailyRate(
   if (override != null) return override;
   if (club.dailyRate != null) return club.dailyRate;
   return null;
+}
+
+export type DisplayDailyRate = {
+  rate: number;
+  estimatedFromWeekly?: boolean;
+};
+
+export function resolveDisplayDailyRate(club: {
+  dailyRate?: number | null;
+  price?: number | null;
+  priceNote?: string | null;
+}): DisplayDailyRate | null {
+  const direct = resolveDailyRate(club);
+  if (direct != null) return { rate: direct };
+
+  const note = club.priceNote?.trim();
+  if (note) {
+    const parsed = parseClubPrice(note);
+    if (parsed.dailyRate != null) return { rate: parsed.dailyRate };
+    if (parsed.price != null && isWeeklyPriceNote(note)) {
+      return {
+        rate: parsed.price / STANDARD_CAMP_DAYS_PER_WEEK,
+        estimatedFromWeekly: true,
+      };
+    }
+  }
+
+  return null;
+}
+
+export function formatClubDetailDailyRate(club: {
+  dailyRate?: number | null;
+  price?: number | null;
+  priceNote?: string | null;
+}): { value: string; footnote?: string } | null {
+  const resolved = resolveDisplayDailyRate(club);
+  if (!resolved) return null;
+
+  const amount = formatRateAmount(resolved.rate);
+
+  return {
+    value: `${amount} per day`,
+    footnote:
+      resolved.estimatedFromWeekly && club.priceNote?.trim()
+        ? club.priceNote.trim()
+        : undefined,
+  };
+}
+
+function formatRateAmount(rate: number): string {
+  const amount = Number.isInteger(rate) ? rate : Math.round(rate * 100) / 100;
+  return `£${amount}`;
+}
+
+export function resolveWeeklyRate(club: {
+  dailyRate?: number | null;
+  price?: number | null;
+  priceNote?: string | null;
+}): number | null {
+  const note = club.priceNote?.trim();
+  if (note) {
+    const parsed = parseClubPrice(note);
+    if (parsed.price != null && isWeeklyPriceNote(note)) {
+      return parsed.price;
+    }
+  }
+
+  const daily = resolveDisplayDailyRate(club);
+  if (daily?.estimatedFromWeekly && note) {
+    const parsed = parseClubPrice(note);
+    if (parsed.price != null) return parsed.price;
+  }
+
+  if (daily && club.dailyRate != null) {
+    return daily.rate * STANDARD_CAMP_DAYS_PER_WEEK;
+  }
+
+  if (club.dailyRate == null && club.price != null) {
+    return club.price;
+  }
+
+  if (daily) {
+    return daily.rate * STANDARD_CAMP_DAYS_PER_WEEK;
+  }
+
+  return null;
+}
+
+export function formatClubCardRates(club: {
+  price?: number | null;
+  dailyRate?: number | null;
+  priceNote?: string | null;
+}): { daily: string; weekly: string } | { fallback: string } | null {
+  const dailyResolved = resolveDisplayDailyRate(club);
+  const weeklyRate = resolveWeeklyRate(club);
+
+  if (weeklyRate != null) {
+    const dailyRate =
+      dailyResolved?.rate ?? weeklyRate / STANDARD_CAMP_DAYS_PER_WEEK;
+    return {
+      daily: `${formatRateAmount(dailyRate)}/day`,
+      weekly: `${formatRateAmount(weeklyRate)}/wk`,
+    };
+  }
+
+  if (dailyResolved) {
+    return {
+      daily: `${formatRateAmount(dailyResolved.rate)}/day`,
+      weekly: `${formatRateAmount(dailyResolved.rate * STANDARD_CAMP_DAYS_PER_WEEK)}/wk`,
+    };
+  }
+
+  const fallback = formatClubPriceLabel(club);
+  return fallback ? { fallback } : null;
 }
 
 export function formatClubPriceLabel(club: {

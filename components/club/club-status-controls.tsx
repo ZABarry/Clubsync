@@ -5,7 +5,6 @@ import {
   Ban,
   Bookmark,
   CalendarCheck,
-  CreditCard,
   Heart,
   Sparkles,
 } from "lucide-react";
@@ -22,7 +21,6 @@ const STATUS_OPTIONS: {
   { status: "FAVOURITE", label: "Favourite", icon: Heart },
   { status: "PLANNED", label: "Planned", icon: Bookmark },
   { status: "BOOKED", label: "Booked", icon: CalendarCheck },
-  { status: "PAID", label: "Paid", icon: CreditCard },
   { status: "CANCELLED", label: "Cancelled", icon: Ban },
 ];
 

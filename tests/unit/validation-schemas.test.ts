@@ -58,28 +58,44 @@ describe("childProfileSchema", () => {
     const result = childProfileSchema.parse({
       nickname: "Lily",
       age: 9,
+      sex: "FEMALE",
       interests: ["football", "swimming"],
     });
     expect(result.nickname).toBe("Lily");
     expect(result.age).toBe(9);
+    expect(result.sex).toBe("FEMALE");
     expect(result.interests).toEqual(["football", "swimming"]);
   });
 
+  it("requires sex", () => {
+    expect(() =>
+      childProfileSchema.parse({ nickname: "Lily", age: 9 }),
+    ).toThrow();
+  });
+
+  it("rejects invalid sex", () => {
+    expect(() =>
+      childProfileSchema.parse({ nickname: "Lily", age: 9, sex: "OTHER" }),
+    ).toThrow();
+  });
+
   it("requires a nickname", () => {
-    expect(() => childProfileSchema.parse({ nickname: "", age: 9 })).toThrow();
+    expect(() =>
+      childProfileSchema.parse({ nickname: "", age: 9, sex: "MALE" }),
+    ).toThrow();
   });
 
   it("rejects age below 3 or above 18", () => {
     expect(() =>
-      childProfileSchema.parse({ nickname: "Max", age: 2 }),
+      childProfileSchema.parse({ nickname: "Max", age: 2, sex: "MALE" }),
     ).toThrow();
     expect(() =>
-      childProfileSchema.parse({ nickname: "Max", age: 19 }),
+      childProfileSchema.parse({ nickname: "Max", age: 19, sex: "MALE" }),
     ).toThrow();
   });
 
   it("coerces string age to number", () => {
-    const result = childProfileSchema.parse({ nickname: "Lily", age: "9" });
+    const result = childProfileSchema.parse({ nickname: "Lily", age: "9", sex: "MALE" });
     expect(result.age).toBe(9);
   });
 });
@@ -103,7 +119,6 @@ describe("plannedClubSchema", () => {
       "FAVOURITE",
       "PLANNED",
       "BOOKED",
-      "PAID",
       "CANCELLED",
     ]) {
       const result = plannedClubSchema.parse({

@@ -37,7 +37,7 @@ export default async function DiscoverPage({
   const mapMarkers = await buildMapMarkersForClubs(
     clubs
       .filter((club) => club.latitude != null && club.longitude != null)
-      .slice(0, 30)
+      .slice(0, 100)
       .map((club) => ({
         id: club.id,
         name: club.name,

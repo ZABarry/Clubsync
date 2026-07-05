@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard } from "lucide-react";
+import { ArrowLeft, LayoutDashboard } from "lucide-react";
 
 import { ClubZerLogo } from "@/components/brand/clubzer-logo";
 import { syncUser } from "@/lib/auth/server";
@@ -28,30 +28,34 @@ export default async function AdminLayout({
   return (
     <div className="club-brand-bg min-h-full flex-1">
       <header className="border-b bg-card/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-8">
-          <Link href="/admin" className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-6xl min-w-0 items-center justify-between px-4 py-4 md:px-8">
+          <Link href="/admin" className="flex min-w-0 items-center gap-3">
             <ClubZerLogo size="md" />
             <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
               Admin
             </span>
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex items-center gap-1">
             <Link
               href="/admin"
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+              aria-label="Admin dashboard"
+              title="Admin dashboard"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent inline-flex size-9 items-center justify-center rounded-md transition-colors"
             >
               <LayoutDashboard className="size-4" aria-hidden />
-              Admin dashboard
             </Link>
             <Link
               href="/"
-              className="text-muted-foreground hover:text-foreground"
+              aria-label="Back to app"
+              title="Back to app"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent inline-flex size-9 items-center justify-center rounded-md transition-colors"
             >
-              ← Back to app
+              <ArrowLeft className="size-4" aria-hidden />
             </Link>
-          </nav>        </div>
+          </nav>
+        </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">{children}</main>
+      <main className="mx-auto min-w-0 max-w-6xl px-4 py-8 md:px-8">{children}</main>
     </div>
   );
 }

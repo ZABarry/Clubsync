@@ -4,7 +4,6 @@ export type PlannedClubStatus =
   | "FAVOURITE"
   | "PLANNED"
   | "BOOKED"
-  | "PAID"
   | "CANCELLED";
 
 export type PlannedClubBookingData = {
@@ -61,6 +60,13 @@ export type ClubMapMarker = {
   variant: "mine" | "friend" | "shared" | "suggested";
 };
 
+export type MapBounds = {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+};
+
 export type ClubCalendarEvent = {
   id: string;
   title: string;
@@ -90,6 +96,10 @@ export type ClubFilterValues = {
   friendsOnly?: boolean;
   indoor?: boolean;
   outdoor?: boolean;
+  minLat?: number;
+  maxLat?: number;
+  minLng?: number;
+  maxLng?: number;
 };
 
 export type TrustedConnection = {
@@ -114,6 +124,7 @@ export type ChildOption = {
   id: string;
   nickname: string;
   age: number;
+  sex?: "MALE" | "FEMALE" | null;
 };
 
 export type FriendOption = {

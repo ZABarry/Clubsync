@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Search } from "lucide-react";
-import { useEffect } from "react";
+import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import type { z } from "zod";
 
@@ -24,8 +24,28 @@ type ClubFiltersProps = {
   defaultValues?: ClubFilterValues;
   onChange?: (values: ClubFilterValues) => void;
   onSubmit?: (values: ClubFilterValues) => void;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   className?: string;
 };
+
+function countActiveFilters(values?: ClubFilterValues): number {
+  if (!values) return 0;
+
+  let count = 0;
+  if (values.search?.trim()) count++;
+  if (values.age != null) count++;
+  if (values.activity?.trim()) count++;
+  if (values.startDate?.trim()) count++;
+  if (values.endDate?.trim()) count++;
+  if (values.maxPrice != null) count++;
+  if (values.minRating != null) count++;
+  if (values.maxDistanceKm != null) count++;
+  if (values.friendsOnly) count++;
+  if (values.indoor) count++;
+  if (values.outdoor) count++;
+  return count;
+}
 
 type FilterFormValues = z.infer<typeof clubFilterSchema>;
 
@@ -33,8 +53,13 @@ export function ClubFilters({
   defaultValues,
   onChange,
   onSubmit,
+  collapsible = false,
+  defaultOpen = false,
   className,
 }: ClubFiltersProps) {
+  const [open, setOpen] = useState(
+    defaultOpen || countActiveFilters(defaultValues) > 0,
+  );
   const form = useForm<FilterFormValues>({
     resolver: zodResolver(clubFilterSchema) as Resolver<FilterFormValues>,
     defaultValues: {
@@ -54,9 +79,14 @@ export function ClubFilters({
   });
 
   const watched = form.watch();
+  const lastEmitted = useRef<string>("");
 
   useEffect(() => {
-    onChange?.(watched);
+    if (!onChange) return;
+    const snapshot = JSON.stringify(watched);
+    if (snapshot === lastEmitted.current) return;
+    lastEmitted.current = snapshot;
+    onChange(watched);
   }, [onChange, watched]);
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -81,10 +111,39 @@ export function ClubFilters({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={handleSubmit}
-        className={cn("space-y-4 rounded-xl border bg-card p-4", className)}
-      >
+      <div className={cn("rounded-xl border bg-card", className)}>
+        {collapsible ? (
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 p-4 text-left"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Filters</p>
+              <p className="text-muted-foreground text-xs">
+                {countActiveFilters(defaultValues) > 0
+                  ? `${countActiveFilters(defaultValues)} active`
+                  : "Age, activity, dates, and more"}
+              </p>
+            </div>
+            <ChevronDown
+              className={cn(
+                "text-muted-foreground size-4 shrink-0 transition-transform",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+        ) : null}
+
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            "space-y-4 p-4",
+            collapsible && "border-t",
+            collapsible && !open && "hidden",
+          )}
+        >
         <FormField
           control={form.control}
           name="search"
@@ -278,7 +337,8 @@ export function ClubFilters({
             Reset
           </Button>
         </div>
-      </form>
+        </form>
+      </div>
     </Form>
   );
 }

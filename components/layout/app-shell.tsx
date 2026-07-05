@@ -23,7 +23,7 @@ export function AppShell({
   unreadCount = 0,
 }: AppShellProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden">
+    <div className="flex h-full min-h-0 w-full overflow-hidden">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:shadow-md"
@@ -31,7 +31,7 @@ export function AppShell({
         Skip to main content
       </a>
       <Sidebar showAdmin={showAdmin} />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:pl-64">
         <header className="hidden items-center justify-end border-b px-4 py-2 md:flex md:px-8">
           <NotificationBell
             notifications={notifications}

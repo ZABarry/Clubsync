@@ -23,8 +23,11 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
-import { cn, formatOptionalDateRange, formatPrice } from "@/lib/utils";
-import { formatBookingSummary } from "@/lib/utils/club-booking";
+import { cn, formatOptionalDateRange } from "@/lib/utils";
+import {
+  formatBookingSummary,
+  formatClubDetailDailyRate,
+} from "@/lib/utils/club-booking";
 
 type ClubDetailProps = {
   club: ClubDetailData;
@@ -47,12 +50,7 @@ export function ClubDetail({
 }: ClubDetailProps) {
   const dateLabel = formatOptionalDateRange(club.startDate, club.endDate);
   const hasRating = (club.ratingCount ?? 0) > 0;
-  const displayDailyRate = club.dailyRate;
-  const priceLabel = displayDailyRate != null ? "Daily rate" : "Price";
-  const priceValue =
-    displayDailyRate != null
-      ? formatPrice(displayDailyRate)
-      : club.priceNote?.trim() || formatPrice(club.price);
+  const dailyRateDisplay = formatClubDetailDailyRate(club);
   const bookingSummary =
     booking && booking.bookedDates.length > 0
       ? formatBookingSummary(
@@ -90,19 +88,21 @@ export function ClubDetail({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <InfoCard label="Dates" value={dateLabel} />
-        <InfoCard
-          label={priceLabel}
-          value={
-            <span>
-              {priceValue}
-              {displayDailyRate != null && club.priceNote ? (
-                <span className="text-muted-foreground mt-1 block text-xs font-normal">
-                  {club.priceNote}
-                </span>
-              ) : null}
-            </span>
-          }
-        />
+        {dailyRateDisplay ? (
+          <InfoCard
+            label="Daily rate"
+            value={
+              <span>
+                {dailyRateDisplay.value}
+                {dailyRateDisplay.footnote ? (
+                  <span className="text-muted-foreground mt-1 block text-xs font-normal">
+                    {dailyRateDisplay.footnote}
+                  </span>
+                ) : null}
+              </span>
+            }
+          />
+        ) : null}
         <InfoCard
           label="Ages"
           value={`${club.ageMin}–${club.ageMax} years`}
@@ -214,6 +214,15 @@ export function ClubDetail({
         </Card>
       ) : null}
 
+      {club.bookingUrl ? (
+        <Button asChild>
+          <a href={club.bookingUrl} target="_blank" rel="noopener noreferrer">
+            Book now
+            <ExternalLink className="size-4" />
+          </a>
+        </Button>
+      ) : null}
+
       {onStatusChange ? (
         <>
           <Separator />
@@ -230,15 +239,6 @@ export function ClubDetail({
             />
           </div>
         </>
-      ) : null}
-
-      {club.bookingUrl ? (
-        <Button asChild>
-          <a href={club.bookingUrl} target="_blank" rel="noopener noreferrer">
-            Book now
-            <ExternalLink className="size-4" />
-          </a>
-        </Button>
       ) : null}
     </div>
   );

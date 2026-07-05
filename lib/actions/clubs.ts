@@ -100,6 +100,22 @@ function buildClubWhere(
     where.isOutdoor = true;
   }
 
+  const hasBounds =
+    filters.minLat != null &&
+    filters.maxLat != null &&
+    filters.minLng != null &&
+    filters.maxLng != null;
+
+  if (hasBounds) {
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : []),
+      {
+        latitude: { gte: filters.minLat, lte: filters.maxLat },
+        longitude: { gte: filters.minLng, lte: filters.maxLng },
+      },
+    ];
+  }
+
   if (filters.friendsOnly && friendClubIds) {
     where.id = { in: friendClubIds.length > 0 ? friendClubIds : ["__none__"] };
   }
@@ -179,8 +195,14 @@ export async function getClubs(filters: unknown = {}) {
 
   const parentLat = profile?.latitude;
   const parentLng = profile?.longitude;
-  const maxDistance =
-    parsed.maxDistanceKm ?? profile?.defaultSearchRadiusKm ?? null;
+  const hasBounds =
+    parsed.minLat != null &&
+    parsed.maxLat != null &&
+    parsed.minLng != null &&
+    parsed.maxLng != null;
+  const maxDistance = hasBounds
+    ? null
+    : (parsed.maxDistanceKm ?? profile?.defaultSearchRadiusKm ?? null);
 
   let plannedByClub = new Map<string, ClubCardData["plannedStatus"]>();
   if (profile) {

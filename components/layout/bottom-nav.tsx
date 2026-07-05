@@ -23,10 +23,10 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/my-clubs", label: "My clubs", icon: MapPin },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/friends", label: "Friends", icon: Users },
   { href: "/profile", label: "Profile", icon: User },
+  { href: "/my-clubs", label: "Community clubs", icon: MapPin },
 ];
 
 const ADMIN_ITEM: NavItem = {

@@ -26,5 +26,9 @@ export function QueryProvider({ children, config }: QueryProviderProps) {
       }),
   );
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <div className="flex h-full min-h-0 flex-col">{children}</div>
+    </QueryClientProvider>
+  );
 }

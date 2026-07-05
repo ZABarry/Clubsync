@@ -1,7 +1,7 @@
 "use client";
 
 import { Crosshair, Loader2 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   Marker,
   type MapLayerMouseEvent,
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { Button } from "@/components/ui/button";
-import type { ClubMapMarker } from "@/lib/types/club";
+import type { ClubMapMarker, MapBounds } from "@/lib/types/club";
 import { cn } from "@/lib/utils";
 
 const OSM_STYLE = {
@@ -44,20 +44,54 @@ type ClubMapProps = {
   markers: ClubMapMarker[];
   center?: { latitude: number; longitude: number };
   zoom?: number;
+  fitBounds?: MapBounds | null;
   onMarkerClick?: (marker: ClubMapMarker) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
   showLocateControl?: boolean;
   className?: string;
 };
+
+function readMapBounds(map: {
+  getBounds: () => {
+    getSouth: () => number;
+    getNorth: () => number;
+    getWest: () => number;
+    getEast: () => number;
+  };
+}): MapBounds {
+  const bounds = map.getBounds();
+  return {
+    minLat: bounds.getSouth(),
+    maxLat: bounds.getNorth(),
+    minLng: bounds.getWest(),
+    maxLng: bounds.getEast(),
+  };
+}
+
+function boundsKey(bounds: MapBounds | null | undefined): string | null {
+  if (!bounds) return null;
+  return [
+    bounds.minLat.toFixed(5),
+    bounds.maxLat.toFixed(5),
+    bounds.minLng.toFixed(5),
+    bounds.maxLng.toFixed(5),
+  ].join("|");
+}
 
 export function ClubMap({
   markers,
   center,
   zoom = 11,
+  fitBounds = null,
   onMarkerClick,
+  onBoundsChange,
   showLocateControl = false,
   className,
 }: ClubMapProps) {
   const mapRef = useRef<MapRef>(null);
+  const lastEmittedBoundsRef = useRef<string | null>(null);
+  const lastFittedBoundsRef = useRef<string | null>(null);
+  const isProgrammaticMoveRef = useRef(false);
   const [locating, setLocating] = useState(false);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -81,6 +115,40 @@ export function ClubMap({
     },
     [onMarkerClick],
   );
+
+  const emitBounds = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !onBoundsChange) return;
+    if (isProgrammaticMoveRef.current) return;
+
+    const bounds = readMapBounds(map);
+    const key = boundsKey(bounds);
+    if (key === lastEmittedBoundsRef.current) return;
+
+    lastEmittedBoundsRef.current = key;
+    onBoundsChange(bounds);
+  }, [onBoundsChange]);
+
+  useEffect(() => {
+    if (!fitBounds) {
+      lastFittedBoundsRef.current = null;
+      return;
+    }
+    if (!mapRef.current) return;
+
+    const key = boundsKey(fitBounds);
+    if (key === lastFittedBoundsRef.current) return;
+
+    lastFittedBoundsRef.current = key;
+    isProgrammaticMoveRef.current = true;
+    mapRef.current.fitBounds(
+      [
+        [fitBounds.minLng, fitBounds.minLat],
+        [fitBounds.maxLng, fitBounds.maxLat],
+      ],
+      { padding: 48, duration: 0 },
+    );
+  }, [fitBounds?.minLat, fitBounds?.maxLat, fitBounds?.minLng, fitBounds?.maxLng]);
 
   const handleLocate = useCallback(() => {
     if (!navigator.geolocation) {
@@ -161,6 +229,20 @@ export function ClubMap({
         }}
         mapStyle={OSM_STYLE}
         style={{ width: "100%", height: "100%" }}
+        onLoad={emitBounds}
+        onMoveEnd={() => {
+          if (isProgrammaticMoveRef.current) {
+            isProgrammaticMoveRef.current = false;
+            const map = mapRef.current?.getMap();
+            if (map && onBoundsChange) {
+              const bounds = readMapBounds(map);
+              lastEmittedBoundsRef.current = boundsKey(bounds);
+              onBoundsChange(bounds);
+            }
+            return;
+          }
+          emitBounds();
+        }}
         onClick={(e: MapLayerMouseEvent) => e.originalEvent.stopPropagation()}
       >
         {userLocation ? (
