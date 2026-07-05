@@ -78,6 +78,65 @@ function boundsKey(bounds: MapBounds | null | undefined): string | null {
   ].join("|");
 }
 
+type ClubMapMarkerPinProps = {
+  marker: ClubMapMarker;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+};
+
+function ClubMapMarkerPin({
+  marker,
+  isHovered,
+  onHover,
+  onLeave,
+}: ClubMapMarkerPinProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex flex-col items-center transition-transform duration-200 ease-out",
+        isHovered ? "z-10 scale-110" : "scale-100",
+      )}
+      aria-label={marker.name}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      onFocus={onHover}
+      onBlur={onLeave}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <span className="relative flex items-center justify-center">
+        {isHovered ? (
+          <span
+            className="absolute size-8 animate-ping rounded-full opacity-40"
+            style={{ backgroundColor: MARKER_COLORS[marker.variant] }}
+            aria-hidden
+          />
+        ) : null}
+        <span
+          className={cn(
+            "relative rounded-full border-2 border-white shadow-md transition-all duration-200 ease-out",
+            isHovered ? "size-5 shadow-lg" : "size-4",
+          )}
+          style={{ backgroundColor: MARKER_COLORS[marker.variant] }}
+        />
+      </span>
+      <span
+        className={cn(
+          "mt-0.5 rounded bg-background/95 font-medium shadow-sm transition-all duration-200 ease-out",
+          isHovered
+            ? "max-w-none px-2 py-0.5 text-xs whitespace-nowrap"
+            : "max-w-24 truncate px-1 text-[10px]",
+        )}
+      >
+        {marker.name}
+      </span>
+    </button>
+  );
+}
+
 export function ClubMap({
   markers,
   center,
@@ -97,6 +156,7 @@ export function ClubMap({
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null);
 
   const defaultCenter = useMemo(() => {
     if (center) return center;
@@ -108,6 +168,16 @@ export function ClubMap({
     }
     return { latitude: 51.4545, longitude: -0.1945 };
   }, [center, markers]);
+
+  const orderedMarkers = useMemo(() => {
+    if (!hoveredMarkerId) return markers;
+    const hovered = markers.find((marker) => marker.id === hoveredMarkerId);
+    if (!hovered) return markers;
+    return [
+      ...markers.filter((marker) => marker.id !== hoveredMarkerId),
+      hovered,
+    ];
+  }, [markers, hoveredMarkerId]);
 
   const handleClick = useCallback(
     (marker: ClubMapMarker) => () => {
@@ -150,48 +220,66 @@ export function ClubMap({
     );
   }, [fitBounds?.minLat, fitBounds?.maxLat, fitBounds?.minLng, fitBounds?.maxLng]);
 
-  const handleLocate = useCallback(() => {
+  const handleLocate = useCallback(async () => {
     if (!navigator.geolocation) {
       toast.error("Your browser does not support location services");
       return;
     }
 
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ latitude, longitude });
-        mapRef.current?.flyTo({
-          center: [longitude, latitude],
-          zoom: 14,
-          duration: 1200,
+
+    try {
+      if (navigator.permissions) {
+        try {
+          const permission = await navigator.permissions.query({
+            name: "geolocation",
+          });
+          if (permission.state === "denied") {
+            toast.error(
+              "Location access is blocked. Enable location for this site in your browser settings, then try again.",
+            );
+            return;
+          }
+        } catch {
+          // Permissions API may not support geolocation in this browser.
+        }
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
         });
-        setLocating(false);
-      },
-      (error) => {
-        setLocating(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          toast.error(
-            "Location access denied. Allow location in your browser to center the map.",
-          );
-          return;
-        }
-        if (error.code === error.POSITION_UNAVAILABLE) {
-          toast.error("Your location is unavailable right now.");
-          return;
-        }
-        if (error.code === error.TIMEOUT) {
-          toast.error("Location request timed out. Try again.");
-          return;
-        }
-        toast.error("Could not get your location. Try again.");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 60_000,
-      },
-    );
+      });
+
+      const { latitude, longitude } = position.coords;
+      setUserLocation({ latitude, longitude });
+      mapRef.current?.flyTo({
+        center: [longitude, latitude],
+        zoom: 14,
+        duration: 1200,
+      });
+    } catch (error) {
+      const geoError = error as GeolocationPositionError;
+      if (geoError.code === geoError.PERMISSION_DENIED) {
+        toast.error(
+          "Location access denied. Enable location for this site in your browser settings, then try again.",
+        );
+        return;
+      }
+      if (geoError.code === geoError.POSITION_UNAVAILABLE) {
+        toast.error("Your location is unavailable right now.");
+        return;
+      }
+      if (geoError.code === geoError.TIMEOUT) {
+        toast.error("Location request timed out. Try again.");
+        return;
+      }
+      toast.error("Could not get your location. Try again.");
+    } finally {
+      setLocating(false);
+    }
   }, []);
 
   return (
@@ -261,7 +349,7 @@ export function ClubMap({
           </Marker>
         ) : null}
 
-        {markers.map((marker) => (
+        {orderedMarkers.map((marker) => (
           <Marker
             key={marker.id}
             latitude={marker.latitude}
@@ -269,20 +357,16 @@ export function ClubMap({
             anchor="bottom"
             onClick={handleClick(marker)}
           >
-            <button
-              type="button"
-              className="flex flex-col items-center"
-              aria-label={marker.name}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span
-                className="size-4 rounded-full border-2 border-white shadow-md"
-                style={{ backgroundColor: MARKER_COLORS[marker.variant] }}
-              />
-              <span className="mt-0.5 max-w-24 truncate rounded bg-background/90 px-1 text-[10px] font-medium shadow-sm">
-                {marker.name}
-              </span>
-            </button>
+            <ClubMapMarkerPin
+              marker={marker}
+              isHovered={hoveredMarkerId === marker.id}
+              onHover={() => setHoveredMarkerId(marker.id)}
+              onLeave={() =>
+                setHoveredMarkerId((current) =>
+                  current === marker.id ? null : current,
+                )
+              }
+            />
           </Marker>
         ))}
       </Map>

@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 import { createPrismaClient } from "@/lib/db/create-prisma-client";
 
-const PRISMA_SCHEMA_TAG = "20260705130000_child_sex";
+const PRISMA_SCHEMA_TAG = "20260705150000_user_is_active";
 
 type PrismaGlobal = {
   prisma?: PrismaClient;
@@ -12,7 +12,10 @@ type PrismaGlobal = {
 const globalForPrisma = globalThis as unknown as PrismaGlobal;
 
 function hasCurrentUserFields() {
-  return "lastLoginAt" in Prisma.UserScalarFieldEnum;
+  return (
+    "lastLoginAt" in Prisma.UserScalarFieldEnum &&
+    "isActive" in Prisma.UserScalarFieldEnum
+  );
 }
 
 function getClient(): PrismaClient {

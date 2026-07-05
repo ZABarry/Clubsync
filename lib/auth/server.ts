@@ -23,6 +23,19 @@ export const syncUser = cache(async () => {
   }
   if (!user?.email) return null;
 
+  const existing = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { isActive: true },
+  });
+  if (existing && !existing.isActive) {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore — session will expire or user can sign in again after reactivation.
+    }
+    return null;
+  }
+
   const bootstrapRole = resolveBootstrapRole(user.email);
   const now = new Date();
 

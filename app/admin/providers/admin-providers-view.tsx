@@ -83,7 +83,7 @@ export function AdminProvidersView({ providers }: AdminProvidersViewProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -123,26 +123,52 @@ export function AdminProvidersView({ providers }: AdminProvidersViewProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="rounded-xl border bg-card">
-          <Table>
+        <div className="min-w-0 overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Website</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Clubs</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[22%]">Name</TableHead>
+                <TableHead className="w-[34%]">Website</TableHead>
+                <TableHead className="w-[26%]">Email</TableHead>
+                <TableHead className="w-[8%]">Clubs</TableHead>
+                <TableHead className="w-[10%] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {providers.map((provider) => (
                 <TableRow key={provider.id}>
-                  <TableCell className="font-medium">{provider.name}</TableCell>
-                  <TableCell className="text-sm">
-                    {provider.website ?? "—"}
+                  <TableCell className="truncate font-medium">
+                    <span className="block truncate" title={provider.name}>
+                      {provider.name}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-sm">
-                    {provider.contactEmail ?? "—"}
+                  <TableCell className="max-w-0 truncate text-sm">
+                    {provider.website ? (
+                      <a
+                        href={provider.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary block truncate hover:underline"
+                        title={provider.website}
+                      >
+                        {provider.website}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="max-w-0 truncate text-sm">
+                    {provider.contactEmail ? (
+                      <a
+                        href={`mailto:${provider.contactEmail}`}
+                        className="block truncate hover:underline"
+                        title={provider.contactEmail}
+                      >
+                        {provider.contactEmail}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell>{provider._count.clubs}</TableCell>
                   <TableCell className="text-right">

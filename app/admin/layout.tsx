@@ -63,7 +63,7 @@ export default async function AdminLayout({
       </header>
       <main
         id="admin-main"
-        className="mx-auto min-h-0 min-w-0 max-w-6xl flex-1 overflow-y-auto px-4 py-8 md:px-8"
+        className="mx-auto w-full min-h-0 min-w-0 max-w-6xl flex-1 overflow-y-auto px-4 py-8 md:px-8"
       >
         {children}
       </main>

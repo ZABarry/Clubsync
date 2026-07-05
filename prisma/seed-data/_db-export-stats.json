@@ -1,0 +1,12 @@
+{
+  "total": 105,
+  "active": 34,
+  "draft": 19,
+  "archived": 52,
+  "within25km": 105,
+  "within30km": 105,
+  "outside30km": 0,
+  "activeMissingDates": 0,
+  "draftMissingBooking": 0,
+  "draftMissingPrice": 16
+}

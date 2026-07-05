@@ -16,6 +16,9 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:verify": "tsx scripts/verify-phase2.ts",
+    "db:scrape-import": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 tsx scripts/scrape-and-import-clubs.ts",
+    "db:enrich-providers": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 tsx scripts/enrich-providers.ts",
+    "db:enrich-drafts": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 tsx scripts/enrich-draft-clubs.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

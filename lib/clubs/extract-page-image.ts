@@ -130,7 +130,54 @@ export function extractImageFromHtml(html: string, pageUrl: string): string | nu
     if (resolved) return resolved;
   }
 
-  return extractJsonLdImage(html, pageUrl);
+  const jsonLd = extractJsonLdImage(html, pageUrl);
+  if (jsonLd) return jsonLd;
+
+  return extractContentImageFromHtml(html, pageUrl);
+}
+
+const SKIP_IMAGE_PATTERN =
+  /(?:logo|favicon|icon|sprite|badge|avatar|mstile|webclip|\/flags\/|cropped-.*32x32|32x32|64x64|192x192|\.svg(?:\?|$))/i;
+
+export function extractContentImageFromHtml(html: string, pageUrl: string): string | null {
+  const candidates: string[] = [];
+
+  for (const match of html.matchAll(
+    /(?:src|content|data-src|data-lazy-src)=["']([^"']+\.(?:jpg|jpeg|png|webp|avif)(?:[^"']*)?)["']/gi,
+  )) {
+    const raw = match[1]?.replace(/&amp;/g, "&");
+    if (!raw || SKIP_IMAGE_PATTERN.test(raw)) continue;
+    const resolved = resolveImageUrl(raw, pageUrl);
+    if (resolved) candidates.push(resolved);
+  }
+
+  // Prefer camp/hero/banner/photo keywords, then largest-looking CDN paths
+  const ranked = candidates.sort((a, b) => scoreImageCandidate(b) - scoreImageCandidate(a));
+  return ranked[0] ?? null;
+}
+
+function scoreImageCandidate(url: string): number {
+  const u = url.toLowerCase();
+  let score = 0;
+  if (u.includes("camp")) score += 4;
+  if (u.includes("banner") || u.includes("hero") || u.includes("header")) score += 3;
+  if (u.includes("photo") || u.includes("gallery") || u.includes("img_")) score += 2;
+  if (u.includes("location-") || u.includes("school")) score += 2;
+  if (u.includes("width=2000") || u.includes("1500w") || u.includes("1920")) score += 2;
+  if (u.includes("png") && u.includes("brochure")) score -= 2;
+  if (u.includes("ofsted") || u.includes("rospa") || u.includes("recommend")) score -= 5;
+  return score;
+}
+
+export async function extractImageFromPage(url: string): Promise<string | null> {
+  const html = await fetchPageHtml(url);
+  if (!html) return null;
+
+  const imageUrl = extractImageFromHtml(html, url);
+  if (!imageUrl) return null;
+
+  if (await validateImageUrl(imageUrl)) return imageUrl;
+  return imageUrl;
 }
 
 export async function fetchPageHtml(url: string): Promise<string | null> {
@@ -185,15 +232,4 @@ async function validateImageUrl(url: string): Promise<boolean> {
   } finally {
     clearTimeout(timeout);
   }
-}
-
-export async function extractImageFromPage(url: string): Promise<string | null> {
-  const html = await fetchPageHtml(url);
-  if (!html) return null;
-
-  const imageUrl = extractImageFromHtml(html, url);
-  if (!imageUrl) return null;
-
-  if (await validateImageUrl(imageUrl)) return imageUrl;
-  return imageUrl;
 }

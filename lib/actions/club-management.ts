@@ -9,13 +9,14 @@ import {
   UserRole,
 } from "@prisma/client";
 
+import { createAdminClient } from "@/lib/auth/supabase-admin";
 import {
   canManageClub,
   requireAuth,
   requireMasterAdmin,
   requireReviewer,
 } from "@/lib/auth/server";
-import { isReviewerRole } from "@/lib/auth/roles";
+import { isMasterAdminRole, isReviewerRole } from "@/lib/auth/roles";
 import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -28,7 +29,9 @@ import {
   clubReviewSchema,
   clubSchema,
   clubSubmitForReviewSchema,
+  deleteAdminUserSchema,
   promoteUserRoleSchema,
+  setUserActiveSchema,
 } from "@/lib/validation/schemas";
 import { haversineKm } from "@/lib/utils";
 
@@ -615,6 +618,56 @@ export async function promoteUserRole(data: unknown) {
 
   revalidatePath("/admin/users");
   return updated;
+}
+
+async function assertCanManageTargetUser(actorId: string, targetId: string) {
+  if (targetId === actorId) {
+    throw new Error("You cannot manage your own account here");
+  }
+
+  const target = await prisma.user.findUniqueOrThrow({
+    where: { id: targetId },
+    select: { role: true },
+  });
+
+  if (isMasterAdminRole(target.role)) {
+    throw new Error("You cannot manage a master admin account");
+  }
+
+  return target;
+}
+
+export async function setUserActive(data: unknown) {
+  const actor = await requireMasterAdmin();
+  const parsed = setUserActiveSchema.parse(data);
+
+  await assertCanManageTargetUser(actor.id, parsed.userId);
+
+  const updated = await prisma.user.update({
+    where: { id: parsed.userId },
+    data: { isActive: parsed.isActive },
+  });
+
+  revalidatePath("/admin/users");
+  return updated;
+}
+
+export async function deleteAdminUser(data: unknown) {
+  const actor = await requireMasterAdmin();
+  const parsed = deleteAdminUserSchema.parse(data);
+
+  await assertCanManageTargetUser(actor.id, parsed.userId);
+
+  const admin = createAdminClient();
+  const { error: authError } = await admin.auth.admin.deleteUser(parsed.userId);
+  if (authError) {
+    throw new Error("Failed to delete authentication account");
+  }
+
+  await prisma.user.delete({ where: { id: parsed.userId } });
+
+  revalidatePath("/admin/users");
+  return { success: true };
 }
 
 export async function getAdminProvidersForForm() {

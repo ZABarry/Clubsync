@@ -70,9 +70,9 @@ export function ClubCompactList({
         <div
           key={club.id}
           className={cn(
-            "relative flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-3 lg:flex-row lg:items-center",
+            "relative flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-3 text-card-foreground lg:flex-row lg:items-center",
             isDraft &&
-              "border-dashed border-amber-500/45 bg-amber-500/[0.06]",
+              "border-dashed border-amber-500/50 bg-amber-50/60 dark:bg-amber-950/25",
             isDeleted &&
               "border-dashed border-destructive/35 bg-destructive/[0.04] opacity-80",
           )}
@@ -104,8 +104,7 @@ export function ClubCompactList({
             <div className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  "font-medium leading-snug line-clamp-2",
-                  isDraft && "text-amber-950 dark:text-amber-50",
+                  "font-semibold leading-snug line-clamp-2 text-foreground",
                   isDeleted && "text-muted-foreground line-through",
                 )}
               >
@@ -127,7 +126,7 @@ export function ClubCompactList({
                 </Badge>
               </div>
               {isDraft ? (
-                <p className="text-xs font-medium text-amber-800/80 dark:text-amber-200/80">
+                <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
                   Not published — hidden from Discover
                 </p>
               ) : null}

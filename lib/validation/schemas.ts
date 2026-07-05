@@ -122,6 +122,15 @@ export const promoteUserRoleSchema = z.object({
   role: z.enum(["PARENT", "REVIEWER"]),
 });
 
+export const setUserActiveSchema = z.object({
+  userId: z.string().uuid(),
+  isActive: z.boolean(),
+});
+
+export const deleteAdminUserSchema = z.object({
+  userId: z.string().uuid(),
+});
+
 export const changeRequestSchema = z.object({
   clubId: z.string().uuid(),
   fieldName: z.enum(CLUB_CHANGE_FIELD_NAMES),

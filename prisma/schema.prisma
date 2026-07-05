@@ -73,6 +73,7 @@ model User {
   id              String    @id @default(uuid())
   email           String    @unique
   role            UserRole  @default(PARENT)
+  isActive        Boolean   @default(true)
   lastLoginAt     DateTime?
   roleUpdatedAt   DateTime?
   roleUpdatedById String?
