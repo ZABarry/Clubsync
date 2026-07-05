@@ -28,6 +28,8 @@ export default async function ProfilePage({
       />
       <ProfileView
         displayName={profile?.displayName ?? ""}
+        firstName={profile?.firstName ?? null}
+        lastName={profile?.lastName ?? null}
         homePostcode={profile?.homePostcode ?? null}
         defaultSearchRadiusKm={profile?.defaultSearchRadiusKm ?? 10}
         children={children}

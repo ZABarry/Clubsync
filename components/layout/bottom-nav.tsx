@@ -6,6 +6,7 @@ import {
   Calendar,
   Compass,
   Home,
+  MapPin,
   Shield,
   User,
   Users,
@@ -22,6 +23,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/my-clubs", label: "My clubs", icon: MapPin },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/friends", label: "Friends", icon: Users },
   { href: "/profile", label: "Profile", icon: User },
@@ -59,7 +61,7 @@ export function BottomNav({ showAdmin = false }: BottomNavProps) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 px-2 py-2 text-[10px] font-medium transition-colors",
+                  "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground",

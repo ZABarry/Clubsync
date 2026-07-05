@@ -29,6 +29,7 @@ const STATUS_OPTIONS: {
 type ClubStatusControlsProps = {
   currentStatus?: PlannedClubStatus | null;
   onStatusChange: (status: PlannedClubStatus) => void;
+  onStatusClear?: () => void;
   disabled?: boolean;
   className?: string;
 };
@@ -36,6 +37,7 @@ type ClubStatusControlsProps = {
 export function ClubStatusControls({
   currentStatus,
   onStatusChange,
+  onStatusClear,
   disabled = false,
   className,
 }: ClubStatusControlsProps) {
@@ -51,7 +53,13 @@ export function ClubStatusControls({
             variant={isActive ? "default" : "outline"}
             size="sm"
             disabled={disabled}
-            onClick={() => onStatusChange(status)}
+            onClick={() => {
+              if (isActive && onStatusClear) {
+                onStatusClear();
+                return;
+              }
+              onStatusChange(status);
+            }}
             aria-pressed={isActive}
           >
             <Icon className="size-3.5" />

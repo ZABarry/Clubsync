@@ -1,27 +1,24 @@
-import { PageHeader } from "@/components/layout/page-header";
-import { getAdminClubs, getAdminProviders } from "@/lib/actions/admin";
+import { redirect } from "next/navigation";
 
-import { AdminClubsView } from "./admin-clubs-view";
+import { ClubManagementView } from "@/components/club-management/club-management-view";
+import { getManagedClubs } from "@/lib/actions/club-management";
+import { syncUser } from "@/lib/auth/server";
+import { isReviewerRole } from "@/lib/auth/roles";
 
 export default async function AdminClubsPage() {
-  const [clubs, providers] = await Promise.all([
-    getAdminClubs(),
-    getAdminProviders(),
-  ]);
+  const user = await syncUser();
+  if (!user || !isReviewerRole(user.role)) redirect("/");
+
+  const clubs = await getManagedClubs({}, "admin");
 
   return (
-    <div>
-      <PageHeader
-        title="Manage clubs"
-        description="Create, edit and archive club listings"
-      />
-      <AdminClubsView
-        clubs={clubs}
-        providers={providers.map((p: { id: string; name: string }) => ({
-          id: p.id,
-          name: p.name,
-        }))}
-      />
-    </div>
+    <ClubManagementView
+      mode="admin"
+      initialClubs={clubs}
+      title="Manage clubs"
+      description="Compressed list of all clubs with filters and quick actions."
+      listPath="/admin/clubs"
+      newPath="/admin/clubs/new"
+    />
   );
 }

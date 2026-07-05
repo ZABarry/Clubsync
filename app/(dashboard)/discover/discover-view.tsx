@@ -75,6 +75,7 @@ export function DiscoverView({
         <ClubMap
           markers={mapMarkers}
           className="h-56 sm:h-72"
+          showLocateControl
           onMarkerClick={(marker) => router.push(`/clubs/${marker.id}`)}
         />
       </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Tent } from "lucide-react";
 
 import { syncUser } from "@/lib/auth/server";
+import { isReviewerRole } from "@/lib/auth/roles";
 import { isDbConnectionError } from "@/lib/db/errors";
 
 export default async function AdminLayout({
@@ -17,7 +18,7 @@ export default async function AdminLayout({
     if (isDbConnectionError(error)) redirect("/setup");
     throw error;
   }
-  if (!user || user.role !== "ADMIN") redirect("/");
+  if (!user || !isReviewerRole(user.role)) redirect("/");
 
   return (
     <div className="min-h-full flex-1">

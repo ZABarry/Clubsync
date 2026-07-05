@@ -29,6 +29,7 @@ export type ClubCardData = {
   activities: string[];
   distanceKm?: number | null;
   imageUrl?: string | null;
+  isCommunityClub?: boolean;
   plannedStatus?: PlannedClubStatus | null;
   recommendationReasons?: string[];
   latitude?: number;

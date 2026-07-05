@@ -2,13 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
-import { requireAdmin } from "@/lib/auth/server";
+import { requireReviewer } from "@/lib/auth/server";
 import {
   clubSchema,
   providerSchema,
 } from "@/lib/validation/schemas";
 
 type ModerationDecision = "APPROVED" | "REJECTED";
+
+function parseOptionalDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 async function recalculateClubRating(clubId: string) {
   const ratings = await prisma.rating.findMany({
@@ -50,7 +56,7 @@ function parseClubFieldValue(
 // --- Providers ---
 
 export async function createProvider(data: unknown) {
-  await requireAdmin();
+  await requireReviewer();
   const parsed = providerSchema.parse(data);
 
   const provider = await prisma.provider.create({
@@ -69,7 +75,7 @@ export async function createProvider(data: unknown) {
 }
 
 export async function updateProvider(providerId: string, data: unknown) {
-  await requireAdmin();
+  await requireReviewer();
   const parsed = providerSchema.parse(data);
 
   const provider = await prisma.provider.update({
@@ -89,13 +95,13 @@ export async function updateProvider(providerId: string, data: unknown) {
 }
 
 export async function deleteProvider(providerId: string) {
-  await requireAdmin();
+  await requireReviewer();
   await prisma.provider.delete({ where: { id: providerId } });
   revalidatePath("/admin");
 }
 
 export async function getAdminProviders() {
-  await requireAdmin();
+  await requireReviewer();
   return prisma.provider.findMany({
     include: { _count: { select: { clubs: true } } },
     orderBy: { name: "asc" },
@@ -105,7 +111,7 @@ export async function getAdminProviders() {
 // --- Clubs ---
 
 export async function createClub(data: unknown) {
-  await requireAdmin();
+  await requireReviewer();
   const parsed = clubSchema.parse(data);
 
   const provider = await prisma.provider.findUnique({
@@ -125,13 +131,17 @@ export async function createClub(data: unknown) {
       activities: parsed.activities,
       ageMin: parsed.ageMin,
       ageMax: parsed.ageMax,
-      startDate: new Date(parsed.startDate),
-      endDate: new Date(parsed.endDate),
+      startDate: parseOptionalDate(parsed.startDate),
+      endDate: parseOptionalDate(parsed.endDate),
       dailyStartTime: parsed.dailyStartTime ?? null,
       dailyEndTime: parsed.dailyEndTime ?? null,
       price: parsed.price ?? null,
       dailyRate: parsed.dailyRate ?? null,
+      priceNote: parsed.priceNote ?? null,
       bookingUrl: parsed.bookingUrl || null,
+      sourceUrl: parsed.sourceUrl || null,
+      dataConfidence: parsed.dataConfidence ?? null,
+      region: parsed.region,
       imageUrl: parsed.imageUrl || null,
       status: parsed.status,
       isIndoor: parsed.isIndoor,
@@ -147,7 +157,7 @@ export async function createClub(data: unknown) {
 }
 
 export async function updateClub(clubId: string, data: unknown) {
-  await requireAdmin();
+  await requireReviewer();
   const parsed = clubSchema.parse(data);
 
   const club = await prisma.club.update({
@@ -163,13 +173,17 @@ export async function updateClub(clubId: string, data: unknown) {
       activities: parsed.activities,
       ageMin: parsed.ageMin,
       ageMax: parsed.ageMax,
-      startDate: new Date(parsed.startDate),
-      endDate: new Date(parsed.endDate),
+      startDate: parseOptionalDate(parsed.startDate),
+      endDate: parseOptionalDate(parsed.endDate),
       dailyStartTime: parsed.dailyStartTime ?? null,
       dailyEndTime: parsed.dailyEndTime ?? null,
       price: parsed.price ?? null,
       dailyRate: parsed.dailyRate ?? null,
+      priceNote: parsed.priceNote ?? null,
       bookingUrl: parsed.bookingUrl || null,
+      sourceUrl: parsed.sourceUrl || null,
+      dataConfidence: parsed.dataConfidence ?? null,
+      region: parsed.region,
       imageUrl: parsed.imageUrl || null,
       status: parsed.status,
       isIndoor: parsed.isIndoor,
@@ -186,7 +200,7 @@ export async function updateClub(clubId: string, data: unknown) {
 }
 
 export async function deleteClub(clubId: string) {
-  await requireAdmin();
+  await requireReviewer();
   await prisma.club.update({
     where: { id: clubId },
     data: { status: "ARCHIVED" },
@@ -197,93 +211,17 @@ export async function deleteClub(clubId: string) {
 }
 
 export async function getAdminClubs() {
-  await requireAdmin();
+  await requireReviewer();
   return prisma.club.findMany({
     include: { provider: { select: { name: true } } },
     orderBy: { startDate: "asc" },
   });
 }
 
-// --- Moderation ---
-
-export async function getPendingSubmissions() {
-  await requireAdmin();
-  return prisma.clubSubmission.findMany({
-    where: { moderationStatus: "PENDING" },
-    include: {
-      submittedBy: { select: { displayName: true } },
-    },
-    orderBy: { createdAt: "asc" },
-  });
-}
-
-const DEFAULT_SUBMISSION_LOCATION = {
-  locationName: "South West London",
-  latitude: 51.4015,
-  longitude: -0.2563,
-};
-
-async function findOrCreateSubmissionProvider(providerName: string | null) {
-  const name = providerName?.trim() || "Community submission";
-  const existing = await prisma.provider.findFirst({
-    where: { name: { equals: name, mode: "insensitive" } },
-  });
-  if (existing) return existing;
-
-  return prisma.provider.create({
-    data: {
-      name,
-      description: "Created from a parent club submission",
-    },
-  });
-}
-
-export async function moderateSubmission(
-  submissionId: string,
-  status: ModerationDecision,
-) {
-  await requireAdmin();
-
-  const submission = await prisma.clubSubmission.findUnique({
-    where: { id: submissionId },
-  });
-  if (!submission) throw new Error("Submission not found");
-
-  if (status === "APPROVED") {
-    const provider = await findOrCreateSubmissionProvider(
-      submission.providerName,
-    );
-
-    await prisma.club.create({
-      data: {
-        providerId: provider.id,
-        name: submission.clubName,
-        description: submission.notes,
-        bookingUrl: submission.website,
-        status: "DRAFT",
-        activities: [],
-        ageMin: 4,
-        ageMax: 16,
-        startDate: new Date("2026-07-01"),
-        endDate: new Date("2026-08-31"),
-        ...DEFAULT_SUBMISSION_LOCATION,
-      },
-    });
-  }
-
-  const updated = await prisma.clubSubmission.update({
-    where: { id: submissionId },
-    data: { moderationStatus: status },
-  });
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/submissions");
-  revalidatePath("/discover");
-  return updated;
-}
+// --- Change requests & ratings ---
 
 export async function getPendingChangeRequests() {
-  await requireAdmin();
+  await requireReviewer();
   return prisma.clubChangeRequest.findMany({
     where: { moderationStatus: "PENDING" },
     include: {
@@ -298,7 +236,7 @@ export async function moderateChangeRequest(
   requestId: string,
   status: ModerationDecision,
 ) {
-  await requireAdmin();
+  await requireReviewer();
 
   const request = await prisma.clubChangeRequest.findUnique({
     where: { id: requestId },
@@ -328,7 +266,7 @@ export async function moderateChangeRequest(
 }
 
 export async function getPendingRatings() {
-  await requireAdmin();
+  await requireReviewer();
   return prisma.rating.findMany({
     where: { moderationStatus: "PENDING" },
     include: {
@@ -343,7 +281,7 @@ export async function moderateRating(
   ratingId: string,
   status: ModerationDecision,
 ) {
-  await requireAdmin();
+  await requireReviewer();
 
   const rating = await prisma.rating.update({
     where: { id: ratingId },

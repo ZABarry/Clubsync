@@ -1,5 +1,7 @@
 "use server";
 
+import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
+
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { smartPlannerSchema } from "@/lib/validation/schemas";
@@ -208,7 +210,7 @@ export async function getDashboardRecommendations(
       ratingCount: club.ratingCount,
       activities: club.activities,
       distanceKm: club.distanceKm,
-      imageUrl: source.imageUrl,
+      imageUrl: resolveClubImageUrl({ id: club.id, imageUrl: source.imageUrl }),
       plannedStatus: plannedByClub.get(club.id) ?? null,
       recommendationReasons: club.recommendationReasons,
     };

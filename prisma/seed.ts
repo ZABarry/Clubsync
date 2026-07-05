@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "dotenv";
-import { ClubStatus, UserRole } from "@prisma/client";
+import { ClubPromotionStatus, ClubStatus, UserRole } from "@prisma/client";
 import { createPrismaClient } from "../lib/db/create-prisma-client";
 
 config({ path: ".env.local" });
@@ -44,6 +44,7 @@ type ClubSeed = {
   status?: string;
   indoorOutdoor?: string;
   sendFriendly?: string;
+  imageUrl?: string;
 };
 
 function loadJson<T>(filename: string): T {
@@ -207,6 +208,7 @@ async function seedClubsFromJson(providerIdBySlug: Map<string, string>) {
       priceNote,
       bookingUrl: emptyToNull(club.bookingUrl),
       sourceUrl: emptyToNull(club.sourceUrl),
+      imageUrl: emptyToNull(club.imageUrl),
       dataConfidence: emptyToNull(club.dataConfidence),
       ratingAverage: parseRatingAverage(club.ratingAverage),
       ratingCount: club.ratingCount ?? 0,
@@ -289,7 +291,7 @@ async function seedDemoUsersIfMissing() {
     create: {
       id: "00000000-0000-4000-8000-000000000003",
       email: "admin@example.com",
-      role: UserRole.ADMIN,
+      role: UserRole.MASTER_ADMIN,
       parentProfile: {
         create: {
           displayName: "ClubZer Admin",
@@ -299,7 +301,27 @@ async function seedDemoUsersIfMissing() {
         },
       },
     },
-    update: {},
+    update: { role: UserRole.MASTER_ADMIN },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "reviewer@example.com" },
+    create: {
+      id: "00000000-0000-4000-8000-000000000004",
+      email: "reviewer@example.com",
+      role: UserRole.REVIEWER,
+      parentProfile: {
+        create: {
+          displayName: "Camp Reviewer",
+          firstName: "Camp",
+          lastName: "Reviewer",
+          homePostcode: "SW15 1AA",
+          latitude: 51.464,
+          longitude: -0.215,
+        },
+      },
+    },
+    update: { role: UserRole.REVIEWER },
   });
 
   if (!parent1.parentProfile || !parent2.parentProfile) {
@@ -449,6 +471,43 @@ async function seedDemoUsersIfMissing() {
         },
       ],
       skipDuplicates: true,
+    });
+  }
+
+  const communityProvider = await prisma.provider.upsert({
+    where: { slug: "community-submission" },
+    create: {
+      slug: "community-submission",
+      name: "Community submission",
+      description: "Community-contributed clubs",
+    },
+    update: {},
+  });
+
+  if (parent1.parentProfile) {
+    await prisma.club.upsert({
+      where: {
+        providerId_name_locationName: {
+          providerId: communityProvider.id,
+          name: "Neighbourhood Art Club",
+          locationName: "Putney Library",
+        },
+      },
+      create: {
+        providerId: communityProvider.id,
+        ownerParentProfileId: parent1.parentProfile.id,
+        name: "Neighbourhood Art Club",
+        locationName: "Putney Library",
+        description: "Weekly art sessions shared by a local parent.",
+        latitude: 51.463,
+        longitude: -0.216,
+        activities: ["art"],
+        ageMin: 5,
+        ageMax: 10,
+        status: ClubStatus.ACTIVE,
+        promotionStatus: ClubPromotionStatus.LOCAL,
+      },
+      update: {},
     });
   }
 

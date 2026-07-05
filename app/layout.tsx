@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 
-import { CLUBZER_TAGLINE } from "@/lib/brand";
+import { CLUBZER_COLORS, CLUBZER_TAGLINE } from "@/lib/brand";
 import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
@@ -12,10 +12,6 @@ export const metadata: Metadata = {
   },
   description: CLUBZER_TAGLINE,
   manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -24,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FF6B54",
+  themeColor: CLUBZER_COLORS.theme,
 };
 
 export default function RootLayout({

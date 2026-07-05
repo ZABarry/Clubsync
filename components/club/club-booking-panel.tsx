@@ -127,6 +127,34 @@ export function ClubBookingPanel({
     }
   };
 
+  const resetToSaved = () => {
+    const savedDates = booking?.bookedDates ?? [];
+    const savedRate = booking?.dailyRateOverride ?? clubDefaultDailyRate;
+    setSelectedDates(savedDates);
+    setDailyRateInput(savedRate != null ? String(savedRate) : "");
+    setTotalTouched(booking?.totalPriceOverride != null);
+    if (booking?.totalPriceOverride != null) {
+      setTotalInput(String(booking.totalPriceOverride));
+      return;
+    }
+    const rate = savedRate;
+    const total = computeTotalPrice(rate, savedDates.length, null);
+    setTotalInput(total != null ? String(total) : "");
+  };
+
+  const savedDates = booking?.bookedDates ?? [];
+  const savedDailyRate =
+    booking?.dailyRateOverride ?? clubDefaultDailyRate ?? null;
+  const savedTotal =
+    booking?.totalPriceOverride ??
+    computeTotalPrice(savedDailyRate, savedDates.length, null);
+  const isDirty =
+    JSON.stringify(selectedDates) !== JSON.stringify(savedDates) ||
+    parsedDailyRate !== savedDailyRate ||
+    (totalTouched
+      ? parsePositiveNumber(totalInput) !== savedTotal
+      : computedTotal !== savedTotal);
+
   const handleDailyRateChange = (value: string) => {
     setDailyRateInput(value);
     if (!totalTouched) {
@@ -297,15 +325,28 @@ export function ClubBookingPanel({
           </div>
         </div>
 
-        <Button
-          type="button"
-          onClick={handleSave}
-          disabled={disabled || pending}
-          className="w-full sm:w-auto"
-        >
-          {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-          Save booking
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={disabled || pending || !isDirty}
+            className="w-full sm:w-auto"
+          >
+            {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+            Save booking
+          </Button>
+          {isDirty ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetToSaved}
+              disabled={disabled || pending}
+              className="w-full sm:w-auto"
+            >
+              Reset
+            </Button>
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   );

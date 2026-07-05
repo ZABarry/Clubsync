@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { ClubStatusControls } from "@/components/club/club-status-controls";
 import { ClubMap } from "@/components/map/club-map";
@@ -30,6 +31,7 @@ type ClubDetailProps = {
   plannedStatus?: PlannedClubStatus | null;
   booking?: PlannedClubBookingData | null;
   onStatusChange?: (status: PlannedClubStatus) => void;
+  onStatusClear?: () => void;
   statusControlsDisabled?: boolean;
   className?: string;
 };
@@ -39,6 +41,7 @@ export function ClubDetail({
   plannedStatus,
   booking,
   onStatusChange,
+  onStatusClear,
   statusControlsDisabled,
   className,
 }: ClubDetailProps) {
@@ -56,14 +59,12 @@ export function ClubDetail({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {club.imageUrl ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={club.imageUrl}
-          alt=""
-          className="aspect-[21/9] w-full rounded-xl object-cover"
-        />
-      ) : null}
+      <ClubImage
+        clubId={club.id}
+        src={club.imageUrl!}
+        alt={`${club.name} — ${club.providerName}`}
+        className="aspect-[21/9] w-full rounded-xl object-cover"
+      />
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -219,6 +220,7 @@ export function ClubDetail({
             <ClubStatusControls
               currentStatus={plannedStatus}
               onStatusChange={onStatusChange}
+              onStatusClear={onStatusClear}
               disabled={statusControlsDisabled}
             />
           </div>

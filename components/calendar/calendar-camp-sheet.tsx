@@ -16,7 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
+import { deletePlannedClub, upsertPlannedClub } from "@/lib/actions/planned-clubs";
 import type { ClubCalendarEvent, PlannedClubStatus } from "@/lib/types/club";
 import { formatOptionalDateRange } from "@/lib/utils";
 import {
@@ -87,6 +87,7 @@ export function CalendarCampSheet({
 
   const selectAll = () => setSelectedDates([...campDates]);
   const clearAll = () => setSelectedDates([]);
+  const resetDates = () => setSelectedDates(event?.bookedDates ?? []);
 
   const handleStatusChange = (status: PlannedClubStatus) => {
     if (!event?.clubId) return;
@@ -113,6 +114,23 @@ export function CalendarCampSheet({
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Failed to update status",
+        );
+      }
+    });
+  };
+
+  const handleStatusClear = () => {
+    const clubId = event?.clubId;
+    if (!clubId) return;
+
+    startTransition(async () => {
+      try {
+        await deletePlannedClub(clubId);
+        toast.success("Removed from your clubs");
+        onUpdated?.();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to remove club",
         );
       }
     });
@@ -201,6 +219,17 @@ export function CalendarCampSheet({
                       >
                         Clear
                       </Button>
+                      {datesChanged ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={resetDates}
+                          disabled={pending}
+                        >
+                          Reset
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                   <div className="grid max-h-48 gap-2 overflow-y-auto sm:grid-cols-2">
@@ -242,6 +271,7 @@ export function CalendarCampSheet({
               <ClubStatusControls
                 currentStatus={event.status}
                 onStatusChange={handleStatusChange}
+                onStatusClear={event.status ? handleStatusClear : undefined}
                 disabled={pending}
               />
 

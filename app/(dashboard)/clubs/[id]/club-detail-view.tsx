@@ -49,7 +49,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { submitRating } from "@/lib/actions/ratings";
 import { createSharedClub } from "@/lib/actions/shared-clubs";
 import { submitChangeRequest } from "@/lib/actions/submissions";
-import { upsertPlannedClub } from "@/lib/actions/planned-clubs";
+import { deletePlannedClub, upsertPlannedClub } from "@/lib/actions/planned-clubs";
 import type { FriendClubActivity } from "@/lib/privacy/friend-visibility";
 import type { ClubDetailData, PlannedClubBookingData, PlannedClubStatus } from "@/lib/types/club";
 import {
@@ -143,6 +143,18 @@ export function ClubDetailView({
     });
   };
 
+  const handleStatusClear = () => {
+    startTransition(async () => {
+      try {
+        await deletePlannedClub(club.id);
+        toast.success("Removed from your clubs");
+        router.refresh();
+      } catch {
+        toast.error("Failed to remove club");
+      }
+    });
+  };
+
   const onRatingSubmit = ratingForm.handleSubmit((values) => {
     startTransition(async () => {
       try {
@@ -194,6 +206,7 @@ export function ClubDetailView({
         plannedStatus={plannedStatus}
         booking={booking}
         onStatusChange={handleStatusChange}
+        onStatusClear={plannedStatus ? handleStatusClear : undefined}
         statusControlsDisabled={pending}
       />
 

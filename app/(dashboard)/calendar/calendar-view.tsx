@@ -37,7 +37,14 @@ export function CalendarView({ events }: CalendarViewProps) {
           </Link>
         </div>
       ) : (
-        <ClubCalendar events={events} onEventClick={setSelected} />
+        <ClubCalendar
+          events={events}
+          onEventClick={(event) =>
+            setSelected((current) =>
+              current?.clubId === event.clubId ? null : event,
+            )
+          }
+        />
       )}
 
       <CalendarCampSheet

@@ -214,5 +214,93 @@
     "contactEmail": "",
     "phone": "",
     "sourceUrl": "https://familiesonline.co.uk/london-upon-thames/summer-holiday-camps-in-richmond-kingston-north-surrey-summer-2026/"
+  },
+  {
+    "providerId": "prov_activ_camps",
+    "name": "Activ Camps",
+    "website": "https://www.activcamps.com/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.activcamps.com/wimbledoncollege/"
+  },
+  {
+    "providerId": "prov_am_sports",
+    "name": "AM Sports Academy",
+    "website": "https://www.amsportsacademy.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.amsportsacademy.co.uk/camps/"
+  },
+  {
+    "providerId": "prov_mega_camps",
+    "name": "Mega Camps",
+    "website": "https://www.megacamps.net/",
+    "contactEmail": "",
+    "phone": "0333 012 4378",
+    "sourceUrl": "https://www.megacamps.net/kids-activities-epsom.php"
+  },
+  {
+    "providerId": "prov_ymca_hawker",
+    "name": "YMCA Hawker Y Kidz",
+    "website": "https://ymcastpaulsgroup.org/y-kidz-holiday-playschemes/y-kidz-kingston/",
+    "contactEmail": "info.hawker@ymcaspg.org",
+    "phone": "020 8296 9747",
+    "sourceUrl": "https://ymcastpaulsgroup.org/y-kidz-holiday-playschemes/y-kidz-kingston/"
+  },
+  {
+    "providerId": "prov_move_it",
+    "name": "Move it Sports Coaching",
+    "website": "https://www.moveitsportscoaching.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
+  },
+  {
+    "providerId": "prov_brilliant_play",
+    "name": "Brilliant Play Solutions",
+    "website": "https://brilliantplay.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://brilliantplay.co.uk/fuel-holiday-camps/"
+  },
+  {
+    "providerId": "prov_quidditch",
+    "name": "Quidditch for Muggles",
+    "website": "https://www.quidditchformuggles.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
+  },
+  {
+    "providerId": "prov_chess_club",
+    "name": "Chess Club Kingston",
+    "website": "https://www.chessclubkingston.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
+  },
+  {
+    "providerId": "prov_beyond_blocks",
+    "name": "Beyond Blocks Lego Robotics",
+    "website": "https://www.beyondblocks.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
+  },
+  {
+    "providerId": "prov_playball",
+    "name": "Playball Camp",
+    "website": "https://www.playball.co.uk/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
+  },
+  {
+    "providerId": "prov_teddy_tennis",
+    "name": "Teddy Tennis",
+    "website": "https://www.teddytennis.com/",
+    "contactEmail": "",
+    "phone": "",
+    "sourceUrl": "https://www.hellokingstonkids.com/holiday-camps"
   }
 ]

@@ -15,6 +15,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "camp:fetch-images": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 tsx scripts/fetch-club-images.ts",
     "db:verify": "tsx scripts/verify-phase2.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"

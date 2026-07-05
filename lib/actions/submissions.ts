@@ -3,35 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
-import {
-  clubSubmissionSchema,
-  changeRequestSchema,
-} from "@/lib/validation/schemas";
+import { changeRequestSchema } from "@/lib/validation/schemas";
 
 async function requireParentProfileId() {
   const user = await requireAuth();
   const profile = user.parentProfile;
   if (!profile) throw new Error("Parent profile required");
   return profile;
-}
-
-export async function submitClub(data: unknown) {
-  const profile = await requireParentProfileId();
-  const parsed = clubSubmissionSchema.parse(data);
-
-  const submission = await prisma.clubSubmission.create({
-    data: {
-      submittedByParentId: profile.id,
-      clubName: parsed.clubName,
-      providerName: parsed.providerName ?? null,
-      website: parsed.website || null,
-      notes: parsed.notes ?? null,
-      moderationStatus: "PENDING",
-    },
-  });
-
-  revalidatePath("/admin");
-  return submission;
 }
 
 export async function submitChangeRequest(data: unknown) {

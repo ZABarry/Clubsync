@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/server";
 import { clubFilterSchema } from "@/lib/validation/schemas";
@@ -41,7 +42,20 @@ function buildClubWhere(
     isIndoor?: boolean;
     isOutdoor?: boolean;
     id?: { in: string[] };
-  } = { status: "ACTIVE" };
+  } = {
+    status: "ACTIVE",
+    AND: [
+      {
+        OR: [
+          { promotionStatus: "OFFICIAL" },
+          {
+            ownerParentProfileId: { not: null },
+            promotionStatus: { in: ["LOCAL", "DENIED"] },
+          },
+        ],
+      },
+    ],
+  };
 
   if (filters.search) {
     where.OR = [
@@ -109,6 +123,7 @@ function toClubCard(
     latitude: number;
     longitude: number;
     provider: { name: string };
+    ownerParentProfileId?: string | null;
   },
   opts?: {
     distanceKm?: number;
@@ -119,6 +134,7 @@ function toClubCard(
     id: club.id,
     name: club.name,
     providerName: club.provider.name,
+    isCommunityClub: !!club.ownerParentProfileId,
     startDate: club.startDate,
     endDate: club.endDate,
     price: club.price,
@@ -127,7 +143,7 @@ function toClubCard(
     ratingAverage: club.ratingAverage,
     ratingCount: club.ratingCount,
     activities: club.activities,
-    imageUrl: club.imageUrl,
+    imageUrl: resolveClubImageUrl({ id: club.id, imageUrl: club.imageUrl }),
     distanceKm: opts?.distanceKm ?? null,
     plannedStatus: opts?.plannedStatus ?? null,
     latitude: club.latitude,
@@ -205,7 +221,17 @@ export async function getClubById(clubId: string): Promise<ClubDetailData | null
   const profile = user.parentProfile;
 
   const club = await prisma.club.findFirst({
-    where: { id: clubId, status: "ACTIVE" },
+    where: {
+      id: clubId,
+      status: "ACTIVE",
+      OR: [
+        { promotionStatus: "OFFICIAL" },
+        {
+          ownerParentProfileId: { not: null },
+          promotionStatus: { in: ["LOCAL", "DENIED"] },
+        },
+      ],
+    },
     include: { provider: { select: { name: true } } },
   });
 
@@ -259,10 +285,23 @@ export async function searchClubs(query: string) {
   const clubs = await prisma.club.findMany({
     where: {
       status: "ACTIVE",
-      OR: [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { activities: { has: search } },
+      AND: [
+        {
+          OR: [
+            { promotionStatus: "OFFICIAL" },
+            {
+              ownerParentProfileId: { not: null },
+              promotionStatus: { in: ["LOCAL", "DENIED"] },
+            },
+          ],
+        },
+        {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+            { activities: { has: search } },
+          ],
+        },
       ],
     },
     include: { provider: { select: { name: true } } },

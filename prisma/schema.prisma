@@ -8,13 +8,27 @@ datasource db {
 
 enum UserRole {
   PARENT
-  ADMIN
+  REVIEWER
+  MASTER_ADMIN
 }
 
 enum ClubStatus {
   ACTIVE
   DRAFT
   ARCHIVED
+}
+
+enum ClubPromotionStatus {
+  OFFICIAL
+  LOCAL
+  PENDING
+  DENIED
+}
+
+enum NotificationType {
+  CLUB_SUBMITTED
+  CLUB_APPROVED
+  CLUB_DENIED
 }
 
 enum Region {
@@ -53,36 +67,45 @@ enum ModerationStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  role      UserRole @default(PARENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(uuid())
+  email           String    @unique
+  role            UserRole  @default(PARENT)
+  lastLoginAt     DateTime?
+  roleUpdatedAt   DateTime?
+  roleUpdatedById String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  parentProfile ParentProfile?
+  parentProfile   ParentProfile?
+  notifications   Notification[]
+  roleUpdatedBy   User?         @relation("RoleUpdates", fields: [roleUpdatedById], references: [id], onDelete: SetNull)
+  rolesUpdated    User[]        @relation("RoleUpdates")
+  clubsReviewed   Club[]        @relation("ClubReviewedBy")
 }
 
 model ParentProfile {
-  id                   String   @id @default(uuid())
-  userId               String   @unique
-  displayName          String
-  homePostcode         String?
-  latitude             Float?
-  longitude            Float?
-  defaultSearchRadiusKm Float   @default(10)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  displayName           String
+  firstName             String?
+  lastName              String?
+  homePostcode          String?
+  latitude              Float?
+  longitude             Float?
+  defaultSearchRadiusKm Float    @default(10)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  children          ChildProfile[]
-  plannedClubs      PlannedClub[]
-  sentConnections   TrustedParentConnection[] @relation("Requester")
-  receivedConnections TrustedParentConnection[] @relation("Recipient")
-  sharedClubsCreated SharedClub[]
+  user                   User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children               ChildProfile[]
+  plannedClubs           PlannedClub[]
+  sentConnections        TrustedParentConnection[] @relation("Requester")
+  receivedConnections    TrustedParentConnection[] @relation("Recipient")
+  sharedClubsCreated     SharedClub[]
   sharedClubParticipants SharedClubParticipant[]
-  ratings           Rating[]
-  clubSubmissions   ClubSubmission[]
-  clubChangeRequests ClubChangeRequest[]
+  ratings                Rating[]
+  clubChangeRequests     ClubChangeRequest[]
+  ownedClubs             Club[]                    @relation("ClubOwner")
 }
 
 model ChildProfile {
@@ -98,8 +121,8 @@ model ChildProfile {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  plannedClubs PlannedClub[]
+  parent                 ParentProfile           @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  plannedClubs           PlannedClub[]
   sharedClubParticipants SharedClubParticipant[]
 }
 
@@ -120,40 +143,48 @@ model Provider {
 }
 
 model Club {
-  id              String     @id @default(uuid())
-  providerId      String
-  name            String
-  description     String?
-  locationName    String
-  address         String?
-  latitude        Float
-  longitude       Float
-  activities      String[]
-  ageMin          Int
-  ageMax          Int
-  startDate       DateTime?
-  endDate         DateTime?
-  dailyStartTime  String?
-  dailyEndTime    String?
-  price           Float?
-  dailyRate       Float?
-  priceNote       String?
-  bookingUrl      String?
-  imageUrl        String?
-  sourceUrl       String?
-  dataConfidence  String?
-  ratingAverage   Float      @default(0)
-  ratingCount     Int        @default(0)
-  status          ClubStatus @default(ACTIVE)
-  region          Region     @default(SOUTH_WEST_LONDON)
-  isIndoor        Boolean    @default(false)
-  isOutdoor       Boolean    @default(true)
-  sendFriendly    Boolean    @default(false)
-  accessibilityNotes String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id                   String              @id @default(uuid())
+  providerId           String
+  ownerParentProfileId String?
+  name                 String
+  description          String?
+  locationName         String
+  address              String?
+  latitude             Float
+  longitude            Float
+  activities           String[]
+  ageMin               Int
+  ageMax               Int
+  startDate            DateTime?
+  endDate              DateTime?
+  dailyStartTime       String?
+  dailyEndTime         String?
+  price                Float?
+  dailyRate            Float?
+  priceNote            String?
+  bookingUrl           String?
+  imageUrl             String?
+  sourceUrl            String?
+  dataConfidence       String?
+  ratingAverage        Float               @default(0)
+  ratingCount          Int                 @default(0)
+  status               ClubStatus          @default(ACTIVE)
+  promotionStatus      ClubPromotionStatus @default(OFFICIAL)
+  submissionNote       String?
+  reviewNote           String?
+  reviewedAt           DateTime?
+  reviewedByUserId     String?
+  region               Region              @default(SOUTH_WEST_LONDON)
+  isIndoor             Boolean             @default(false)
+  isOutdoor            Boolean             @default(true)
+  sendFriendly         Boolean             @default(false)
+  accessibilityNotes   String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
-  provider       Provider           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider       Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  owner          ParentProfile?      @relation("ClubOwner", fields: [ownerParentProfileId], references: [id], onDelete: SetNull)
+  reviewedBy     User?               @relation("ClubReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   plannedClubs   PlannedClub[]
   sharedClubs    SharedClub[]
   ratings        Rating[]
@@ -163,24 +194,26 @@ model Club {
   @@index([latitude, longitude])
   @@index([startDate, endDate])
   @@index([providerId])
+  @@index([ownerParentProfileId])
+  @@index([promotionStatus])
 }
 
 model PlannedClub {
-  id              String            @id @default(uuid())
-  parentProfileId String
-  childProfileId  String?
-  clubId          String
-  status              PlannedClubStatus @default(INTERESTED)
-  notes               String?
-  bookedDates         String[]          @default([])
-  dailyRateOverride   Float?
-  totalPriceOverride  Float?
-  createdAt           DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                 String            @id @default(uuid())
+  parentProfileId    String
+  childProfileId     String?
+  clubId             String
+  status             PlannedClubStatus @default(INTERESTED)
+  notes              String?
+  bookedDates        String[]          @default([])
+  dailyRateOverride  Float?
+  totalPriceOverride Float?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
-  parent       ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  child        ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
-  club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  parent                 ParentProfile           @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  child                  ChildProfile?           @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
+  club                   Club                    @relation(fields: [clubId], references: [id], onDelete: Cascade)
   sharedClubParticipants SharedClubParticipant[]
 
   @@unique([parentProfileId, clubId, childProfileId])
@@ -189,13 +222,13 @@ model PlannedClub {
 }
 
 model TrustedParentConnection {
-  id                 String           @id @default(uuid())
-  requesterParentId  String
-  recipientParentId  String?
-  status             ConnectionStatus @default(PENDING)
-  inviteToken        String           @unique
-  createdAt          DateTime         @default(now())
-  acceptedAt         DateTime?
+  id                String           @id @default(uuid())
+  requesterParentId String
+  recipientParentId String?
+  status            ConnectionStatus @default(PENDING)
+  inviteToken       String           @unique
+  createdAt         DateTime         @default(now())
+  acceptedAt        DateTime?
 
   requester ParentProfile  @relation("Requester", fields: [requesterParentId], references: [id], onDelete: Cascade)
   recipient ParentProfile? @relation("Recipient", fields: [recipientParentId], references: [id], onDelete: SetNull)
@@ -228,10 +261,10 @@ model SharedClubParticipant {
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 
-  sharedClub    SharedClub    @relation(fields: [sharedClubId], references: [id], onDelete: Cascade)
-  parent        ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  child         ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
-  plannedClub   PlannedClub?  @relation(fields: [plannedClubId], references: [id], onDelete: SetNull)
+  sharedClub  SharedClub    @relation(fields: [sharedClubId], references: [id], onDelete: Cascade)
+  parent      ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  child       ChildProfile? @relation(fields: [childProfileId], references: [id], onDelete: SetNull)
+  plannedClub PlannedClub?  @relation(fields: [plannedClubId], references: [id], onDelete: SetNull)
 }
 
 model Rating {
@@ -251,18 +284,19 @@ model Rating {
   @@index([clubId])
 }
 
-model ClubSubmission {
-  id                  String           @id @default(uuid())
-  submittedByParentId String
-  clubName            String
-  providerName        String?
-  website             String?
-  notes               String?
-  moderationStatus    ModerationStatus @default(PENDING)
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
 
-  submittedBy ParentProfile @relation(fields: [submittedByParentId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
 }
 
 model ClubChangeRequest {

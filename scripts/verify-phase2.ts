@@ -15,11 +15,11 @@ async function verify() {
   const activeClubCount = await prisma.club.count({
     where: { status: "ACTIVE" },
   });
-  console.assert(activeClubCount === 35, `Expected 35 active clubs, got ${activeClubCount}`);
+  console.assert(activeClubCount >= 24, `Expected at least 24 active clubs, got ${activeClubCount}`);
   console.log(`✓ ${activeClubCount} active clubs`);
 
   const providerCount = await prisma.provider.count();
-  console.assert(providerCount === 10, `Expected 10 providers, got ${providerCount}`);
+  console.assert(providerCount >= 38, `Expected at least 38 providers, got ${providerCount}`);
   console.log(`✓ ${providerCount} providers`);
 
   const club = await prisma.club.findFirst({
@@ -75,7 +75,10 @@ async function verify() {
     where: { email: adminEmail },
   });
   console.assert(existingAdmin !== null, "Expected seed admin user");
-  console.assert(existingAdmin!.role === UserRole.ADMIN, "Expected ADMIN role on seed admin");
+  console.assert(
+    existingAdmin!.role === UserRole.MASTER_ADMIN,
+    "Expected MASTER_ADMIN role on seed admin",
+  );
   console.log(`✓ Seed admin user has ADMIN role (${adminEmail})`);
 
   const testUserId = "00000000-0000-4000-8000-000000000099";

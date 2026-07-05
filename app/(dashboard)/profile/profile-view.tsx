@@ -61,6 +61,8 @@ type Child = {
 
 type ProfileViewProps = {
   displayName: string;
+  firstName: string | null;
+  lastName: string | null;
   homePostcode: string | null;
   defaultSearchRadiusKm: number;
   children: Child[];
@@ -75,6 +77,8 @@ function formatDateInput(date: Date | null): string {
 
 export function ProfileView({
   displayName,
+  firstName,
+  lastName,
   homePostcode,
   defaultSearchRadiusKm,
   children: initialChildren,
@@ -90,6 +94,8 @@ export function ProfileView({
     resolver: zodResolver(parentProfileSchema) as Resolver<ParentFormValues>,
     defaultValues: {
       displayName,
+      firstName: firstName ?? "",
+      lastName: lastName ?? "",
       homePostcode: homePostcode ?? "",
       defaultSearchRadiusKm,
     },
@@ -223,6 +229,34 @@ export function ProfileView({
                   </FormItem>
                 )}
               />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={parentForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First name</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={parentForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last name</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={parentForm.control}

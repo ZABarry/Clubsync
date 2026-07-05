@@ -160,6 +160,31 @@ export default async function HomePage() {
       </section>
 
       <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Nearby clubs</h2>
+        {mapMarkers.length === 0 ? (
+          <Card className="py-8">
+            <CardContent className="text-muted-foreground text-center text-sm">
+              Set your home postcode in Profile to see clubs on the map.
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <MapLegend className="mb-2" />
+            <ClubMap
+              markers={mapMarkers}
+              center={
+                parentLat != null && parentLng != null
+                  ? { latitude: parentLat, longitude: parentLng }
+                  : undefined
+              }
+              showLocateControl
+              className="h-64"
+            />
+          </>
+        )}
+      </section>
+
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Recommended clubs</h2>
           <Button variant="ghost" size="sm" asChild>
@@ -252,30 +277,6 @@ export default async function HomePage() {
             <ClubCalendar events={calendarEvents.slice(0, 10)} />
           )}
         </div>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Nearby clubs</h2>
-        {mapMarkers.length === 0 ? (
-          <Card className="py-8">
-            <CardContent className="text-muted-foreground text-center text-sm">
-              Set your home postcode in Profile to see clubs on the map.
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <MapLegend className="mb-2" />
-            <ClubMap
-              markers={mapMarkers}
-              center={
-                parentLat != null && parentLng != null
-                  ? { latitude: parentLat, longitude: parentLng }
-                  : undefined
-              }
-              className="h-64"
-            />
-          </>
-        )}
       </section>
     </div>
   );

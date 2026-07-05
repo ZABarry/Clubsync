@@ -4,6 +4,7 @@ import {
   FileEdit,
   MapPin,
   Star,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,8 +13,10 @@ import {
   getAdminClubs,
   getPendingChangeRequests,
   getPendingRatings,
-  getPendingSubmissions,
 } from "@/lib/actions/admin";
+import { getPendingClubReviews } from "@/lib/actions/club-management";
+import { syncUser } from "@/lib/auth/server";
+import { isMasterAdminRole } from "@/lib/auth/roles";
 import {
   Card,
   CardDescription,
@@ -21,7 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const SECTIONS = [
+const BASE_SECTIONS = [
   {
     href: "/admin/clubs",
     title: "Clubs",
@@ -29,16 +32,16 @@ const SECTIONS = [
     icon: MapPin,
   },
   {
+    href: "/admin/reviews",
+    title: "Reviews",
+    description: "Approve community club submissions",
+    icon: ClipboardList,
+  },
+  {
     href: "/admin/providers",
     title: "Providers",
     description: "Manage club providers",
     icon: Building2,
-  },
-  {
-    href: "/admin/submissions",
-    title: "Submissions",
-    description: "Review new club submissions",
-    icon: ClipboardList,
   },
   {
     href: "/admin/change-requests",
@@ -54,16 +57,28 @@ const SECTIONS = [
   },
 ];
 
+const USERS_SECTION = {
+  href: "/admin/users",
+  title: "Users",
+  description: "Manage users and reviewer roles",
+  icon: Users,
+};
+
 export default async function AdminDashboardPage() {
-  const [clubs, submissions, changeRequests, ratings] = await Promise.all([
+  const user = await syncUser();
+  const [clubs, reviews, changeRequests, ratings] = await Promise.all([
     getAdminClubs(),
-    getPendingSubmissions(),
+    getPendingClubReviews(),
     getPendingChangeRequests(),
     getPendingRatings(),
   ]);
 
   const pendingTotal =
-    submissions.length + changeRequests.length + ratings.length;
+    reviews.length + changeRequests.length + ratings.length;
+
+  const sections = isMasterAdminRole(user!.role)
+    ? [...BASE_SECTIONS, USERS_SECTION]
+    : BASE_SECTIONS;
 
   return (
     <div className="space-y-8">
@@ -73,7 +88,7 @@ export default async function AdminDashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {SECTIONS.map((section) => {
+        {sections.map((section) => {
           const Icon = section.icon;
           return (
             <Link key={section.href} href={section.href}>

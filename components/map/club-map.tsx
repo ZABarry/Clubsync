@@ -1,9 +1,16 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import Map, { Marker, type MapLayerMouseEvent } from "react-map-gl/maplibre";
+import { Crosshair, Loader2 } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import Map, {
+  Marker,
+  type MapLayerMouseEvent,
+  type MapRef,
+} from "react-map-gl/maplibre";
+import { toast } from "sonner";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import { Button } from "@/components/ui/button";
 import type { ClubMapMarker } from "@/lib/types/club";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +45,7 @@ type ClubMapProps = {
   center?: { latitude: number; longitude: number };
   zoom?: number;
   onMarkerClick?: (marker: ClubMapMarker) => void;
+  showLocateControl?: boolean;
   className?: string;
 };
 
@@ -46,8 +54,16 @@ export function ClubMap({
   center,
   zoom = 11,
   onMarkerClick,
+  showLocateControl = false,
   className,
 }: ClubMapProps) {
+  const mapRef = useRef<MapRef>(null);
+  const [locating, setLocating] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const defaultCenter = useMemo(() => {
     if (center) return center;
     if (markers.length > 0) {
@@ -66,14 +82,78 @@ export function ClubMap({
     [onMarkerClick],
   );
 
+  const handleLocate = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error("Your browser does not support location services");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ latitude, longitude });
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 14,
+          duration: 1200,
+        });
+        setLocating(false);
+      },
+      (error) => {
+        setLocating(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error(
+            "Location access denied. Allow location in your browser to center the map.",
+          );
+          return;
+        }
+        if (error.code === error.POSITION_UNAVAILABLE) {
+          toast.error("Your location is unavailable right now.");
+          return;
+        }
+        if (error.code === error.TIMEOUT) {
+          toast.error("Location request timed out. Try again.");
+          return;
+        }
+        toast.error("Could not get your location. Try again.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60_000,
+      },
+    );
+  }, []);
+
   return (
     <div
       className={cn(
-        "h-[400px] w-full overflow-hidden rounded-xl border",
+        "relative h-[400px] w-full overflow-hidden rounded-xl border",
         className,
       )}
     >
+      {showLocateControl ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="absolute top-2 right-2 z-10 size-8 bg-background/95 shadow-md backdrop-blur"
+          onClick={handleLocate}
+          disabled={locating}
+          aria-label="Center map on my location"
+          title="My location"
+        >
+          {locating ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Crosshair className="size-4" />
+          )}
+        </Button>
+      ) : null}
+
       <Map
+        ref={mapRef}
         initialViewState={{
           latitude: defaultCenter.latitude,
           longitude: defaultCenter.longitude,
@@ -83,6 +163,22 @@ export function ClubMap({
         style={{ width: "100%", height: "100%" }}
         onClick={(e: MapLayerMouseEvent) => e.originalEvent.stopPropagation()}
       >
+        {userLocation ? (
+          <Marker
+            latitude={userLocation.latitude}
+            longitude={userLocation.longitude}
+            anchor="center"
+          >
+            <span
+              className="relative flex size-4 items-center justify-center"
+              aria-hidden
+            >
+              <span className="absolute size-8 rounded-full bg-sky-400/25" />
+              <span className="size-3 rounded-full border-2 border-white bg-sky-500 shadow-md" />
+            </span>
+          </Marker>
+        ) : null}
+
         {markers.map((marker) => (
           <Marker
             key={marker.id}

@@ -1,6 +1,7 @@
 import type { PlannedClubStatus } from "@/lib/types/club";
 import { MapPin, Star } from "lucide-react";
 
+import { ClubImage } from "@/components/club/club-image";
 import { ClubStatusBadge } from "@/components/club/club-status-badge";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,22 +46,24 @@ export function ClubCard({ club, className, onClick }: ClubCardProps) {
           : undefined
       }
     >
-      {club.imageUrl ? (
-        <div className="px-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={club.imageUrl}
-            alt=""
-            className="aspect-[16/9] w-full rounded-lg object-cover"
-          />
-        </div>
-      ) : null}
+      <ClubImage
+        clubId={club.id}
+        src={club.imageUrl!}
+        alt={`${club.name} — ${club.providerName}`}
+        wrapperClassName="px-4"
+        className="aspect-[16/9] w-full rounded-lg object-cover"
+      />
       <CardHeader className="gap-2 px-4">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base leading-snug">{club.name}</CardTitle>
-          {club.plannedStatus ? (
-            <ClubStatusBadge status={club.plannedStatus} />
-          ) : null}
+          <div className="flex flex-wrap justify-end gap-1">
+            {club.isCommunityClub ? (
+              <Badge variant="secondary">Community</Badge>
+            ) : null}
+            {club.plannedStatus ? (
+              <ClubStatusBadge status={club.plannedStatus} />
+            ) : null}
+          </div>
         </div>
         <CardDescription>{club.providerName}</CardDescription>
       </CardHeader>

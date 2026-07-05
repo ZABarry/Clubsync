@@ -142,6 +142,22 @@ export async function upsertPlannedClub(data: unknown) {
   return planned;
 }
 
+export async function deletePlannedClub(clubId: string) {
+  const profile = await requireParentProfileId();
+
+  const existing = await prisma.plannedClub.findFirst({
+    where: { parentProfileId: profile.id, clubId },
+  });
+  if (!existing) return;
+
+  await prisma.plannedClub.delete({ where: { id: existing.id } });
+
+  revalidatePath("/calendar");
+  revalidatePath("/discover");
+  revalidatePath("/");
+  revalidatePath(`/clubs/${clubId}`);
+}
+
 export async function getPlannedClubForClub(
   clubId: string,
 ): Promise<PlannedClubBookingData | null> {

@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { isDbConnectionError } from "@/lib/db/errors";
+import { getNotifications, getUnreadNotificationCount } from "@/lib/actions/notifications";
 import { syncUser } from "@/lib/auth/server";
+import { showAdminNav } from "@/lib/auth/server";
 
 export default async function DashboardLayout({
   children,
@@ -24,7 +26,18 @@ export default async function DashboardLayout({
     redirect("/profile?onboarding=true");
   }
 
+  const [notifications, unreadCount] = await Promise.all([
+    getNotifications(8),
+    getUnreadNotificationCount(),
+  ]);
+
   return (
-    <AppShell showAdmin={user.role === "ADMIN"}>{children}</AppShell>
+    <AppShell
+      showAdmin={showAdminNav(user.role)}
+      notifications={notifications}
+      unreadCount={unreadCount}
+    >
+      {children}
+    </AppShell>
   );
 }

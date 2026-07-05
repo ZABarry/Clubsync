@@ -1,5 +1,7 @@
 "use client";
 
+import { CLUBZER_COLORS } from "@/lib/brand";
+
 type ClubZerLogoProps = {
   className?: string;
   showWordmark?: boolean;
@@ -48,7 +50,7 @@ export function ClubZerMark({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="15" cy="32" r="4.5" fill="#FDE047" stroke="white" strokeWidth="1.5" />
+      <circle cx="15" cy="32" r="4.5" fill={CLUBZER_COLORS.accent} stroke="white" strokeWidth="1.5" />
 
       <defs>
         <linearGradient
@@ -59,9 +61,9 @@ export function ClubZerMark({
           y2="46"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#FF6B54" />
-          <stop offset="0.55" stopColor="#FF9346" />
-          <stop offset="1" stopColor="#FFB347" />
+          <stop stopColor={CLUBZER_COLORS.primary} />
+          <stop offset="0.55" stopColor={CLUBZER_COLORS.primaryMid} />
+          <stop offset="1" stopColor={CLUBZER_COLORS.primaryLight} />
         </linearGradient>
       </defs>
     </svg>

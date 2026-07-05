@@ -50,6 +50,8 @@ export async function upsertParentProfile(data: unknown) {
     create: {
       userId: user.id,
       displayName: parsed.displayName,
+      firstName: parsed.firstName ?? null,
+      lastName: parsed.lastName ?? null,
       homePostcode: parsed.homePostcode ?? null,
       latitude,
       longitude,
@@ -57,6 +59,8 @@ export async function upsertParentProfile(data: unknown) {
     },
     update: {
       displayName: parsed.displayName,
+      firstName: parsed.firstName ?? null,
+      lastName: parsed.lastName ?? null,
       homePostcode: parsed.homePostcode ?? null,
       latitude,
       longitude,

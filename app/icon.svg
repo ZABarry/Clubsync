@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ClubZer">
+  <rect width="48" height="48" rx="14" fill="url(#clubzer-favicon-bg)"/>
+  <path d="M15 16H33L21 24H31" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M21 32H33" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="15" cy="32" r="4.75" fill="#FDE047" stroke="white" stroke-width="1.75"/>
+  <defs>
+    <linearGradient id="clubzer-favicon-bg" x1="6" y1="4" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6B54"/>
+      <stop offset="0.55" stop-color="#FF9346"/>
+      <stop offset="1" stop-color="#FFB347"/>
+    </linearGradient>
+  </defs>
+</svg>

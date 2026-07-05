@@ -6,6 +6,7 @@ import {
   Calendar,
   Compass,
   Home,
+  MapPin,
   Shield,
   User,
   Users,
@@ -24,6 +25,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/my-clubs", label: "My clubs", icon: MapPin },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/friends", label: "Friends", icon: Users },
   { href: "/profile", label: "Profile", icon: User },
@@ -44,7 +46,7 @@ export function Sidebar({ showAdmin = false }: SidebarProps) {
   const items = showAdmin ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS;
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-16 items-center gap-2 px-6">
         <Link href="/">
           <ClubZerLogo size="md" />

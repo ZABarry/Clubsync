@@ -28,6 +28,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/profile") ||
     pathname.startsWith("/planner") ||
     pathname.startsWith("/clubs") ||
+    pathname.startsWith("/my-clubs") ||
+    pathname.startsWith("/notifications") ||
     pathname.startsWith("/shared-clubs") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/invite");
