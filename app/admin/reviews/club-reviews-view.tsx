@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { moderateClubPromotion } from "@/lib/actions/club-management";
+import { resolveClubImageUrl } from "@/lib/clubs/resolve-club-image";
 
 type PendingReview = {
   id: string;
@@ -78,13 +80,29 @@ export function ClubReviewsView({ clubs }: ClubReviewsViewProps) {
         {clubs.map((club) => (
           <div key={club.id} className="rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-4 sm:flex-row">
-              <ClubImage
-                clubId={club.id}
-                src={club.imageUrl ?? ""}
-                alt={club.name}
-                wrapperClassName="shrink-0"
-                className="aspect-[16/9] w-full rounded-lg object-cover sm:w-48"
-              />
+              <div className="shrink-0 space-y-1">
+                <ClubImage
+                  clubId={club.id}
+                  src={resolveClubImageUrl({
+                    id: club.id,
+                    imageUrl: club.imageUrl,
+                  })}
+                  alt={club.name}
+                  wrapperClassName="shrink-0"
+                  className="aspect-[16/9] w-full rounded-lg object-cover sm:w-48"
+                />
+                {club.imageUrl?.trim() ? (
+                  <a
+                    href={club.imageUrl.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-2 hover:underline sm:max-w-48"
+                  >
+                    View image
+                    <ExternalLink className="size-3 shrink-0" aria-hidden />
+                  </a>
+                ) : null}
+              </div>
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">{club.name}</h3>

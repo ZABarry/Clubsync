@@ -14,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getRecommendations } from "@/lib/actions/recommendations";
-import type { ScoredClub } from "@/lib/recommendations/score-clubs";
+import { getRecommendations, type PlannerRecommendation } from "@/lib/actions/recommendations";
 import type { ChildOption, FriendOption } from "@/lib/types/club";
 import type { smartPlannerSchema } from "@/lib/validation/schemas";
 import type { z } from "zod";
@@ -26,7 +25,7 @@ type PlannerViewProps = {
 };
 
 export function PlannerView({ children, friends }: PlannerViewProps) {
-  const [results, setResults] = useState<ScoredClub[]>([]);
+  const [results, setResults] = useState<PlannerRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -75,7 +74,7 @@ export function PlannerView({ children, friends }: PlannerViewProps) {
       {results.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Ranked recommendations</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid items-start gap-4 sm:grid-cols-2">
             {results.map((club, index) => (
               <div key={club.id} className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -84,24 +83,25 @@ export function PlannerView({ children, friends }: PlannerViewProps) {
                     Score: {club.recommendationScore}
                   </span>
                 </div>
-                <Link href={`/clubs/${club.id}?from=planner`}>
-                  <ClubCard
-                    club={{
-                      id: club.id,
-                      name: club.name,
-                      providerName: "",
-                      startDate: club.startDate,
-                      endDate: club.endDate,
-                      price: club.price,
-                      dailyRate: club.dailyRate,
-                      priceNote: club.priceNote,
-                      ratingAverage: club.ratingAverage,
-                      ratingCount: club.ratingCount,
-                      activities: club.activities,
-                      distanceKm: club.distanceKm,
-                    }}
-                  />
-                </Link>
+                <ClubCard
+                  detailHref={`/clubs/${club.id}?from=planner`}
+                  club={{
+                    id: club.id,
+                    name: club.name,
+                    providerName: club.providerName,
+                    startDate: club.startDate,
+                    endDate: club.endDate,
+                    price: club.price,
+                    dailyRate: club.dailyRate,
+                    priceNote: club.priceNote,
+                    ratingAverage: club.ratingAverage,
+                    ratingCount: club.ratingCount,
+                    activities: club.activities,
+                    distanceKm: club.distanceKm,
+                    imageUrl: club.imageUrl,
+                    bookingUrl: club.bookingUrl,
+                  }}
+                />
                 {club.recommendationReasons.length > 0 ? (
                   <Card className="py-3">
                     <CardHeader className="px-4 py-0">

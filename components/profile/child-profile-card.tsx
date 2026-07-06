@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Cake, GraduationCap, Pencil, Trash2, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { formatChildInterest } from "@/lib/clubs/child-interests";
 import { formatChildSex, type ChildSex } from "@/lib/clubs/child-sex";
+import { cn } from "@/lib/utils";
 
 function formatSchoolYear(schoolYear: string | null): string | null {
   if (!schoolYear?.trim()) return null;
@@ -19,6 +20,26 @@ function formatSchoolYear(schoolYear: string | null): string | null {
   if (/^year\s/i.test(trimmed)) return trimmed;
   if (/^\d+$/.test(trimmed)) return `Year ${trimmed}`;
   return trimmed;
+}
+
+function ChildDetailChip({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof Cake;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-border/70",
+        "bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground",
+      )}
+    >
+      <Icon className="size-3 shrink-0 opacity-70" aria-hidden />
+      {children}
+    </span>
+  );
 }
 
 export type ChildProfileCardData = {
@@ -49,22 +70,16 @@ export function ChildProfileCard({
   return (
     <Card className="gap-3 py-4">
       <CardHeader className="gap-2 px-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5">
-            <CardTitle className="shrink-0 text-base">{child.nickname}</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-2">
+            <CardTitle className="text-base">{child.nickname}</CardTitle>
             <div className="flex flex-wrap items-center gap-1.5">
-              <Badge variant="secondary" className="text-xs">
-                Age {child.age}
-              </Badge>
+              <ChildDetailChip icon={Cake}>Age {child.age}</ChildDetailChip>
               {sexLabel ? (
-                <Badge variant="secondary" className="text-xs">
-                  {sexLabel}
-                </Badge>
+                <ChildDetailChip icon={UserRound}>{sexLabel}</ChildDetailChip>
               ) : null}
               {schoolYear ? (
-                <Badge variant="secondary" className="text-xs">
-                  {schoolYear}
-                </Badge>
+                <ChildDetailChip icon={GraduationCap}>{schoolYear}</ChildDetailChip>
               ) : null}
             </div>
           </div>
@@ -95,6 +110,9 @@ export function ChildProfileCard({
       </CardHeader>
       {child.interests.length > 0 ? (
         <CardContent className="px-4 pt-0">
+          <p className="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wide uppercase">
+            Interests
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {child.interests.map((interest) => (
               <Badge key={interest} variant="secondary" className="text-xs">

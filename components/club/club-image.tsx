@@ -68,19 +68,25 @@ export function ClubImage({
   priority = false,
 }: ClubImageProps) {
   const fallbackSrc = resolveClubImageFallbackUrl(clubId);
-  const [displaySrc, setDisplaySrc] = useState(src);
-  const [usingFallback, setUsingFallback] = useState(false);
+  const hasPrimarySrc = Boolean(src.trim());
+  const [displaySrc, setDisplaySrc] = useState(
+    hasPrimarySrc ? src : fallbackSrc,
+  );
+  const [usingFallback, setUsingFallback] = useState(!hasPrimarySrc);
 
   useEffect(() => {
-    setDisplaySrc(src);
-    setUsingFallback(false);
-  }, [src]);
+    const hasSrc = Boolean(src.trim());
+    setDisplaySrc(hasSrc ? src : fallbackSrc);
+    setUsingFallback(!hasSrc);
+  }, [src, fallbackSrc]);
 
   const handleError = () => {
     if (usingFallback) return;
     setUsingFallback(true);
     setDisplaySrc(fallbackSrc);
   };
+
+  const resolvedSrc = displaySrc.trim() || fallbackSrc;
 
   const { layout, visual } = partitionImageClasses(className);
   const wrapperClasses = cn(
@@ -90,14 +96,14 @@ export function ClubImage({
   );
   const imageClasses = cn("absolute inset-0 size-full object-cover", visual);
   const useNextImage =
-    !usingFallback && canOptimizeImageUrl(displaySrc);
+    !usingFallback && canOptimizeImageUrl(resolvedSrc);
 
   if (useNextImage) {
     return (
       <div className={wrapperClasses}>
         <Image
-          key={displaySrc}
-          src={displaySrc}
+          key={resolvedSrc}
+          src={resolvedSrc}
           alt={alt}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -113,8 +119,8 @@ export function ClubImage({
     <div className={wrapperClasses}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        key={displaySrc}
-        src={displaySrc}
+        key={resolvedSrc}
+        src={resolvedSrc}
         alt={alt}
         className={imageClasses}
         loading={priority ? "eager" : "lazy"}

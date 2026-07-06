@@ -11,6 +11,7 @@ import {
 import {
   scoreClubs,
   type RecommendationClub,
+  type ScoredClub,
 } from "@/lib/recommendations/score-clubs";
 import { isVisibleToFriends } from "@/lib/privacy/friend-visibility";
 import type { ClubCardData } from "@/lib/types/club";
@@ -22,6 +23,12 @@ export type DashboardRecommendationsResult = {
   offset: number;
   hasMore: boolean;
   total: number;
+};
+
+export type PlannerRecommendation = ScoredClub & {
+  providerName: string;
+  imageUrl: string;
+  bookingUrl: string | null;
 };
 
 function paginateRecommendations(
@@ -74,7 +81,9 @@ async function getTrustedFriendIds(parentProfileId: string) {
   );
 }
 
-export async function getRecommendations(input: unknown) {
+export async function getRecommendations(
+  input: unknown,
+): Promise<PlannerRecommendation[]> {
   const user = await requireAuth();
   const profile = user.parentProfile;
   if (!profile) throw new Error("Parent profile required");
@@ -114,6 +123,9 @@ export async function getRecommendations(input: unknown) {
       price: true,
       dailyRate: true,
       priceNote: true,
+      imageUrl: true,
+      bookingUrl: true,
+      provider: { select: { name: true } },
     },
   });
 
@@ -145,7 +157,7 @@ export async function getRecommendations(input: unknown) {
   const interests =
     parsed.interests.length > 0 ? parsed.interests : child.interests;
 
-  return scoreClubs(clubs as RecommendationClub[], {
+  const scored = scoreClubs(clubs as RecommendationClub[], {
     child: {
       age: child.age,
       interests,
@@ -159,6 +171,16 @@ export async function getRecommendations(input: unknown) {
     },
     trustedFriendPlannedClubIds: friendClubCounts,
     budget: parsed.budget,
+  });
+
+  return scored.map((club) => {
+    const source = clubs.find((c) => c.id === club.id)!;
+    return {
+      ...club,
+      providerName: source.provider.name,
+      imageUrl: resolveClubImageUrl({ id: club.id, imageUrl: source.imageUrl }),
+      bookingUrl: source.bookingUrl,
+    };
   });
 }
 

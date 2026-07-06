@@ -32,7 +32,7 @@ export function ClubCard({
   return (
     <Card
       className={cn(
-        "relative flex h-full flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md",
+        "relative flex flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md",
         (onClick || detailHref) && "cursor-pointer",
         className,
       )}
@@ -68,7 +68,7 @@ export function ClubCard({
         />
       </div>
 
-      <div className="relative z-10 flex flex-1 flex-col gap-2 p-3 pointer-events-none">
+      <div className="relative z-10 flex flex-col gap-2 p-3 pointer-events-none">
         <div className="flex min-h-[3.25rem] items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-sm leading-snug font-semibold line-clamp-2">
@@ -142,16 +142,11 @@ export function ClubCard({
           ) : null}
         </div>
 
-        <p
-          className={cn(
-            "text-muted-foreground mt-auto line-clamp-1 min-h-[1.125rem] text-[11px] leading-snug",
-            !club.recommendationReasons?.length && "invisible",
-          )}
-        >
-          {club.recommendationReasons?.length
-            ? club.recommendationReasons.slice(0, 3).join(" · ")
-            : "\u00A0"}
-        </p>
+        {club.recommendationReasons?.length ? (
+          <p className="text-muted-foreground line-clamp-1 text-[11px] leading-snug">
+            {club.recommendationReasons.slice(0, 3).join(" · ")}
+          </p>
+        ) : null}
 
         {club.bookingUrl ? (
           <div className="pointer-events-auto relative z-20 pt-1">

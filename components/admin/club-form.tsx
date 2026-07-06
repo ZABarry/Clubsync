@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -27,6 +27,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { resolveClubCoordinates } from "@/lib/clubs/resolve-club-coordinates";
+import {
+  formatActivitiesInput,
+  parseActivitiesInput,
+} from "@/lib/clubs/parse-activities-input";
 import { clubSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
 
@@ -79,17 +83,27 @@ export function ClubForm({
     },
   });
 
-  const activities = form.watch("activities");
+  const [activitiesInput, setActivitiesInput] = useState(() =>
+    formatActivitiesInput(defaultValues?.activities ?? []),
+  );
   const [postcode, setPostcode] = useState("");
   const [postcodeError, setPostcodeError] = useState<string | null>(null);
   const [geocoding, setGeocoding] = useState(false);
 
-  const handleActivitiesChange = (value: string) => {
-    const parsed = value
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    form.setValue("activities", parsed);
+  useEffect(() => {
+    setActivitiesInput(formatActivitiesInput(defaultValues?.activities ?? []));
+  }, [defaultValues?.activities]);
+
+  const syncActivitiesToForm = (value: string) => {
+    form.setValue("activities", parseActivitiesInput(value), {
+      shouldDirty: true,
+    });
+  };
+
+  const handleActivitiesBlur = () => {
+    const parsed = parseActivitiesInput(activitiesInput);
+    form.setValue("activities", parsed, { shouldDirty: true });
+    setActivitiesInput(formatActivitiesInput(parsed));
   };
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -110,7 +124,11 @@ export function ClubForm({
       return;
     }
 
-    await onSubmit({ ...values, ...resolved });
+    await onSubmit({
+      ...values,
+      ...resolved,
+      activities: parseActivitiesInput(activitiesInput),
+    });
   });
 
   return (
@@ -238,8 +256,13 @@ export function ClubForm({
           <FormLabel>Activities (comma-separated)</FormLabel>
           <FormControl>
             <Input
-              value={activities.join(", ")}
-              onChange={(e) => handleActivitiesChange(e.target.value)}
+              value={activitiesInput}
+              onChange={(e) => {
+                const value = e.target.value;
+                setActivitiesInput(value);
+                syncActivitiesToForm(value);
+              }}
+              onBlur={handleActivitiesBlur}
               placeholder="football, art, swimming"
             />
           </FormControl>
